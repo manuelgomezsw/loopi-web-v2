@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master, develop]
+  push:
+    branches: [develop]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check project initialized
+        id: check
+        run: |
+          if [ -f "package-lock.json" ] || [ -f "yarn.lock" ]; then
+            echo "ready=true" >> $GITHUB_OUTPUT
+          else
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "::notice::Angular project not initialized yet, skipping build steps"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.check.outputs.ready == 'true'
+        run: npm ci
+
+      - name: Lint
+        if: steps.check.outputs.ready == 'true'
+        run: npm run lint
+
+      - name: Unit tests
+        if: steps.check.outputs.ready == 'true'
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build
+        if: steps.check.outputs.ready == 'true'
+        run: npm run build
