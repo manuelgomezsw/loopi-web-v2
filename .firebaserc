@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "loopi-dev-497600",
+    "dev": "loopi-dev-497600",
+    "prod": "loopi-prod-497600"
+  }
+}
