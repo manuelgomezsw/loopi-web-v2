@@ -64,7 +64,8 @@
               "buildTarget": "loopi-web:build:production"
             },
             "development": {
-              "buildTarget": "loopi-web:build:development"
+              "buildTarget": "loopi-web:build:development",
+              "proxyConfig": "src/proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
