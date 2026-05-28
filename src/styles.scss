@@ -1,1 +1,22 @@
-/* You can add global styles to this file, and also import other style files */
+/* stylelint-disable-next-line import/no-unresolved */
+@use "tailwindcss";
+
+/*
+  Tokens de diseño de marca — se completan cuando se defina el design system.
+  Hasta entonces, se usa la escala base de Tailwind CSS v4.
+  Ver constitución §Diseño de Interfaz (UX/UI).
+*/
+@theme {
+  /* Tipografía base del sistema */
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Base global */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+  min-height: 100dvh;
+}
