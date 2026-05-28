@@ -1,0 +1,48 @@
+<section class="login-container">
+  <h1>Iniciar sesión</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="field">
+      <label for="usuario">Usuario</label>
+      <input
+        id="usuario"
+        type="text"
+        formControlName="usuario"
+        autocomplete="username"
+        [attr.aria-describedby]="errorMensaje ? 'login-error' : null"
+        [attr.aria-invalid]="errorMensaje ? 'true' : null"
+      />
+    </div>
+
+    <div class="field">
+      <label for="contrasena">Contraseña</label>
+      <input
+        id="contrasena"
+        type="password"
+        formControlName="contrasena"
+        autocomplete="current-password"
+        [attr.aria-describedby]="errorMensaje ? 'login-error' : null"
+        [attr.aria-invalid]="errorMensaje ? 'true' : null"
+      />
+    </div>
+
+    @if (infoMensaje) {
+      <p class="info-message" role="status">{{ infoMensaje }}</p>
+    }
+
+    @if (errorMensaje) {
+      <p id="login-error" class="error-message" role="alert">
+        {{ errorMensaje }}
+      </p>
+    }
+
+    <button type="submit" [disabled]="form.invalid || cargando">
+      @if (cargando) {
+        <span aria-hidden="true">Iniciando sesión…</span>
+        <span class="sr-only">Iniciando sesión, por favor espere</span>
+      } @else {
+        Ingresar
+      }
+    </button>
+  </form>
+</section>
