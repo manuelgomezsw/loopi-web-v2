@@ -20,6 +20,7 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     // Restaurar sesión desde cookie activa. authInterceptor gestiona el 401.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     this.auth.getMe().subscribe({ error: () => {} });
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
@@ -23,10 +23,10 @@ export interface SesionState {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+
   /** Señal reactiva con el estado de sesión actual. null = no autenticado. */
   readonly sesion = signal<SesionState | null>(null);
-
-  constructor(private readonly http: HttpClient) {}
 
   /**
    * Autentica al usuario contra POST /api/v1/auth/login.
