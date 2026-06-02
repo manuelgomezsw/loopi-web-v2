@@ -25,7 +25,7 @@ const tiendaEjemplo: TiendaResponse = {
 function mockRoute(id: string | null) {
   return {
     snapshot: {
-      paramMap: { get: (_: string) => id },
+      paramMap: { get: () => id },
     },
   };
 }
