@@ -9,14 +9,34 @@ export const routes: Routes = [
       import('./auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    // Ruta raíz protegida con authGuard. Aquí irán las rutas del dashboard en futuras features.
     path: '',
     canActivate: [authGuard],
     children: [
       {
         path: '',
-        redirectTo: 'login',
+        redirectTo: 'tiendas',
         pathMatch: 'full',
+      },
+      {
+        path: 'tiendas',
+        loadComponent: () =>
+          import('./tiendas/tiendas-lista/tiendas-lista.component').then(
+            (m) => m.TiendasListaComponent,
+          ),
+      },
+      {
+        path: 'tiendas/nueva',
+        loadComponent: () =>
+          import('./tiendas/tienda-form/tienda-form.component').then(
+            (m) => m.TiendaFormComponent,
+          ),
+      },
+      {
+        path: 'tiendas/:id/editar',
+        loadComponent: () =>
+          import('./tiendas/tienda-form/tienda-form.component').then(
+            (m) => m.TiendaFormComponent,
+          ),
       },
     ],
   },

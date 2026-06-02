@@ -1,0 +1,139 @@
+<div class="max-w-lg mx-auto p-6">
+  <h1 class="text-2xl font-semibold text-gray-800 mb-6">
+    {{ modoEdicion() ? 'Editar tienda' : 'Nueva tienda' }}
+  </h1>
+
+  <!-- Toast -->
+  @if (toastMsg()) {
+    <div
+      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+      [class.bg-green-100]="toastTipo() === 'verde'"
+      [class.text-green-800]="toastTipo() === 'verde'"
+      [class.bg-red-100]="toastTipo() === 'rojo'"
+      [class.text-red-800]="toastTipo() === 'rojo'"
+    >
+      {{ toastMsg() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
+
+    <!-- Código -->
+    <div>
+      <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
+        Código <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="codigo"
+        type="text"
+        formControlName="codigo"
+        maxlength="20"
+        placeholder="TDA-001"
+        class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        [class.border-red-500]="errorDe('codigo')"
+        [class.border-gray-300]="!errorDe('codigo')"
+      />
+      @if (errorDe('codigo')) {
+        <p class="text-red-600 text-xs mt-1">{{ errorDe('codigo') }}</p>
+      }
+    </div>
+
+    <!-- Nombre -->
+    <div>
+      <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+        Nombre <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        maxlength="150"
+        placeholder="Tienda Norte"
+        class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        [class.border-red-500]="errorDe('nombre')"
+        [class.border-gray-300]="!errorDe('nombre')"
+      />
+      @if (errorDe('nombre')) {
+        <p class="text-red-600 text-xs mt-1">{{ errorDe('nombre') }}</p>
+      }
+    </div>
+
+    <!-- Dirección -->
+    <div>
+      <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">
+        Dirección <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="direccion"
+        type="text"
+        formControlName="direccion"
+        maxlength="255"
+        placeholder="Calle 100 #20-30"
+        class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        [class.border-red-500]="errorDe('direccion')"
+        [class.border-gray-300]="!errorDe('direccion')"
+      />
+      @if (errorDe('direccion')) {
+        <p class="text-red-600 text-xs mt-1">{{ errorDe('direccion') }}</p>
+      }
+    </div>
+
+    <!-- Ciudad -->
+    <div>
+      <label for="ciudad" class="block text-sm font-medium text-gray-700 mb-1">
+        Ciudad <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="ciudad"
+        type="text"
+        formControlName="ciudad"
+        maxlength="100"
+        placeholder="Bogotá"
+        class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        [class.border-red-500]="errorDe('ciudad')"
+        [class.border-gray-300]="!errorDe('ciudad')"
+      />
+      @if (errorDe('ciudad')) {
+        <p class="text-red-600 text-xs mt-1">{{ errorDe('ciudad') }}</p>
+      }
+    </div>
+
+    <!-- Teléfono -->
+    <div>
+      <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">
+        Teléfono <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="telefono"
+        type="text"
+        formControlName="telefono"
+        maxlength="20"
+        placeholder="3001234567"
+        class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        [class.border-red-500]="errorDe('telefono')"
+        [class.border-gray-300]="!errorDe('telefono')"
+      />
+      @if (errorDe('telefono')) {
+        <p class="text-red-600 text-xs mt-1">{{ errorDe('telefono') }}</p>
+      }
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-3 pt-2">
+      <button
+        type="submit"
+        [disabled]="guardando()"
+        class="bg-indigo-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
+      >
+        {{ guardando() ? 'Guardando...' : 'Guardar' }}
+      </button>
+      <a
+        routerLink="/tiendas"
+        class="px-5 py-2 rounded-md text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50"
+      >
+        Cancelar
+      </a>
+    </div>
+
+  </form>
+</div>
