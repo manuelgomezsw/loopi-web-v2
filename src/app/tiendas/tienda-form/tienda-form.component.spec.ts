@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -84,11 +84,11 @@ describe('TiendaFormComponent — modo creación', () => {
     expect(component.form.invalid).toBeTrue();
   });
 
-  it('el botón Guardar está deshabilitado cuando el formulario es inválido', () => {
+  it('el botón Guardar está habilitado aunque el formulario sea inválido (la guardia está en enviar())', () => {
     component.form.markAllAsTouched();
     fixture.detectChanges();
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
-    expect(btn.disabled).toBeTrue();
+    expect(btn.disabled).toBeFalse();
   });
 
   it('el botón Guardar se habilita con formulario válido', () => {
@@ -121,19 +121,20 @@ describe('TiendaFormComponent — modo creación', () => {
     });
   });
 
-  it('muestra toast verde tras crear exitosamente', fakeAsync(() => {
+  it('muestra toast verde tras crear exitosamente', () => {
+    // of() es síncrono: el callback next() se ejecuta dentro de enviar()
+    // antes de que cualquier setTimeout pueda dispararse.
     serviceSpy.crear.and.returnValue(of(tiendaEjemplo));
     component.form.setValue({
       codigo: 'X', nombre: 'N', direccion: 'D', ciudad: 'C', telefono: 'T',
     });
 
     component.enviar();
-    tick();
     fixture.detectChanges();
 
     expect(component.toastMsg()).toContain('correctamente');
     expect(component.toastTipo()).toBe('verde');
-  }));
+  });
 
   it('en error 409 nombre_duplicado muestra el error en el campo nombre', () => {
     const errorResp = new HttpErrorResponse({
