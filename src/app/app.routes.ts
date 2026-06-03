@@ -38,6 +38,27 @@ export const routes: Routes = [
             (m) => m.TiendaFormComponent,
           ),
       },
+      {
+        path: 'empleados',
+        loadComponent: () =>
+          import('./empleados/empleados-lista/empleados-lista.component').then(
+            (m) => m.EmpleadosListaComponent,
+          ),
+      },
+      {
+        path: 'empleados/nuevo',
+        loadComponent: () =>
+          import('./empleados/empleado-form/empleado-form.component').then(
+            (m) => m.EmpleadoFormComponent,
+          ),
+      },
+      {
+        path: 'empleados/:id/editar',
+        loadComponent: () =>
+          import('./empleados/empleado-form/empleado-form.component').then(
+            (m) => m.EmpleadoFormComponent,
+          ),
+      },
     ],
   },
   {
