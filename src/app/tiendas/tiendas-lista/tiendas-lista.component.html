@@ -5,7 +5,7 @@
       routerLink="/tiendas/nueva"
       class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
     >
-      Nueva tienda
+      + Nueva tienda
     </a>
   </div>
 
@@ -19,6 +19,8 @@
       [class.text-gray-800]="toastTipo() === 'neutro'"
       [class.bg-red-100]="toastTipo() === 'rojo'"
       [class.text-red-800]="toastTipo() === 'rojo'"
+      role="alert"
+      aria-live="polite"
     >
       {{ toastMsg() }}
     </div>
@@ -43,7 +45,7 @@
 
   <!-- Error -->
   @if (errorMsg()) {
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" role="alert">
       {{ errorMsg() }}
     </div>
   }
@@ -71,16 +73,22 @@
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600">Código</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600">Ciudad</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-            <th class="px-4 py-3 text-right font-medium text-gray-600">Acciones</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Código</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Ciudad</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
           @for (tienda of tiendas(); track tienda.id) {
-            <tr class="hover:bg-gray-50">
+            <tr
+              class="hover:bg-indigo-50 cursor-pointer"
+              (click)="irAEditar(tienda.id)"
+              (keydown.enter)="irAEditar(tienda.id)"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="'Editar ' + tienda.nombre"
+            >
               <td class="px-4 py-3 font-medium text-gray-900">{{ tienda.nombre }}</td>
               <td class="px-4 py-3 text-gray-600 font-mono">{{ tienda.codigo }}</td>
               <td class="px-4 py-3 text-gray-600">{{ tienda.ciudad }}</td>
@@ -93,29 +101,6 @@
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                     Inactiva
                   </span>
-                }
-              </td>
-              <td class="px-4 py-3 text-right space-x-2">
-                <a
-                  [routerLink]="['/tiendas', tienda.id, 'editar']"
-                  class="text-indigo-600 hover:underline text-xs"
-                >
-                  Editar
-                </a>
-                @if (tienda.activo) {
-                  <button
-                    (click)="confirmarInactivar(tienda)"
-                    class="text-red-600 hover:underline text-xs"
-                  >
-                    Inactivar
-                  </button>
-                } @else {
-                  <button
-                    (click)="confirmarReactivar(tienda)"
-                    class="text-green-600 hover:underline text-xs"
-                  >
-                    Reactivar
-                  </button>
                 }
               </td>
             </tr>

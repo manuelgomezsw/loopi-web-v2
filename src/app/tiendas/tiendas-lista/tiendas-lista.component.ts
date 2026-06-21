@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 import {
   ListaTiendasResponse,
@@ -16,6 +16,7 @@ import {
 })
 export class TiendasListaComponent implements OnInit {
   private readonly tiendasService = inject(TiendasService);
+  private readonly router = inject(Router);
 
   readonly tiendas = signal<TiendaResponse[]>([]);
   readonly total = signal<number>(0);
@@ -32,6 +33,10 @@ export class TiendasListaComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarTiendas();
+  }
+
+  irAEditar(id: number): void {
+    this.router.navigate(['/tiendas', id, 'editar']);
   }
 
   cambiarFiltro(estado: string): void {
@@ -56,41 +61,6 @@ export class TiendasListaComponent implements OnInit {
           this.cargando.set(false);
         },
       });
-  }
-
-  confirmarInactivar(tienda: TiendaResponse): void {
-    this.tiendasService.inactivar(tienda.id).subscribe({
-      next: (actualizada: TiendaResponse) => {
-        this.tiendas.update((lista) =>
-          lista.map((t) => (t.id === actualizada.id ? actualizada : t)),
-        );
-        this.mostrarToast(`Tienda ${tienda.nombre} inactivada.`, 'neutro', 3000);
-      },
-      error: (err) => {
-        const msg =
-          err?.error?.mensaje ?? 'Error al inactivar la tienda.';
-        this.mostrarToast(msg, 'rojo', 5000);
-      },
-    });
-  }
-
-  confirmarReactivar(tienda: TiendaResponse): void {
-    if (!confirm(`¿Reactivar esta tienda?\n${tienda.nombre}`)) {
-      return;
-    }
-    this.tiendasService.reactivar(tienda.id).subscribe({
-      next: (actualizada: TiendaResponse) => {
-        this.tiendas.update((lista) =>
-          lista.map((t) => (t.id === actualizada.id ? actualizada : t)),
-        );
-        this.mostrarToast(`Tienda ${tienda.nombre} reactivada.`, 'verde', 3000);
-      },
-      error: (err) => {
-        const msg =
-          err?.error?.mensaje ?? 'Error al reactivar la tienda.';
-        this.mostrarToast(msg, 'rojo', 5000);
-      },
-    });
   }
 
   private mostrarToast(msg: string, tipo: 'verde' | 'neutro' | 'rojo', ms: number): void {

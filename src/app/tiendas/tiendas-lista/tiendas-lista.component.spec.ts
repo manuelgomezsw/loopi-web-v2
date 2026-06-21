@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { TiendasListaComponent } from './tiendas-lista.component';
@@ -34,11 +34,10 @@ describe('TiendasListaComponent', () => {
   let fixture: ComponentFixture<TiendasListaComponent>;
   let component: TiendasListaComponent;
   let serviceSpy: jasmine.SpyObj<TiendasService>;
+  let router: Router;
 
   beforeEach(async () => {
-    serviceSpy = jasmine.createSpyObj('TiendasService', [
-      'listar', 'inactivar', 'reactivar',
-    ]);
+    serviceSpy = jasmine.createSpyObj('TiendasService', ['listar']);
     serviceSpy.listar.and.returnValue(of(listaVacia));
 
     await TestBed.configureTestingModule({
@@ -49,6 +48,7 @@ describe('TiendasListaComponent', () => {
       ],
     }).compileComponents();
 
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(TiendasListaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -64,6 +64,25 @@ describe('TiendasListaComponent', () => {
     expect(serviceSpy.listar).toHaveBeenCalledWith('todas', 1, 50);
   });
 
+  // --- navegación ---
+
+  it('irAEditar() navega a la ruta de edición', () => {
+    const navSpy = spyOn(router, 'navigate');
+    component.irAEditar(1);
+    expect(navSpy).toHaveBeenCalledWith(['/tiendas', 1, 'editar']);
+  });
+
+  it('clic en fila navega a editar', () => {
+    serviceSpy.listar.and.returnValue(of(listaConTiendas));
+    component.cargarTiendas();
+    fixture.detectChanges();
+
+    const navSpy = spyOn(router, 'navigate');
+    const fila = fixture.nativeElement.querySelector('tbody tr');
+    fila.click();
+    expect(navSpy).toHaveBeenCalledWith(['/tiendas', tiendaActiva.id, 'editar']);
+  });
+
   // --- estado vacío ---
 
   it('muestra bloque de estado vacío cuando no hay tiendas', () => {
@@ -71,8 +90,7 @@ describe('TiendasListaComponent', () => {
   });
 
   it('no muestra tabla cuando la lista está vacía', () => {
-    const tabla = fixture.nativeElement.querySelector('table');
-    expect(tabla).toBeNull();
+    expect(fixture.nativeElement.querySelector('table')).toBeNull();
   });
 
   // --- tabla con datos ---
@@ -82,8 +100,7 @@ describe('TiendasListaComponent', () => {
     component.cargarTiendas();
     fixture.detectChanges();
 
-    const tabla = fixture.nativeElement.querySelector('table');
-    expect(tabla).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('table')).toBeTruthy();
   });
 
   it('renderiza una fila por tienda', () => {
@@ -116,7 +133,6 @@ describe('TiendasListaComponent', () => {
   it('cambiarFiltro() relanza listar() con el nuevo estado', () => {
     serviceSpy.listar.and.returnValue(of(listaVacia));
     component.cambiarFiltro('activas');
-
     expect(serviceSpy.listar).toHaveBeenCalledWith('activas', 1, 50);
   });
 
@@ -124,7 +140,6 @@ describe('TiendasListaComponent', () => {
     component.pagina.set(3);
     serviceSpy.listar.and.returnValue(of(listaVacia));
     component.cambiarFiltro('inactivas');
-
     expect(component.pagina()).toBe(1);
   });
 
@@ -142,56 +157,5 @@ describe('TiendasListaComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Error al cargar');
-  });
-
-  // --- inactivar ---
-
-  it('confirmarInactivar() llama al servicio y actualiza la lista', () => {
-    serviceSpy.listar.and.returnValue(of({ ...listaConTiendas, datos: [tiendaActiva] }));
-    component.cargarTiendas();
-    fixture.detectChanges();
-
-    const inactivada = { ...tiendaActiva, activo: false };
-    serviceSpy.inactivar.and.returnValue(of(inactivada));
-
-    component.confirmarInactivar(tiendaActiva);
-    fixture.detectChanges();
-
-    expect(serviceSpy.inactivar).toHaveBeenCalledWith(tiendaActiva.id);
-    expect(component.tiendas()[0].activo).toBeFalse();
-  });
-
-  it('confirmarInactivar() muestra toast de error cuando el servicio falla', () => {
-    serviceSpy.inactivar.and.returnValue(
-      throwError(() => ({ status: 422, error: { mensaje: 'ya está inactiva' } })),
-    );
-    component.confirmarInactivar(tiendaActiva);
-    fixture.detectChanges();
-
-    expect(component.toastMsg()).toContain('ya está inactiva');
-  });
-
-  // --- reactivar ---
-
-  it('confirmarReactivar() muestra confirm dialog y llama al servicio si acepta', () => {
-    spyOn(window, 'confirm').and.returnValue(true);
-    serviceSpy.listar.and.returnValue(of({ ...listaConTiendas, datos: [tiendaInactiva] }));
-    component.cargarTiendas();
-    fixture.detectChanges();
-
-    const reactivada = { ...tiendaInactiva, activo: true };
-    serviceSpy.reactivar.and.returnValue(of(reactivada));
-
-    component.confirmarReactivar(tiendaInactiva);
-    fixture.detectChanges();
-
-    expect(serviceSpy.reactivar).toHaveBeenCalledWith(tiendaInactiva.id);
-    expect(component.tiendas()[0].activo).toBeTrue();
-  });
-
-  it('confirmarReactivar() NO llama al servicio si el usuario cancela el confirm', () => {
-    spyOn(window, 'confirm').and.returnValue(false);
-    component.confirmarReactivar(tiendaInactiva);
-    expect(serviceSpy.reactivar).not.toHaveBeenCalled();
   });
 });

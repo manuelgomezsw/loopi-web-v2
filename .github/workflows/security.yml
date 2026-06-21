@@ -10,6 +10,7 @@ jobs:
   trivy:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       security-events: write
 
@@ -26,6 +27,7 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: 1
+          timeout: 5m0s
 
       - name: Subir resultados al Security tab
         if: always()

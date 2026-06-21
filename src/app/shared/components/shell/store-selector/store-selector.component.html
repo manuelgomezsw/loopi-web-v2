@@ -1,0 +1,29 @@
+<div class="flex items-center gap-2">
+  <label for="store-selector" class="sr-only">Seleccionar tienda</label>
+
+  @if (cargando()) {
+    <span class="text-sm text-gray-400" aria-busy="true">Cargando…</span>
+  } @else if (error()) {
+    <span class="text-sm text-red-600">Error al cargar tiendas.</span>
+    <button
+      type="button"
+      class="text-sm text-blue-600 underline hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (click)="cargarTiendas()"
+    >
+      Reintentar
+    </button>
+  } @else {
+    <select
+      id="store-selector"
+      class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      [value]="valorActual"
+      (change)="seleccionar($event)"
+      aria-label="Seleccionar tienda"
+    >
+      <option value="">Vista consolidada</option>
+      @for (tienda of tiendas(); track tienda.id) {
+        <option [value]="tienda.id">{{ tienda.nombre }}</option>
+      }
+    </select>
+  }
+</div>

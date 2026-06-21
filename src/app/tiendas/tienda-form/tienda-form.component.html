@@ -11,6 +11,8 @@
       [class.text-green-800]="toastTipo() === 'verde'"
       [class.bg-red-100]="toastTipo() === 'rojo'"
       [class.text-red-800]="toastTipo() === 'rojo'"
+      role="alert"
+      aria-live="polite"
     >
       {{ toastMsg() }}
     </div>
@@ -118,7 +120,7 @@
       }
     </div>
 
-    <!-- Acciones -->
+    <!-- Acciones principales -->
     <div class="flex gap-3 pt-2">
       <button
         type="submit"
@@ -136,4 +138,74 @@
     </div>
 
   </form>
+
+  <!-- Zona de peligro: Inactivar / Reactivar (solo en modo edición) -->
+  @if (modoEdicion()) {
+    <div class="mt-10 border-t border-gray-200 pt-6">
+      <h2 class="text-sm font-medium text-gray-700 mb-3">Estado de la tienda</h2>
+      <button
+        type="button"
+        [disabled]="cambiandoEstado()"
+        (click)="solicitarCambioEstado()"
+        class="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-60"
+        [class.bg-red-50]="tiendaActiva()"
+        [class.text-red-700]="tiendaActiva()"
+        [class.hover:bg-red-100]="tiendaActiva()"
+        [class.border]="true"
+        [class.border-red-300]="tiendaActiva()"
+        [class.bg-green-50]="!tiendaActiva()"
+        [class.text-green-700]="!tiendaActiva()"
+        [class.hover:bg-green-100]="!tiendaActiva()"
+        [class.border-green-300]="!tiendaActiva()"
+      >
+        {{ cambiandoEstado() ? 'Procesando...' : (tiendaActiva() ? 'Inactivar tienda' : 'Reactivar tienda') }}
+      </button>
+    </div>
+  }
+
 </div>
+
+<!-- Modal confirmar inactivar / reactivar -->
+@if (mostrarModalEstado()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-estado-titulo"
+  >
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-estado-titulo" class="text-lg font-semibold text-gray-900 mb-3">
+        {{ tiendaActiva() ? '¿Inactivar tienda?' : '¿Reactivar tienda?' }}
+      </h2>
+      <p class="text-sm text-gray-600 mb-6">
+        @if (tiendaActiva()) {
+          La tienda dejará de estar disponible para operaciones.
+        } @else {
+          La tienda volverá a estar disponible para operaciones.
+        }
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          (click)="cancelarCambioEstado()"
+          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="ejecutarCambioEstado()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium focus:outline-none focus:ring-2"
+          [class.bg-red-600]="tiendaActiva()"
+          [class.hover:bg-red-700]="tiendaActiva()"
+          [class.focus:ring-red-500]="tiendaActiva()"
+          [class.bg-green-600]="!tiendaActiva()"
+          [class.hover:bg-green-700]="!tiendaActiva()"
+          [class.focus:ring-green-500]="!tiendaActiva()"
+        >
+          {{ tiendaActiva() ? 'Inactivar' : 'Reactivar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
