@@ -14,6 +14,8 @@ const TIENDAS: TiendaOpcion[] = [
   { id: 2, nombre: 'Tienda Sur', codigo: 'TS01' },
 ];
 
+const API_URL = '/api/v1/tiendas?estado=activo&pagina=1&limite=100';
+
 describe('StoreSelectorComponent', () => {
   let fixture: ComponentFixture<StoreSelectorComponent>;
   let component: StoreSelectorComponent;
@@ -42,19 +44,23 @@ describe('StoreSelectorComponent', () => {
 
   it('debe crearse correctamente', () => {
     expect(component).toBeTruthy();
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
   });
 
   it('muestra spinner mientras carga', () => {
     const spinner = fixture.nativeElement.querySelector('[aria-busy="true"]');
     expect(spinner).toBeTruthy();
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
   });
 
-  it('carga tiendas al inicializar', () => {
-    const req = httpMock.expectOne('/api/v1/tiendas?activo=true');
+  it('llama al endpoint correcto con params estado=activo', () => {
+    const req = httpMock.expectOne(API_URL);
     expect(req.request.method).toBe('GET');
-    req.flush({ tiendas: TIENDAS });
+    req.flush({ datos: TIENDAS, total: 2 });
+  });
+
+  it('carga tiendas desde res.datos (formato real del API)', () => {
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
     fixture.detectChanges();
 
     expect(component.tiendas()).toEqual(TIENDAS);
@@ -62,7 +68,7 @@ describe('StoreSelectorComponent', () => {
   });
 
   it('renderiza Vista consolidada como primera opción', () => {
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
     fixture.detectChanges();
 
     const options = fixture.nativeElement.querySelectorAll('option');
@@ -71,7 +77,7 @@ describe('StoreSelectorComponent', () => {
   });
 
   it('renderiza las tiendas como opciones', () => {
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
     fixture.detectChanges();
 
     const options = fixture.nativeElement.querySelectorAll('option');
@@ -79,7 +85,7 @@ describe('StoreSelectorComponent', () => {
   });
 
   it('al seleccionar una tienda llama setTienda con la tienda correcta', () => {
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
     fixture.detectChanges();
 
     const select: HTMLSelectElement = fixture.nativeElement.querySelector('select');
@@ -90,7 +96,7 @@ describe('StoreSelectorComponent', () => {
   });
 
   it('al seleccionar Vista consolidada llama setTienda con null', () => {
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
     fixture.detectChanges();
 
     const select: HTMLSelectElement = fixture.nativeElement.querySelector('select');
@@ -101,7 +107,7 @@ describe('StoreSelectorComponent', () => {
   });
 
   it('muestra error y botón Reintentar cuando la carga falla', () => {
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush(
+    httpMock.expectOne(API_URL).flush(
       { message: 'error' },
       { status: 500, statusText: 'Server Error' },
     );
@@ -113,16 +119,13 @@ describe('StoreSelectorComponent', () => {
   });
 
   it('Reintentar vuelve a llamar a la API', () => {
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush(
-      {},
-      { status: 500, statusText: 'Error' },
-    );
+    httpMock.expectOne(API_URL).flush({}, { status: 500, statusText: 'Error' });
     fixture.detectChanges();
 
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button');
     btn.click();
 
-    httpMock.expectOne('/api/v1/tiendas?activo=true').flush({ tiendas: TIENDAS });
+    httpMock.expectOne(API_URL).flush({ datos: TIENDAS, total: 2 });
     fixture.detectChanges();
     expect(component.tiendas().length).toBe(2);
   });

@@ -1,11 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { StoreContextService } from '../../../services/store-context.service';
 import { TiendaOpcion } from '../../../models/nav.types';
 
-interface TiendasResponse {
-  tiendas: TiendaOpcion[];
+interface ListaTiendasResponse {
+  datos: TiendaOpcion[];
+  total: number;
 }
 
 @Component({
@@ -31,13 +32,19 @@ export class StoreSelectorComponent implements OnInit {
     this.cargando.set(true);
     this.error.set(false);
 
+    const params = new HttpParams()
+      .set('estado', 'activo')
+      .set('pagina', '1')
+      .set('limite', '100');
+
     this.http
-      .get<TiendasResponse>('/api/v1/tiendas?activo=true', {
+      .get<ListaTiendasResponse>('/api/v1/tiendas', {
+        params,
         withCredentials: true,
       })
       .subscribe({
         next: (res) => {
-          this.tiendas.set(res.tiendas);
+          this.tiendas.set(res.datos);
           this.cargando.set(false);
         },
         error: () => {
