@@ -1,59 +1,89 @@
-# LoopiWeb
+# Loopi Web v2
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.26.
+Frontend Angular del proyecto Loopi v2.
 
-## Development server
+## Configuración local
 
-To start a local development server, run:
+### Pre-requisitos (una sola vez por máquina)
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+**1. Instalar Node.js LTS via nvm**
 
 ```bash
-ng generate component component-name
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+source ~/.zshrc          # o ~/.bashrc según tu shell
+nvm install --lts
+node --version           # debe mostrar v22.x.x
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+**2. Instalar Angular CLI**
 
 ```bash
-ng generate --help
+npm install -g @angular/cli
 ```
 
-## Building
-
-To build the project run:
+**3. (Solo FydeOS / Linux container) Instalar Chromium**
 
 ```bash
-ng build
+sudo apt update && sudo apt install -y chromium
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Instalar dependencias del proyecto
 
 ```bash
-ng test
+npm install
 ```
 
-## Running end-to-end tests
+### Variables de entorno
 
-For end-to-end (e2e) testing, run:
+No se requiere archivo `.env`. La URL del backend se configura en [`src/proxy.conf.json`](src/proxy.conf.json):
+
+```json
+{
+  "/api": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
+```
+
+Ajusta `target` si el backend corre en un puerto distinto.
+
+### Levantar el servidor de desarrollo
 
 ```bash
-ng e2e
+npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Cuando la terminal muestre `Local: http://localhost:4200/` el servidor está listo. Abre el browser en esa URL.
 
-## Additional Resources
+**Desde VSCode** (panel Run & Debug `Ctrl+Shift+D`):
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Configuración | Descripción |
+|---|---|
+| Ejecutar (ng serve) | Abre Chromium sin breakpoints |
+| Debug (ng serve) | Abre Chromium con soporte de breakpoints (`F9` / `F5`) |
+| Tests (ng test) | Corre los tests con Karma en Chromium |
+
+### Gates — ejecutar antes de cada commit o PR
+
+```bash
+ng build                        # compila con TypeScript estricto
+npm audit --audit-level=high    # CVEs en dependencias
+ng test --watch=false           # tests unitarios
+```
+
+## Comandos útiles
+
+```bash
+npm start                       # servidor de desarrollo
+npm test                        # tests unitarios (watch mode)
+ng test --watch=false           # tests unitarios (una sola pasada)
+ng build                        # build de producción → dist/
+ng lint                         # lint del código
+```
+
+## Recursos
+
+- [Angular CLI](https://angular.dev/tools/cli)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)

@@ -12,10 +12,10 @@
         "background": {
           "activeOnStart": true,
           "beginsPattern": {
-            "regexp": "(.*?)"
+            "regexp": "Building\\.\\.\\."
           },
           "endsPattern": {
-            "regexp": "bundle generation complete"
+            "regexp": "Local:\\s+http://localhost"
           }
         }
       }
@@ -30,7 +30,7 @@
         "background": {
           "activeOnStart": true,
           "beginsPattern": {
-            "regexp": "(.*?)"
+            "regexp": "Building\\.\\.\\."
           },
           "endsPattern": {
             "regexp": "bundle generation complete"
