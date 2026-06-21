@@ -1,0 +1,22 @@
+<div class="flex h-screen flex-col overflow-hidden bg-gray-50">
+  <!-- Topbar -->
+  <app-topbar
+    [sidebarOpen]="sidebarOpen()"
+    (menuToggled)="toggleSidebar()"
+  />
+
+  <!-- Contenido principal -->
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar -->
+    <app-sidebar
+      id="sidebar"
+      [isOpen]="sidebarOpen()"
+      (closed)="closeSidebar()"
+    />
+
+    <!-- Área de contenido del módulo activo -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <router-outlet />
+    </main>
+  </div>
+</div>

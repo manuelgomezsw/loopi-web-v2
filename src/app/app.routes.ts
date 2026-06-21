@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './auth/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -11,6 +12,10 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
+    loadComponent: () =>
+      import('./shared/components/shell/shell.component').then(
+        (m) => m.ShellComponent,
+      ),
     children: [
       {
         path: '',
@@ -19,6 +24,7 @@ export const routes: Routes = [
       },
       {
         path: 'tiendas',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./tiendas/tiendas-lista/tiendas-lista.component').then(
             (m) => m.TiendasListaComponent,
@@ -26,6 +32,7 @@ export const routes: Routes = [
       },
       {
         path: 'tiendas/nueva',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./tiendas/tienda-form/tienda-form.component').then(
             (m) => m.TiendaFormComponent,
@@ -33,6 +40,7 @@ export const routes: Routes = [
       },
       {
         path: 'tiendas/:id/editar',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./tiendas/tienda-form/tienda-form.component').then(
             (m) => m.TiendaFormComponent,
@@ -40,6 +48,7 @@ export const routes: Routes = [
       },
       {
         path: 'empleados',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./empleados/empleados-lista/empleados-lista.component').then(
             (m) => m.EmpleadosListaComponent,
@@ -47,6 +56,7 @@ export const routes: Routes = [
       },
       {
         path: 'empleados/nuevo',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./empleados/empleado-form/empleado-form.component').then(
             (m) => m.EmpleadoFormComponent,
@@ -54,9 +64,17 @@ export const routes: Routes = [
       },
       {
         path: 'empleados/:id/editar',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./empleados/empleado-form/empleado-form.component').then(
             (m) => m.EmpleadoFormComponent,
+          ),
+      },
+      {
+        path: 'sin-permiso',
+        loadComponent: () =>
+          import('./shared/components/forbidden/forbidden.component').then(
+            (m) => m.ForbiddenComponent,
           ),
       },
     ],

@@ -1,0 +1,68 @@
+<!-- Overlay: solo en móvil cuando el sidebar está abierto -->
+@if (isOpen) {
+  <div
+    class="fixed inset-0 z-40 bg-black/50 sm:hidden"
+    (click)="cerrar()"
+    aria-hidden="true"
+  ></div>
+}
+
+<!-- Sidebar -->
+<nav
+  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-lg transition-transform duration-200 ease-in-out
+         w-64 sm:relative sm:translate-x-0 sm:w-16 sm:shadow-none lg:w-64"
+  [class.translate-x-0]="isOpen"
+  [class.-translate-x-full]="!isOpen"
+  [class.sm:translate-x-0]="true"
+  role="navigation"
+  aria-label="Menú principal"
+>
+  <!-- Cabecera del sidebar (solo mobile) -->
+  <div class="flex items-center justify-between p-4 sm:hidden">
+    <span class="text-lg font-semibold text-gray-800">Loopi</span>
+    <button
+      type="button"
+      class="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (click)="cerrar()"
+      aria-label="Cerrar menú"
+    >
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Logo desktop (lg:) -->
+  <div class="hidden lg:flex items-center px-4 py-5">
+    <span class="text-xl font-bold text-blue-600">Loopi</span>
+  </div>
+  <!-- Logo tablet colapsado (sm: sin lg:) -->
+  <div class="hidden sm:flex lg:hidden items-center justify-center py-5">
+    <span class="text-xl font-bold text-blue-600">L</span>
+  </div>
+
+  <!-- Ítems de menú -->
+  <ul class="flex-1 overflow-y-auto px-2 py-2 space-y-1" role="list">
+    @for (item of navItems(); track trackById($index, item)) {
+      <li>
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="bg-blue-50 text-blue-700 font-medium"
+          [routerLinkActiveOptions]="{ exact: false }"
+          (click)="cerrar()"
+          class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          [attr.aria-label]="item.label"
+          #rla="routerLinkActive"
+          [attr.aria-current]="rla.isActive ? 'page' : null"
+        >
+          <!-- Ícono -->
+          <span class="flex h-5 w-5 shrink-0 items-center justify-center text-gray-500" aria-hidden="true">
+            {{ iconEmoji(item.icon) }}
+          </span>
+          <!-- Texto: oculto en tablet (sm:) pero visible en desktop (lg:) y mobile -->
+          <span class="truncate sm:hidden lg:block">{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+</nav>
