@@ -28,7 +28,10 @@ export class TiendaFormComponent implements OnInit {
 
   readonly modoEdicion = signal<boolean>(false);
   readonly tiendaID = signal<number | null>(null);
+  readonly tiendaActiva = signal<boolean>(true);
   readonly guardando = signal<boolean>(false);
+  readonly cambiandoEstado = signal<boolean>(false);
+  readonly mostrarModalEstado = signal<boolean>(false);
   readonly toastMsg = signal<string>('');
   readonly toastTipo = signal<'verde' | 'rojo'>('verde');
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -57,6 +60,7 @@ export class TiendaFormComponent implements OnInit {
   private cargarTienda(id: number): void {
     this.tiendasService.obtener(id).subscribe({
       next: (tienda: TiendaResponse) => {
+        this.tiendaActiva.set(tienda.activo);
         this.form.patchValue({
           codigo: tienda.codigo,
           nombre: tienda.nombre,
@@ -110,6 +114,41 @@ export class TiendaFormComponent implements OnInit {
         },
       });
     }
+  }
+
+  solicitarCambioEstado(): void {
+    this.mostrarModalEstado.set(true);
+  }
+
+  cancelarCambioEstado(): void {
+    this.mostrarModalEstado.set(false);
+  }
+
+  ejecutarCambioEstado(): void {
+    const id = this.tiendaID()!;
+    const accion = this.tiendaActiva()
+      ? this.tiendasService.inactivar(id)
+      : this.tiendasService.reactivar(id);
+
+    this.cambiandoEstado.set(true);
+    this.mostrarModalEstado.set(false);
+
+    accion.subscribe({
+      next: (tienda: TiendaResponse) => {
+        this.tiendaActiva.set(tienda.activo);
+        this.cambiandoEstado.set(false);
+        const msg = tienda.activo
+          ? 'Tienda reactivada correctamente.'
+          : 'Tienda inactivada correctamente.';
+        this.mostrarToast(msg, 'verde', 3000);
+        setTimeout(() => this.router.navigate(['/tiendas']), 1500);
+      },
+      error: (err) => {
+        this.cambiandoEstado.set(false);
+        const msg = err?.error?.mensaje ?? 'Error al cambiar el estado de la tienda.';
+        this.mostrarToast(msg, 'rojo', 5000);
+      },
+    });
   }
 
   private handleApiError(err: { status?: number; error?: { campo?: string; mensaje?: string } }): void {
