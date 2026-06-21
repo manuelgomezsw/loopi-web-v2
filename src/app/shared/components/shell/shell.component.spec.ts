@@ -27,7 +27,7 @@ describe('ShellComponent', () => {
         provideRouter([]),
         {
           provide: AuthService,
-          useValue: { sesion: sesionSignal, logout: () => ({ subscribe: () => {} }) },
+          useValue: { sesion: sesionSignal, logout: jasmine.createSpy('logout').and.returnValue({ subscribe: jasmine.createSpy('subscribe') }) },
         },
         { provide: StoreContextService, useValue: mockStoreCtx },
         { provide: NavConfigService, useValue: { navItems: signal([]) } },

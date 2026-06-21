@@ -10,7 +10,7 @@ import { HttpClient } from '@angular/common/http';
 function makeAuth(sesion: SesionState | null) {
   return {
     sesion: signal<SesionState | null>(sesion),
-    logout: jasmine.createSpy('logout').and.returnValue({ subscribe: () => {} }),
+    logout: jasmine.createSpy('logout').and.returnValue({ subscribe: jasmine.createSpy('subscribe') }),
   };
 }
 
@@ -28,11 +28,11 @@ describe('TopbarComponent', () => {
           provide: StoreContextService,
           useValue: {
             context: signal({ tienda_id: null, nombre: null }),
-            initFromSession: () => {},
-            setTienda: () => {},
+            initFromSession: jasmine.createSpy('initFromSession'),
+            setTienda: jasmine.createSpy('setTienda'),
           },
         },
-        { provide: HttpClient, useValue: { get: () => ({ subscribe: () => {} }) } },
+        { provide: HttpClient, useValue: { get: jasmine.createSpy('get').and.returnValue({ subscribe: jasmine.createSpy('subscribe') }) } },
       ],
     }).compileComponents();
 
