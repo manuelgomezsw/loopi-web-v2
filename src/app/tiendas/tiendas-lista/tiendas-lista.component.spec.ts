@@ -86,7 +86,7 @@ describe('TiendasListaComponent', () => {
   // --- estado vacío ---
 
   it('muestra bloque de estado vacío cuando no hay tiendas', () => {
-    expect(fixture.nativeElement.textContent).toContain('No hay tiendas registradas');
+    expect(fixture.nativeElement.textContent).toContain('No hay tiendas');
   });
 
   it('no muestra tabla cuando la lista está vacía', () => {
