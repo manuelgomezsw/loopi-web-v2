@@ -1,4 +1,5 @@
-<main class="p-4 lg:p-8 max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto">
+
   <!-- Breadcrumb -->
   <nav class="mb-4 text-sm text-gray-500" aria-label="Navegación">
     <a routerLink="/empleados" class="hover:text-indigo-600">Empleados</a>
@@ -25,164 +26,169 @@
       </div>
     }
 
-    <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
-      <!-- Nombre -->
-      <div class="mb-4">
-        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
-          Nombre <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="nombre"
-          formControlName="nombre"
-          type="text"
-          autocomplete="given-name"
-          class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="campoInvalido('nombre')"
-          [class.border-gray-300]="!campoInvalido('nombre')"
-        />
-        @if (campoInvalido('nombre')) {
-          <p class="mt-1 text-xs text-red-600">El nombre es obligatorio.</p>
-        }
-      </div>
+    <!-- Tarjeta del formulario -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:p-8">
+      <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
 
-      <!-- Apellido -->
-      <div class="mb-4">
-        <label for="apellido" class="block text-sm font-medium text-gray-700 mb-1">
-          Apellido <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="apellido"
-          formControlName="apellido"
-          type="text"
-          autocomplete="family-name"
-          class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="campoInvalido('apellido')"
-          [class.border-gray-300]="!campoInvalido('apellido')"
-        />
-        @if (campoInvalido('apellido')) {
-          <p class="mt-1 text-xs text-red-600">El apellido es obligatorio.</p>
-        }
-      </div>
-
-      <!-- Usuario -->
-      <div class="mb-4">
-        <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">
-          Usuario <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="usuario"
-          formControlName="usuario"
-          type="text"
-          autocomplete="username"
-          class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="campoInvalido('usuario')"
-          [class.border-gray-300]="!campoInvalido('usuario')"
-          [class.bg-gray-100]="modoEdicion()"
-        />
-        @if (campoInvalido('usuario')) {
-          <p class="mt-1 text-xs text-red-600">El usuario es obligatorio.</p>
-        }
-        @if (form.get('usuario')?.errors?.['servidor']) {
-          <p class="mt-1 text-xs text-red-600">{{ form.get('usuario')?.errors?.['servidor'] }}</p>
-        }
-      </div>
-
-      <!-- Rol -->
-      <div class="mb-4">
-        <label for="rol" class="block text-sm font-medium text-gray-700 mb-1">
-          Rol <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <select
-          id="rol"
-          formControlName="rol"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="admin">Admin</option>
-          <option value="lider_tienda">Líder de tienda</option>
-          <option value="barista">Barista</option>
-        </select>
-      </div>
-
-      <!-- Tienda (visible solo si rol requiere tienda) -->
-      @if (requiereTienda) {
+        <!-- Nombre -->
         <div class="mb-4">
-          <label for="tienda_id" class="block text-sm font-medium text-gray-700 mb-1">
-            Tienda <span class="text-red-500" aria-hidden="true">*</span>
+          <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+            Nombre <span class="text-red-500" aria-hidden="true">*</span>
           </label>
           <input
-            id="tienda_id"
-            formControlName="tienda_id"
-            type="number"
-            min="1"
-            placeholder="ID de la tienda"
-            class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            [class.border-red-500]="form.get('tienda_id')?.errors?.['servidor']"
-            [class.border-gray-300]="!form.get('tienda_id')?.errors?.['servidor']"
+            id="nombre"
+            formControlName="nombre"
+            type="text"
+            autocomplete="given-name"
+            class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [class.border-red-500]="campoInvalido('nombre')"
+            [class.border-gray-300]="!campoInvalido('nombre')"
           />
-          @if (form.get('tienda_id')?.errors?.['servidor']) {
-            <p class="mt-1 text-xs text-red-600">{{ form.get('tienda_id')?.errors?.['servidor'] }}</p>
+          @if (campoInvalido('nombre')) {
+            <p class="mt-1 text-xs text-red-600">El nombre es obligatorio.</p>
           }
         </div>
-      }
 
-      <!-- Campos opcionales -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label for="tipo_documento" class="block text-sm font-medium text-gray-700 mb-1">Tipo de documento</label>
-          <input id="tipo_documento" formControlName="tipo_documento" type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label for="numero_documento" class="block text-sm font-medium text-gray-700 mb-1">Número de documento</label>
-          <input id="numero_documento" formControlName="numero_documento" type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-          <input id="telefono" formControlName="telefono" type="tel" autocomplete="tel"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input id="email" formControlName="email" type="email" autocomplete="email"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label for="fecha_nacimiento" class="block text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</label>
-          <input id="fecha_nacimiento" formControlName="fecha_nacimiento" type="date"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-      </div>
-
-      <!-- Leyenda campos obligatorios -->
-      <p class="text-xs text-gray-500 mb-6">* Campo obligatorio</p>
-
-      <!-- Acciones principales -->
-      <div class="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          [disabled]="guardando()"
-          class="inline-flex items-center px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-          aria-label="Guardar empleado"
-        >
-          @if (guardando()) {
-            <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true"></span>
-            Guardando...
-          } @else {
-            {{ modoEdicion() ? 'Guardar cambios' : 'Crear empleado' }}
+        <!-- Apellido -->
+        <div class="mb-4">
+          <label for="apellido" class="block text-sm font-medium text-gray-700 mb-1">
+            Apellido <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="apellido"
+            formControlName="apellido"
+            type="text"
+            autocomplete="family-name"
+            class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [class.border-red-500]="campoInvalido('apellido')"
+            [class.border-gray-300]="!campoInvalido('apellido')"
+          />
+          @if (campoInvalido('apellido')) {
+            <p class="mt-1 text-xs text-red-600">El apellido es obligatorio.</p>
           }
-        </button>
+        </div>
 
-        <a routerLink="/empleados" class="px-5 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-          Cancelar
-        </a>
-      </div>
-    </form>
+        <!-- Usuario -->
+        <div class="mb-4">
+          <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">
+            Usuario <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="usuario"
+            formControlName="usuario"
+            type="text"
+            autocomplete="username"
+            class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [class.border-red-500]="campoInvalido('usuario')"
+            [class.border-gray-300]="!campoInvalido('usuario')"
+            [class.bg-gray-100]="modoEdicion()"
+            [class.bg-white]="!modoEdicion()"
+          />
+          @if (campoInvalido('usuario')) {
+            <p class="mt-1 text-xs text-red-600">El usuario es obligatorio.</p>
+          }
+          @if (form.get('usuario')?.errors?.['servidor']) {
+            <p class="mt-1 text-xs text-red-600">{{ form.get('usuario')?.errors?.['servidor'] }}</p>
+          }
+        </div>
 
-    <!-- Acciones de edición -->
+        <!-- Rol -->
+        <div class="mb-4">
+          <label for="rol" class="block text-sm font-medium text-gray-700 mb-1">
+            Rol <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="rol"
+            formControlName="rol"
+            class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="admin">Admin</option>
+            <option value="lider_tienda">Líder de tienda</option>
+            <option value="barista">Barista</option>
+          </select>
+        </div>
+
+        <!-- Tienda (visible solo si rol requiere tienda) -->
+        @if (requiereTienda) {
+          <div class="mb-4">
+            <label for="tienda_id" class="block text-sm font-medium text-gray-700 mb-1">
+              Tienda <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="tienda_id"
+              formControlName="tienda_id"
+              type="number"
+              min="1"
+              placeholder="ID de la tienda"
+              class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              [class.border-red-500]="form.get('tienda_id')?.errors?.['servidor']"
+              [class.border-gray-300]="!form.get('tienda_id')?.errors?.['servidor']"
+            />
+            @if (form.get('tienda_id')?.errors?.['servidor']) {
+              <p class="mt-1 text-xs text-red-600">{{ form.get('tienda_id')?.errors?.['servidor'] }}</p>
+            }
+          </div>
+        }
+
+        <!-- Campos opcionales -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="tipo_documento" class="block text-sm font-medium text-gray-700 mb-1">Tipo de documento</label>
+            <input id="tipo_documento" formControlName="tipo_documento" type="text"
+              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label for="numero_documento" class="block text-sm font-medium text-gray-700 mb-1">Número de documento</label>
+            <input id="numero_documento" formControlName="numero_documento" type="text"
+              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+            <input id="telefono" formControlName="telefono" type="tel" autocomplete="tel"
+              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input id="email" formControlName="email" type="email" autocomplete="email"
+              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label for="fecha_nacimiento" class="block text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</label>
+            <input id="fecha_nacimiento" formControlName="fecha_nacimiento" type="date"
+              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Leyenda campos obligatorios -->
+        <p class="text-xs text-gray-500 mb-6">* Campo obligatorio</p>
+
+        <!-- Acciones principales -->
+        <div class="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            [disabled]="guardando()"
+            class="inline-flex items-center px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+            aria-label="Guardar empleado"
+          >
+            @if (guardando()) {
+              <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true"></span>
+              Guardando...
+            } @else {
+              {{ modoEdicion() ? 'Guardar cambios' : 'Crear empleado' }}
+            }
+          </button>
+
+          <a routerLink="/empleados" class="px-5 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Cancelar
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Zona destructiva: acciones de edición -->
     @if (modoEdicion() && empleado()) {
-      <hr class="my-8 border-gray-200" />
-      <section aria-labelledby="acciones-titulo">
+      <div class="mt-8 pt-6 border-t border-gray-200" aria-labelledby="acciones-titulo">
         <h2 id="acciones-titulo" class="text-base font-semibold text-gray-800 mb-4">Acciones</h2>
         <div class="flex flex-wrap gap-3">
           <!-- Resetear contraseña -->
@@ -213,10 +219,11 @@
             </button>
           }
         </div>
-      </section>
+      </div>
     }
   }
-</main>
+
+</div>
 
 <!-- Modal contraseña temporal -->
 @if (mostrarModalContrasena()) {
