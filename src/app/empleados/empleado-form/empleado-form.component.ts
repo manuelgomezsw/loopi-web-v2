@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import {
@@ -10,6 +10,17 @@ import {
   EmpleadosService,
 } from '../empleados.service';
 import { TiendasService } from '../../tiendas/tiendas.service';
+
+function mayorDeEdad(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+    const partes = (control.value as string).split('-').map(Number);
+    const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
+    const hoy = new Date();
+    const limite = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+    return fecha <= limite ? null : { menorDeEdad: true };
+  };
+}
 
 const TIPOS_DOCUMENTO = [
   { codigo: 'CC', etiqueta: 'Cédula de Ciudadanía (CC)' },
@@ -66,7 +77,7 @@ export class EmpleadoFormComponent implements OnInit {
     numero_documento: [''],
     telefono: [''],
     email: ['', Validators.email],
-    fecha_nacimiento: [''],
+    fecha_nacimiento: ['', mayorDeEdad()],
   });
 
   get rolActual(): string {
@@ -264,6 +275,12 @@ export class EmpleadoFormComponent implements OnInit {
 
   confirmarCopia(): void {
     this.copiaConfirmada.set(true);
+  }
+
+  get fechaMaxNacimiento(): string {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split('T')[0];
   }
 
   campoInvalido(campo: string): boolean {
