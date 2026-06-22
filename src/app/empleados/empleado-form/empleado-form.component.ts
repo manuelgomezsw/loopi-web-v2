@@ -9,6 +9,14 @@ import {
   Empleado,
   EmpleadosService,
 } from '../empleados.service';
+import { TiendasService } from '../../tiendas/tiendas.service';
+
+const TIPOS_DOCUMENTO = [
+  { codigo: 'CC', etiqueta: 'Cédula de Ciudadanía (CC)' },
+  { codigo: 'CE', etiqueta: 'Cédula de Extranjería (CE)' },
+  { codigo: 'NUIP', etiqueta: 'NUIP' },
+  { codigo: 'PE', etiqueta: 'Permiso Especial de Permanencia (PE)' },
+];
 
 @Component({
   selector: 'app-empleado-form',
@@ -18,9 +26,15 @@ import {
 })
 export class EmpleadoFormComponent implements OnInit {
   private readonly svc = inject(EmpleadosService);
+  private readonly tiendasSvc = inject(TiendasService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  readonly tiposDocumento = TIPOS_DOCUMENTO;
+  readonly tiendasActivas = signal<{ id: number; nombre: string }[]>([]);
+  readonly cargandoTiendas = signal<boolean>(false);
+  readonly errorCargaTiendas = signal<string>('');
 
   readonly modoEdicion = signal<boolean>(false);
   readonly empleadoID = signal<number | null>(null);
@@ -64,12 +78,28 @@ export class EmpleadoFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.cargarTiendasActivas();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.modoEdicion.set(true);
       this.empleadoID.set(+id);
       this.cargarEmpleado(+id);
     }
+  }
+
+  private cargarTiendasActivas(): void {
+    this.cargandoTiendas.set(true);
+    this.errorCargaTiendas.set('');
+    this.tiendasSvc.getTiendasActivas().subscribe({
+      next: (tiendas) => {
+        this.tiendasActivas.set(tiendas);
+        this.cargandoTiendas.set(false);
+      },
+      error: () => {
+        this.errorCargaTiendas.set('No se pudieron cargar las tiendas activas.');
+        this.cargandoTiendas.set(false);
+      },
+    });
   }
 
   cargarEmpleado(id: number): void {

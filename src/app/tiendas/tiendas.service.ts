@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface TiendaResponse {
   id: number;
@@ -88,6 +89,12 @@ export class TiendasService {
       `/api/v1/tiendas/${id}/reactivar`,
       {},
       { withCredentials: true },
+    );
+  }
+
+  getTiendasActivas(): Observable<{ id: number; nombre: string }[]> {
+    return this.listar('activas', 1, 100).pipe(
+      map(resp => resp.datos.map(t => ({ id: t.id, nombre: t.nombre }))),
     );
   }
 }
