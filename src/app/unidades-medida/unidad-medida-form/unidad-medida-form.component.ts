@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { catchError, EMPTY } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -83,10 +84,7 @@ export class UnidadMedidaFormComponent implements OnInit {
   solicitarInactivar(): void {
     this.impacto.set(null);
     this.mostrarModalInactivar.set(true);
-    this.svc.getImpacto(this.unidadID()!).subscribe({
-      next: (imp) => this.impacto.set(imp),
-      error: () => {},
-    });
+    this.svc.getImpacto(this.unidadID()!).pipe(catchError(() => EMPTY)).subscribe((imp) => this.impacto.set(imp));
   }
 
   cancelarInactivar(): void {
@@ -138,7 +136,7 @@ export class UnidadMedidaFormComponent implements OnInit {
       });
     } else {
       this.svc.crear(this.form.getRawValue()).subscribe({
-        next: (_u: UnidadMedida) => {
+        next: () => {
           this.guardando.set(false);
           this.mostrarToast('Unidad creada correctamente.', 'verde', 3000);
           setTimeout(() => this.router.navigate(['/unidades-medida']), 1500);
