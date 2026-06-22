@@ -13,7 +13,7 @@ import { AppCellTemplateDirective } from './cell-template.directive';
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [NgTemplateOutlet, AppCellTemplateDirective],
+  imports: [NgTemplateOutlet],
   template: `
     @if (rows().length > 0) {
       <div class="overflow-x-auto rounded-lg border border-gray-200">
