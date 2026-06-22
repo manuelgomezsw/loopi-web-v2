@@ -1,4 +1,4 @@
-import { Directive, TemplateRef, input } from '@angular/core';
+import { Directive, TemplateRef, inject, input } from '@angular/core';
 
 @Directive({
   selector: '[appCellTemplate]',
@@ -6,6 +6,5 @@ import { Directive, TemplateRef, input } from '@angular/core';
 })
 export class AppCellTemplateDirective {
   readonly appCellTemplate = input.required<string>();
-
-  constructor(readonly tpl: TemplateRef<{ $implicit: unknown }>) {}
+  readonly tpl = inject<TemplateRef<{ $implicit: unknown }>>(TemplateRef);
 }

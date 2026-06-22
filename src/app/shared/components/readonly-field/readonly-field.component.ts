@@ -5,9 +5,7 @@ import { Component, input } from '@angular/core';
   standalone: true,
   template: `
     <div>
-      <label class="block text-sm font-medium text-gray-600 mb-1">
-        {{ label() }}
-      </label>
+      <p class="block text-sm font-medium text-gray-600 mb-1">{{ label() }}</p>
       <div class="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md border border-gray-200">
         <svg
           class="h-4 w-4 text-gray-400 shrink-0"
