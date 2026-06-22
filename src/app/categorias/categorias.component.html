@@ -1,0 +1,285 @@
+<app-page-header
+  title="Catálogo de Categorías"
+  [breadcrumb]="[{label:'Inicio',route:'/'},{label:'Categorías'}]"
+/>
+
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg text-sm text-white transition-all"
+    [class.bg-green-600]="toastTipo() === 'verde'"
+    [class.bg-red-600]="toastTipo() === 'rojo'"
+    role="alert"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<!-- Modal de confirmación de inactivación -->
+@if (modalVisible()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">Inactivar categoría</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Esta categoría tiene <strong>{{ modalSubcatsActivas() }} subcategoría(s) activa(s)</strong>
+        que también serán inactivadas automáticamente.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="cancelarModal()"
+          class="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarInactivar()"
+          class="px-4 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700"
+        >
+          Confirmar inactivación
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<app-filter-bar
+  [filters]="filters"
+  routeKey="/categorias"
+  (filtersChange)="onFilters($event)"
+/>
+
+<!-- Formulario crear categoría -->
+<app-list-card>
+  <h2 class="text-sm font-semibold text-gray-700 mb-3">Nueva categoría</h2>
+  <div class="flex gap-2 items-start">
+    <div class="flex-1">
+      <input
+        type="text"
+        [(ngModel)]="nuevaCatNombre"
+        placeholder="Nombre de la categoría"
+        class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        (keyup.enter)="crearCategoria()"
+      />
+      @if (errorCrearCat()) {
+        <p class="text-red-500 text-xs mt-1">{{ errorCrearCat() }}</p>
+      }
+    </div>
+    <button
+      type="button"
+      (click)="crearCategoria()"
+      [disabled]="creandoCat()"
+      class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
+    >
+      {{ creandoCat() ? 'Guardando…' : 'Agregar' }}
+    </button>
+  </div>
+</app-list-card>
+
+<!-- Estado de carga / error -->
+@if (cargando()) {
+  <div class="py-8 text-center text-sm text-gray-500">Cargando catálogo…</div>
+} @else if (errorMsg()) {
+  <div class="py-8 text-center text-sm text-red-500">{{ errorMsg() }}</div>
+} @else if (categorias().length === 0) {
+  <app-empty-state
+    title="Sin categorías"
+    description="Agrega una categoría usando el formulario de arriba."
+  />
+} @else {
+  <!-- Lista de categorías -->
+  <div class="space-y-4 mt-4">
+    @for (cat of categorias(); track cat.id) {
+      <app-list-card>
+        <!-- Encabezado de categoría -->
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+
+          @if (editandoCat() === cat.id) {
+            <!-- Edición inline -->
+            <div class="flex gap-2 flex-1 items-center">
+              <input
+                type="text"
+                [ngModel]="editCatNombre()"
+                (ngModelChange)="editCatNombre.set($event)"
+                class="flex-1 px-3 py-1 border border-indigo-400 rounded text-sm focus:outline-none"
+                (keyup.enter)="guardarEditCat(cat.id)"
+              />
+              <button
+                type="button"
+                (click)="guardarEditCat(cat.id)"
+                class="px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700"
+              >
+                Guardar
+              </button>
+              <button
+                type="button"
+                (click)="cancelarEditCat()"
+                class="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          } @else {
+            <div class="flex items-center gap-3">
+              <span class="font-semibold text-gray-800">{{ cat.nombre }}</span>
+              <app-status-badge [activo]="cat.activo" />
+              @if (cat.subcategorias.length > 0) {
+                <span class="text-xs text-gray-400">({{ cat.subcategorias.length }} subcategorías)</span>
+              }
+            </div>
+            <!-- Acciones categoría -->
+            <div class="flex gap-2 flex-shrink-0">
+              @if (cat.activo) {
+                <button
+                  type="button"
+                  (click)="activarEditCat(cat)"
+                  class="text-xs text-indigo-600 hover:underline"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  (click)="solicitarInactivarCategoria(cat.id)"
+                  [disabled]="procesando()[cat.id]"
+                  class="text-xs text-red-600 hover:underline disabled:opacity-50"
+                >
+                  Inactivar
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="reactivarCategoria(cat.id)"
+                  [disabled]="procesando()[cat.id]"
+                  class="text-xs text-green-700 hover:underline disabled:opacity-50"
+                >
+                  Reactivar
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Lista de subcategorías -->
+        @if (cat.subcategorias.length > 0) {
+          <ul class="mt-3 space-y-1 border-t pt-3">
+            @for (sub of cat.subcategorias; track sub.id) {
+              <li class="flex items-center justify-between gap-2 text-sm py-1">
+
+                @if (editandoSubcat() === sub.id) {
+                  <div class="flex gap-2 flex-1 items-center">
+                    <input
+                      type="text"
+                      [ngModel]="editSubcatNombre()"
+                      (ngModelChange)="editSubcatNombre.set($event)"
+                      class="flex-1 px-2 py-1 border border-indigo-400 rounded text-xs focus:outline-none"
+                      (keyup.enter)="guardarEditSubcat(sub.id)"
+                    />
+                    <button
+                      type="button"
+                      (click)="guardarEditSubcat(sub.id)"
+                      class="px-2 py-1 bg-indigo-600 text-white text-xs rounded"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="cancelarEditSubcat()"
+                      class="px-2 py-1 text-xs border border-gray-300 rounded"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                } @else {
+                  <div class="flex items-center gap-2 flex-1">
+                    <span class="text-gray-700">{{ sub.nombre }}</span>
+                    <app-status-badge [activo]="sub.activo" />
+                    @if (sub.total_items > 0) {
+                      <span class="text-xs text-gray-400">({{ sub.total_items }} ítems)</span>
+                    }
+                  </div>
+                  <div class="flex gap-2 flex-shrink-0">
+                    @if (sub.activo) {
+                      <button
+                        type="button"
+                        (click)="activarEditSubcat(sub)"
+                        class="text-xs text-indigo-600 hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="inactivarSubcategoria(sub.id)"
+                        [disabled]="procesando()[sub.id]"
+                        class="text-xs text-red-600 hover:underline disabled:opacity-50"
+                      >
+                        Inactivar
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="reactivarSubcategoria(sub.id)"
+                        [disabled]="procesando()[sub.id]"
+                        class="text-xs text-green-700 hover:underline disabled:opacity-50"
+                      >
+                        Reactivar
+                      </button>
+                    }
+                  </div>
+                }
+
+              </li>
+            }
+          </ul>
+        }
+
+        <!-- Formulario nueva subcategoría -->
+        @if (cat.activo) {
+          <div class="mt-3 border-t pt-3">
+            @if (!subcatFormVisible()[cat.id]) {
+              <button
+                type="button"
+                (click)="toggleSubcatForm(cat.id)"
+                class="text-xs text-indigo-600 hover:underline"
+              >
+                + Agregar subcategoría
+              </button>
+            } @else {
+              <div class="flex gap-2 items-start">
+                <div class="flex-1">
+                  <input
+                    type="text"
+                    [ngModel]="subcatNombre()[cat.id] || ''"
+                    (ngModelChange)="setSubcatNombre(cat.id, $event)"
+                    placeholder="Nombre de subcategoría"
+                    class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    (keyup.enter)="crearSubcategoria(cat.id)"
+                  />
+                  @if (errorSubcat()[cat.id]) {
+                    <p class="text-red-500 text-xs mt-1">{{ errorSubcat()[cat.id] }}</p>
+                  }
+                </div>
+                <button
+                  type="button"
+                  (click)="crearSubcategoria(cat.id)"
+                  [disabled]="creandoSubcat()[cat.id]"
+                  class="px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {{ creandoSubcat()[cat.id] ? 'Guardando…' : 'Guardar' }}
+                </button>
+                <button
+                  type="button"
+                  (click)="toggleSubcatForm(cat.id)"
+                  class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+      </app-list-card>
+    }
+  </div>
+}
