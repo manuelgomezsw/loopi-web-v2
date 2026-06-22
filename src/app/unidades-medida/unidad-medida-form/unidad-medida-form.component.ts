@@ -3,16 +3,19 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import { UnidadesMedidaService } from '../../services/unidades-medida.service';
-import { UnidadMedida } from '../../models/unidad-medida.model';
+import {
+  ImpactoInactivacionResponse,
+  UnidadMedida,
+  UnidadesMedidaService,
+} from '../unidades-medida.service';
 
 @Component({
-  selector: 'app-formulario-unidad',
+  selector: 'app-unidad-medida-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './formulario-unidad.component.html',
+  templateUrl: './unidad-medida-form.component.html',
 })
-export class FormularioUnidadComponent implements OnInit {
+export class UnidadMedidaFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly svc = inject(UnidadesMedidaService);
   private readonly router = inject(Router);
@@ -25,6 +28,11 @@ export class FormularioUnidadComponent implements OnInit {
   readonly toastMsg = signal('');
   readonly toastTipo = signal<'verde' | 'rojo'>('verde');
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  readonly unidad = signal<UnidadMedida | null>(null);
+  readonly mostrarModalInactivar = signal(false);
+  readonly inactivando = signal(false);
+  readonly impacto = signal<ImpactoInactivacionResponse | null>(null);
 
   readonly tiposMedida = ['peso', 'volumen', 'unidad'];
 
@@ -53,6 +61,7 @@ export class FormularioUnidadComponent implements OnInit {
   private cargarUnidad(id: number): void {
     this.svc.obtener(id).subscribe({
       next: (u) => {
+        this.unidad.set(u);
         this.esUnidadBase.set(u.unidad_base);
         if (u.unidad_base) {
           this.form.get('factor_conversion')?.disable();
@@ -67,6 +76,37 @@ export class FormularioUnidadComponent implements OnInit {
       },
       error: () => {
         this.mostrarToast('Error al cargar los datos de la unidad.', 'rojo', 5000);
+      },
+    });
+  }
+
+  solicitarInactivar(): void {
+    this.impacto.set(null);
+    this.mostrarModalInactivar.set(true);
+    this.svc.getImpacto(this.unidadID()!).subscribe({
+      next: (imp) => this.impacto.set(imp),
+      error: () => {},
+    });
+  }
+
+  cancelarInactivar(): void {
+    this.mostrarModalInactivar.set(false);
+    this.impacto.set(null);
+  }
+
+  confirmarInactivar(): void {
+    this.inactivando.set(true);
+    this.svc.inactivar(this.unidadID()!).subscribe({
+      next: () => {
+        this.inactivando.set(false);
+        this.mostrarModalInactivar.set(false);
+        this.router.navigate(['/unidades-medida']);
+      },
+      error: (err) => {
+        this.inactivando.set(false);
+        this.mostrarModalInactivar.set(false);
+        const msg = err?.error?.mensaje ?? 'Error al inactivar la unidad.';
+        this.mostrarToast(msg, 'rojo', 5000);
       },
     });
   }
@@ -98,10 +138,10 @@ export class FormularioUnidadComponent implements OnInit {
       });
     } else {
       this.svc.crear(this.form.getRawValue()).subscribe({
-        next: (u: UnidadMedida) => {
+        next: (_u: UnidadMedida) => {
           this.guardando.set(false);
           this.mostrarToast('Unidad creada correctamente.', 'verde', 3000);
-          setTimeout(() => this.router.navigate(['/unidades-medida', u.id]), 1500);
+          setTimeout(() => this.router.navigate(['/unidades-medida']), 1500);
         },
         error: (err) => {
           this.guardando.set(false);

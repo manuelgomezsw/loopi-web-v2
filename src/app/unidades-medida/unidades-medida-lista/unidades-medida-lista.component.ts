@@ -1,20 +1,20 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
-import { UnidadesMedidaService } from '../../services/unidades-medida.service';
-import { ImpactoInactivacionResponse, UnidadMedida } from '../../models/unidad-medida.model';
+import { UnidadesMedidaService, UnidadMedida } from '../unidades-medida.service';
 
 @Component({
-  selector: 'app-lista-unidades',
+  selector: 'app-unidades-medida-lista',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './lista-unidades.component.html',
+  templateUrl: './unidades-medida-lista.component.html',
 })
-export class ListaUnidadesComponent implements OnInit, OnDestroy {
+export class UnidadesMedidaListaComponent implements OnInit, OnDestroy {
   private readonly svc = inject(UnidadesMedidaService);
+  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
   readonly unidades = signal<UnidadMedida[]>([]);
@@ -27,11 +27,6 @@ export class ListaUnidadesComponent implements OnInit, OnDestroy {
   readonly pagina = signal(1);
   readonly limit = 50;
   readonly filtroTipo = signal('');
-
-  readonly mostrarModalInactivar = signal(false);
-  readonly inactivando = signal(false);
-  readonly unidadAInactivar = signal<UnidadMedida | null>(null);
-  readonly impacto = signal<ImpactoInactivacionResponse | null>(null);
 
   ngOnInit(): void {
     this.cargar();
@@ -98,42 +93,8 @@ export class ListaUnidadesComponent implements OnInit, OnDestroy {
     return Math.min(this.pagina() * this.limit, this.total());
   }
 
-  solicitarInactivar(u: UnidadMedida): void {
-    this.unidadAInactivar.set(u);
-    this.impacto.set(null);
-    this.mostrarModalInactivar.set(true);
-
-    this.svc.getImpacto(u.id).subscribe({
-      next: (imp) => this.impacto.set(imp),
-      error: () => {},
-    });
-  }
-
-  cancelarInactivar(): void {
-    this.mostrarModalInactivar.set(false);
-    this.unidadAInactivar.set(null);
-    this.impacto.set(null);
-  }
-
-  confirmarInactivar(): void {
-    const u = this.unidadAInactivar();
-    if (!u) return;
-    this.inactivando.set(true);
-    this.svc.inactivar(u.id).subscribe({
-      next: () => {
-        this.inactivando.set(false);
-        this.mostrarModalInactivar.set(false);
-        this.unidadAInactivar.set(null);
-        this.impacto.set(null);
-        this.mostrarToast(`Unidad "${u.nombre}" inactivada.`, 'verde');
-        this.cargar();
-      },
-      error: (err) => {
-        this.inactivando.set(false);
-        const msg = err?.error?.mensaje ?? 'Error al inactivar la unidad.';
-        this.mostrarToast(msg, 'rojo', 5000);
-      },
-    });
+  irAEditar(id: number): void {
+    this.router.navigate(['/unidades-medida', id, 'editar']);
   }
 
   mostrarToast(msg: string, tipo: 'verde' | 'rojo', duracion = 3000): void {
