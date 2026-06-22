@@ -93,7 +93,7 @@ export class TiendasService {
   }
 
   getTiendasActivas(): Observable<{ id: number; nombre: string }[]> {
-    return this.listar('activas', 1, 100).pipe(
+    return this.listar('activo', 1, 100).pipe(
       map(resp => resp.datos.map(t => ({ id: t.id, nombre: t.nombre }))),
     );
   }

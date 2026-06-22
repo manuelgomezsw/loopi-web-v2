@@ -1,26 +1,22 @@
-<div class="max-w-lg mx-auto">
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
 
-  <h1 class="text-2xl font-semibold text-gray-800 mb-6">
-    {{ modoEdicion() ? 'Editar tienda' : 'Nueva tienda' }}
-  </h1>
+<div class="p-6">
+  <app-page-header [title]="modoEdicion() ? 'Editar tienda' : 'Nueva tienda'" />
 
-  <!-- Toast -->
-  @if (toastMsg()) {
-    <div
-      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
-      [class.bg-green-100]="toastTipo() === 'verde'"
-      [class.text-green-800]="toastTipo() === 'verde'"
-      [class.bg-red-100]="toastTipo() === 'rojo'"
-      [class.text-red-800]="toastTipo() === 'rojo'"
-      role="alert"
-      aria-live="polite"
-    >
-      {{ toastMsg() }}
-    </div>
-  }
-
-  <!-- Tarjeta del formulario -->
-  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:p-8">
+  <app-form-card size="md">
     <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
 
       <!-- Código -->
@@ -34,9 +30,8 @@
           formControlName="codigo"
           maxlength="20"
           placeholder="TDA-001"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('codigo')"
-          [class.border-gray-300]="!errorDe('codigo')"
+          class="input-field"
+          [class.input-field-error]="errorDe('codigo')"
         />
         @if (errorDe('codigo')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('codigo') }}</p>
@@ -54,9 +49,8 @@
           formControlName="nombre"
           maxlength="150"
           placeholder="Tienda Norte"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('nombre')"
-          [class.border-gray-300]="!errorDe('nombre')"
+          class="input-field"
+          [class.input-field-error]="errorDe('nombre')"
         />
         @if (errorDe('nombre')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('nombre') }}</p>
@@ -74,9 +68,8 @@
           formControlName="direccion"
           maxlength="255"
           placeholder="Calle 100 #20-30"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('direccion')"
-          [class.border-gray-300]="!errorDe('direccion')"
+          class="input-field"
+          [class.input-field-error]="errorDe('direccion')"
         />
         @if (errorDe('direccion')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('direccion') }}</p>
@@ -94,9 +87,8 @@
           formControlName="ciudad"
           maxlength="100"
           placeholder="Bogotá"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('ciudad')"
-          [class.border-gray-300]="!errorDe('ciudad')"
+          class="input-field"
+          [class.input-field-error]="errorDe('ciudad')"
         />
         @if (errorDe('ciudad')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('ciudad') }}</p>
@@ -114,9 +106,8 @@
           formControlName="telefono"
           maxlength="20"
           placeholder="3001234567"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('telefono')"
-          [class.border-gray-300]="!errorDe('telefono')"
+          class="input-field"
+          [class.input-field-error]="errorDe('telefono')"
         />
         @if (errorDe('telefono')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('telefono') }}</p>
@@ -128,45 +119,39 @@
         <button
           type="submit"
           [disabled]="guardando()"
-          class="bg-indigo-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
+          class="btn-primary"
         >
           {{ guardando() ? 'Guardando...' : 'Guardar' }}
         </button>
         <a
           routerLink="/tiendas"
-          class="px-5 py-2 rounded-md text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50"
+          class="btn-secondary"
         >
           Cancelar
         </a>
       </div>
 
     </form>
-  </div>
 
-  <!-- Zona destructiva: Inactivar / Reactivar (solo en modo edición) -->
-  @if (modoEdicion()) {
-    <div class="mt-8 pt-6 border-t border-gray-200">
-      <h2 class="text-sm font-medium text-gray-700 mb-3">Estado de la tienda</h2>
+    <app-danger-zone title="Estado de la tienda">
       <button
         type="button"
         [disabled]="cambiandoEstado()"
         (click)="solicitarCambioEstado()"
-        class="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-60"
+        class="px-4 py-2 rounded-md text-sm font-medium border disabled:opacity-60 transition-colors duration-200"
         [class.bg-red-50]="tiendaActiva()"
         [class.text-red-700]="tiendaActiva()"
-        [class.hover:bg-red-100]="tiendaActiva()"
-        [class.border]="true"
         [class.border-red-300]="tiendaActiva()"
+        [class.hover:bg-red-100]="tiendaActiva()"
         [class.bg-green-50]="!tiendaActiva()"
         [class.text-green-700]="!tiendaActiva()"
-        [class.hover:bg-green-100]="!tiendaActiva()"
         [class.border-green-300]="!tiendaActiva()"
+        [class.hover:bg-green-100]="!tiendaActiva()"
       >
         {{ cambiandoEstado() ? 'Procesando...' : (tiendaActiva() ? 'Inactivar tienda' : 'Reactivar tienda') }}
       </button>
-    </div>
-  }
-
+    </app-danger-zone>
+  </app-form-card>
 </div>
 
 <!-- Modal confirmar inactivar / reactivar -->

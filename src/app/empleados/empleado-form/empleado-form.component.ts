@@ -10,6 +10,10 @@ import {
   EmpleadosService,
 } from '../empleados.service';
 import { TiendasService } from '../../tiendas/tiendas.service';
+import { FormModeService } from '../../shared/services/form-mode.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
+import { DangerZoneComponent } from '../../shared/components/danger-zone/danger-zone.component';
 
 function mayorDeEdad(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -32,7 +36,8 @@ const TIPOS_DOCUMENTO = [
 @Component({
   selector: 'app-empleado-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PageHeaderComponent, FormCardComponent, DangerZoneComponent],
+  providers: [FormModeService],
   templateUrl: './empleado-form.component.html',
 })
 export class EmpleadoFormComponent implements OnInit {
@@ -41,28 +46,26 @@ export class EmpleadoFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly formMode = inject(FormModeService);
 
   readonly tiposDocumento = TIPOS_DOCUMENTO;
   readonly tiendasActivas = signal<{ id: number; nombre: string }[]>([]);
   readonly cargandoTiendas = signal<boolean>(false);
   readonly errorCargaTiendas = signal<string>('');
 
-  readonly modoEdicion = signal<boolean>(false);
+  readonly modoEdicion = this.formMode.isEdit;
   readonly empleadoID = signal<number | null>(null);
   readonly cargando = signal<boolean>(false);
   readonly guardando = signal<boolean>(false);
   readonly errorApi = signal<string>('');
 
-  // Modal contraseña temporal (crear + reset)
   readonly mostrarModalContrasena = signal<boolean>(false);
   readonly contrasenaTemporal = signal<string>('');
   readonly copiaConfirmada = signal<boolean>(false);
 
-  // Modal confirmación inactivar/reactivar
   readonly mostrarModalEstado = signal<boolean>(false);
   readonly nuevoEstado = signal<boolean>(true);
 
-  // Modal confirmación resetear contraseña
   readonly mostrarModalResetContrasena = signal<boolean>(false);
 
   readonly empleado = signal<Empleado | null>(null);
@@ -92,7 +95,7 @@ export class EmpleadoFormComponent implements OnInit {
     this.cargarTiendasActivas();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.modoEdicion.set(true);
+      this.formMode.mode.set('edit');
       this.empleadoID.set(+id);
       this.cargarEmpleado(+id);
     }

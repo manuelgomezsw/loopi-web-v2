@@ -63,7 +63,7 @@ export interface EditarEmpleadoRequest {
 export interface ListarEmpleadosParams {
   q?: string;
   tienda_id?: number;
-  activo?: boolean;
+  estado?: string;
   page?: number;
   limit?: number;
 }
@@ -77,7 +77,7 @@ export class EmpleadosService {
     let p = new HttpParams();
     if (params.q) p = p.set('q', params.q);
     if (params.tienda_id != null) p = p.set('tienda_id', params.tienda_id);
-    if (params.activo != null) p = p.set('activo', params.activo);
+    if (params.estado) p = p.set('estado', params.estado);
     if (params.page) p = p.set('page', params.page);
     if (params.limit) p = p.set('limit', params.limit);
     return this.http.get<ListaEmpleadosResponse>(this.base, { params: p, withCredentials: true });

@@ -53,7 +53,7 @@ export interface InactivarUnidadResponse {
 
 export interface ListarUMParams {
   tipo?: string;
-  activo?: boolean;
+  estado?: string;
   page?: number;
   limit?: number;
 }
@@ -66,7 +66,7 @@ export class UnidadesMedidaService {
   listar(params: ListarUMParams = {}): Observable<ListarUnidadesMedidaResponse> {
     let p = new HttpParams();
     if (params.tipo) p = p.set('tipo', params.tipo);
-    if (params.activo != null) p = p.set('activo', params.activo);
+    if (params.estado) p = p.set('estado', params.estado);
     if (params.page) p = p.set('page', params.page);
     if (params.limit) p = p.set('limit', params.limit);
     return this.http.get<ListarUnidadesMedidaResponse>(this.base, { params: p, withCredentials: true });

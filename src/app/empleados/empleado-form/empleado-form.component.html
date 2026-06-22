@@ -1,33 +1,24 @@
-<div class="max-w-2xl mx-auto">
-
-  <!-- Breadcrumb -->
-  <nav class="mb-4 text-sm text-gray-500" aria-label="Navegación">
-    <a routerLink="/empleados" class="hover:text-indigo-600">Empleados</a>
-    <span class="mx-2">›</span>
-    <span>{{ modoEdicion() ? 'Editar' : 'Nuevo' }}</span>
-  </nav>
-
-  <h1 class="text-2xl font-semibold text-gray-900 mb-6">
-    {{ modoEdicion() ? 'Editar empleado' : 'Nuevo empleado' }}
-  </h1>
+<div class="p-6">
+  <app-page-header
+    [title]="modoEdicion() ? 'Editar empleado' : 'Nuevo empleado'"
+    [breadcrumb]="[{label: 'Empleados', route: '/empleados'}, {label: modoEdicion() ? 'Editar' : 'Nuevo'}]"
+  />
 
   <!-- Spinner carga inicial -->
   @if (cargando()) {
     <div class="flex justify-center py-12" aria-label="Cargando">
-      <div class="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
     </div>
   }
 
   @if (!cargando()) {
-    <!-- Error API -->
     @if (errorApi()) {
       <div class="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-700" role="alert">
         {{ errorApi() }}
       </div>
     }
 
-    <!-- Tarjeta del formulario -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:p-8">
+    <app-form-card size="lg">
       <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
 
         <!-- Nombre -->
@@ -40,9 +31,8 @@
             formControlName="nombre"
             type="text"
             autocomplete="given-name"
-            class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            [class.border-red-500]="campoInvalido('nombre')"
-            [class.border-gray-300]="!campoInvalido('nombre')"
+            class="input-field"
+            [class.input-field-error]="campoInvalido('nombre')"
           />
           @if (campoInvalido('nombre')) {
             <p class="mt-1 text-xs text-red-600">El nombre es obligatorio.</p>
@@ -59,9 +49,8 @@
             formControlName="apellido"
             type="text"
             autocomplete="family-name"
-            class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            [class.border-red-500]="campoInvalido('apellido')"
-            [class.border-gray-300]="!campoInvalido('apellido')"
+            class="input-field"
+            [class.input-field-error]="campoInvalido('apellido')"
           />
           @if (campoInvalido('apellido')) {
             <p class="mt-1 text-xs text-red-600">El apellido es obligatorio.</p>
@@ -78,11 +67,8 @@
             formControlName="usuario"
             type="text"
             autocomplete="username"
-            class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            [class.border-red-500]="campoInvalido('usuario')"
-            [class.border-gray-300]="!campoInvalido('usuario')"
-            [class.bg-gray-100]="modoEdicion()"
-            [class.bg-white]="!modoEdicion()"
+            class="input-field"
+            [class.input-field-error]="campoInvalido('usuario')"
           />
           @if (campoInvalido('usuario')) {
             <p class="mt-1 text-xs text-red-600">El usuario es obligatorio.</p>
@@ -100,7 +86,7 @@
           <select
             id="rol"
             formControlName="rol"
-            class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="select-field"
           >
             <option value="admin">Admin</option>
             <option value="lider_tienda">Líder de tienda</option>
@@ -122,9 +108,8 @@
               <select
                 id="tienda_id"
                 formControlName="tienda_id"
-                class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                [class.border-red-500]="form.get('tienda_id')?.errors?.['servidor']"
-                [class.border-gray-300]="!form.get('tienda_id')?.errors?.['servidor']"
+                class="select-field"
+                [class.input-field-error]="form.get('tienda_id')?.errors?.['servidor']"
               >
                 <option [ngValue]="null">— Seleccionar tienda —</option>
                 @if (tiendasActivas().length === 0) {
@@ -145,8 +130,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label for="tipo_documento" class="block text-sm font-medium text-gray-700 mb-1">Tipo de documento</label>
-            <select id="tipo_documento" formControlName="tipo_documento"
-              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select id="tipo_documento" formControlName="tipo_documento" class="select-field">
               <option value="">— Seleccionar (opcional) —</option>
               @for (tipo of tiposDocumento; track tipo.codigo) {
                 <option [value]="tipo.codigo">{{ tipo.etiqueta }}</option>
@@ -158,20 +142,17 @@
           </div>
           <div>
             <label for="numero_documento" class="block text-sm font-medium text-gray-700 mb-1">Número de documento</label>
-            <input id="numero_documento" formControlName="numero_documento" type="text"
-              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="numero_documento" formControlName="numero_documento" type="text" class="input-field" />
           </div>
           <div>
             <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-            <input id="telefono" formControlName="telefono" type="tel" autocomplete="tel"
-              class="bg-white w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="telefono" formControlName="telefono" type="tel" autocomplete="tel" class="input-field" />
           </div>
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input id="email" formControlName="email" type="email" autocomplete="email"
-              class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              [class.border-red-500]="campoInvalido('email')"
-              [class.border-gray-300]="!campoInvalido('email')" />
+              class="input-field"
+              [class.input-field-error]="campoInvalido('email')" />
             @if (campoInvalido('email')) {
               <p class="mt-1 text-xs text-red-600">El formato del email no es válido.</p>
             }
@@ -180,16 +161,14 @@
             <label for="fecha_nacimiento" class="block text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</label>
             <input id="fecha_nacimiento" formControlName="fecha_nacimiento" type="date"
               [max]="fechaMaxNacimiento"
-              class="bg-white w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              [class.border-red-500]="campoInvalido('fecha_nacimiento')"
-              [class.border-gray-300]="!campoInvalido('fecha_nacimiento')" />
+              class="input-field"
+              [class.input-field-error]="campoInvalido('fecha_nacimiento')" />
             @if (campoInvalido('fecha_nacimiento')) {
               <p class="mt-1 text-xs text-red-600">El empleado debe ser mayor de 18 años.</p>
             }
           </div>
         </div>
 
-        <!-- Leyenda campos obligatorios -->
         <p class="text-xs text-gray-500 mb-6">* Campo obligatorio</p>
 
         <!-- Acciones principales -->
@@ -197,7 +176,7 @@
           <button
             type="submit"
             [disabled]="guardando()"
-            class="inline-flex items-center px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+            class="btn-primary inline-flex items-center"
             aria-label="Guardar empleado"
           >
             @if (guardando()) {
@@ -207,52 +186,45 @@
               {{ modoEdicion() ? 'Guardar cambios' : 'Crear empleado' }}
             }
           </button>
-
-          <a routerLink="/empleados" class="px-5 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <a routerLink="/empleados" class="btn-secondary">
             Cancelar
           </a>
         </div>
 
       </form>
-    </div>
 
-    <!-- Zona destructiva: acciones de edición -->
-    @if (modoEdicion() && empleado()) {
-      <div class="mt-8 pt-6 border-t border-gray-200" aria-labelledby="acciones-titulo">
-        <h2 id="acciones-titulo" class="text-base font-semibold text-gray-800 mb-4">Acciones</h2>
-        <div class="flex flex-wrap gap-3">
-          <!-- Resetear contraseña -->
-          <button
-            type="button"
-            (click)="resetearContrasena()"
-            class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            Resetear contraseña
-          </button>
-
-          <!-- Inactivar / Reactivar -->
-          @if (empleado()!.activo) {
+      <app-danger-zone title="Acciones">
+        @if (empleado()) {
+          <div class="flex flex-wrap gap-3">
             <button
               type="button"
-              (click)="confirmarCambioEstado(false)"
-              class="px-4 py-2 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400"
+              (click)="resetearContrasena()"
+              class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-600"
             >
-              Inactivar empleado
+              Resetear contraseña
             </button>
-          } @else {
-            <button
-              type="button"
-              (click)="confirmarCambioEstado(true)"
-              class="px-4 py-2 text-sm border border-green-300 text-green-700 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-400"
-            >
-              Reactivar empleado
-            </button>
-          }
-        </div>
-      </div>
-    }
+            @if (empleado()!.activo) {
+              <button
+                type="button"
+                (click)="confirmarCambioEstado(false)"
+                class="px-4 py-2 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400"
+              >
+                Inactivar empleado
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="confirmarCambioEstado(true)"
+                class="px-4 py-2 text-sm border border-green-300 text-green-700 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-400"
+              >
+                Reactivar empleado
+              </button>
+            }
+          </div>
+        }
+      </app-danger-zone>
+    </app-form-card>
   }
-
 </div>
 
 <!-- Modal contraseña temporal -->
@@ -271,7 +243,7 @@
           id="copia-confirmada"
           type="checkbox"
           (change)="confirmarCopia()"
-          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
         />
         <label for="copia-confirmada" class="text-sm text-gray-700">Confirmo que copié la contraseña</label>
       </div>
@@ -279,7 +251,7 @@
         type="button"
         [disabled]="!copiaConfirmada()"
         (click)="cerrarModalContrasena()"
-        class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        class="btn-primary w-full"
       >
         Continuar
       </button>
@@ -296,18 +268,10 @@
         Se generará una contraseña temporal que deberás compartir con el empleado de forma segura.
       </p>
       <div class="flex gap-3 justify-end">
-        <button
-          type="button"
-          (click)="cancelarResetContrasena()"
-          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
+        <button type="button" (click)="cancelarResetContrasena()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
           Cancelar
         </button>
-        <button
-          type="button"
-          (click)="confirmarResetContrasena()"
-          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
+        <button type="button" (click)="confirmarResetContrasena()" class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-primary-700 hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-600">
           Resetear
         </button>
       </div>
@@ -330,11 +294,7 @@
         }
       </p>
       <div class="flex gap-3 justify-end">
-        <button
-          type="button"
-          (click)="cancelarCambioEstado()"
-          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
+        <button type="button" (click)="cancelarCambioEstado()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
           Cancelar
         </button>
         <button

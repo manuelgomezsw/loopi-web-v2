@@ -9,11 +9,15 @@ import {
   UnidadMedida,
   UnidadesMedidaService,
 } from '../unidades-medida.service';
-
+import { FormModeService } from '../../shared/services/form-mode.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
+import { DangerZoneComponent } from '../../shared/components/danger-zone/danger-zone.component';
 @Component({
   selector: 'app-unidad-medida-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PageHeaderComponent, FormCardComponent, DangerZoneComponent],
+  providers: [FormModeService],
   templateUrl: './unidad-medida-form.component.html',
 })
 export class UnidadMedidaFormComponent implements OnInit {
@@ -21,8 +25,9 @@ export class UnidadMedidaFormComponent implements OnInit {
   private readonly svc = inject(UnidadesMedidaService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly formMode = inject(FormModeService);
 
-  readonly modoEdicion = signal(false);
+  readonly modoEdicion = this.formMode.isEdit;
   readonly unidadID = signal<number | null>(null);
   readonly esUnidadBase = signal(false);
   readonly guardando = signal(false);
@@ -51,7 +56,7 @@ export class UnidadMedidaFormComponent implements OnInit {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const id = Number(idParam);
-      this.modoEdicion.set(true);
+      this.formMode.mode.set('edit');
       this.unidadID.set(id);
       this.form.get('codigo')?.disable();
       this.form.get('tipo_medida')?.disable();
