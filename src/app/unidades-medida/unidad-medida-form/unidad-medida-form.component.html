@@ -22,32 +22,28 @@
   <app-form-card size="md">
     <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
 
-      <!-- Código: readonly en edición, input en creación -->
-      @if (modoEdicion()) {
-        <app-readonly-field label="Código" [value]="form.getRawValue().codigo ?? ''" />
-      } @else {
-        <div>
-          <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
-            Código <span class="text-red-500" aria-hidden="true">*</span>
-            <span class="sr-only">(requerido)</span>
-          </label>
-          <input
-            id="codigo"
-            type="text"
-            formControlName="codigo"
-            maxlength="20"
-            placeholder="kg"
-            autocomplete="off"
-            class="input-field"
-            [class.input-field-error]="errorDe('codigo')"
-            [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
-            [attr.aria-invalid]="!!errorDe('codigo')"
-          />
-          @if (errorDe('codigo')) {
-            <p id="error-codigo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('codigo') }}</p>
-          }
-        </div>
-      }
+      <!-- Código (deshabilitado en edición vía form control) -->
+      <div>
+        <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
+          Código <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <input
+          id="codigo"
+          type="text"
+          formControlName="codigo"
+          maxlength="20"
+          placeholder="kg"
+          autocomplete="off"
+          class="input-field"
+          [class.input-field-error]="errorDe('codigo')"
+          [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
+          [attr.aria-invalid]="!!errorDe('codigo')"
+        />
+        @if (errorDe('codigo')) {
+          <p id="error-codigo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('codigo') }}</p>
+        }
+      </div>
 
       <!-- Nombre -->
       <div>
@@ -71,33 +67,29 @@
         }
       </div>
 
-      <!-- Tipo de medida: readonly en edición, select en creación -->
-      @if (modoEdicion()) {
-        <app-readonly-field label="Tipo de medida" [value]="form.getRawValue().tipo_medida ?? ''" />
-      } @else {
-        <div>
-          <label for="tipo_medida" class="block text-sm font-medium text-gray-700 mb-1">
-            Tipo de medida <span class="text-red-500" aria-hidden="true">*</span>
-            <span class="sr-only">(requerido)</span>
-          </label>
-          <select
-            id="tipo_medida"
-            formControlName="tipo_medida"
-            class="select-field"
-            [class.input-field-error]="errorDe('tipo_medida')"
-            [attr.aria-describedby]="errorDe('tipo_medida') ? 'error-tipo' : null"
-            [attr.aria-invalid]="!!errorDe('tipo_medida')"
-          >
-            <option value="" disabled>Selecciona un tipo</option>
-            @for (tipo of tiposMedida; track tipo) {
-              <option [value]="tipo">{{ tipo | titlecase }}</option>
-            }
-          </select>
-          @if (errorDe('tipo_medida')) {
-            <p id="error-tipo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('tipo_medida') }}</p>
+      <!-- Tipo de medida (deshabilitado en edición vía form control) -->
+      <div>
+        <label for="tipo_medida" class="block text-sm font-medium text-gray-700 mb-1">
+          Tipo de medida <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <select
+          id="tipo_medida"
+          formControlName="tipo_medida"
+          class="select-field"
+          [class.input-field-error]="errorDe('tipo_medida')"
+          [attr.aria-describedby]="errorDe('tipo_medida') ? 'error-tipo' : null"
+          [attr.aria-invalid]="!!errorDe('tipo_medida')"
+        >
+          <option value="" disabled>Selecciona un tipo</option>
+          @for (tipo of tiposMedida; track tipo) {
+            <option [value]="tipo">{{ tipo | titlecase }}</option>
           }
-        </div>
-      }
+        </select>
+        @if (errorDe('tipo_medida')) {
+          <p id="error-tipo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('tipo_medida') }}</p>
+        }
+      </div>
 
       <!-- Factor de conversión -->
       <div>

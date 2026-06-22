@@ -13,12 +13,10 @@ import { FormModeService } from '../../shared/services/form-mode.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
 import { DangerZoneComponent } from '../../shared/components/danger-zone/danger-zone.component';
-import { ReadonlyFieldComponent } from '../../shared/components/readonly-field/readonly-field.component';
-
 @Component({
   selector: 'app-unidad-medida-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, PageHeaderComponent, FormCardComponent, DangerZoneComponent, ReadonlyFieldComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PageHeaderComponent, FormCardComponent, DangerZoneComponent],
   providers: [FormModeService],
   templateUrl: './unidad-medida-form.component.html',
 })
