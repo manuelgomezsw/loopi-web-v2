@@ -7,6 +7,7 @@ export interface NavItem {
   route: string;
   roles: Rol[];
   orden: number;
+  children?: NavItem[];
 }
 
 export interface StoreContext {

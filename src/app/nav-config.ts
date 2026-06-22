@@ -32,6 +32,16 @@ export const NAV_ITEMS: NavItem[] = [
     route: '/catalogo',
     roles: ['admin'],
     orden: 4,
+    children: [
+      {
+        id: 'unidades-medida',
+        label: 'Unidades de medida',
+        icon: 'scale',
+        route: '/unidades-medida',
+        roles: ['admin'],
+        orden: 1,
+      },
+    ],
   },
   {
     id: 'menu',
