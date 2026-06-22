@@ -11,7 +11,7 @@
 <nav
   class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-lg
          transition-transform duration-200 ease-in-out transition-[width]
-         w-64 sm:relative sm:translate-x-0 sm:shadow-none sm:w-16
+         w-64 sm:relative sm:h-full sm:translate-x-0 sm:shadow-none sm:w-16
          lg:w-64"
   [class.translate-x-0]="isOpen"
   [class.-translate-x-full]="!isOpen"
@@ -36,13 +36,13 @@
     </button>
   </div>
 
-  <!-- Logo desktop (lg:) -->
-  <div class="hidden lg:flex items-center px-4 py-5 border-b border-gray-100">
+  <!-- Logo desktop (lg:) — h-16 para alinear con el border-b del topbar -->
+  <div class="hidden lg:flex items-center h-16 shrink-0 px-4 border-b border-gray-100">
     <span class="text-xl font-bold text-blue-600" [class.lg:hidden]="collapsed">Loopi</span>
     <span class="hidden text-xl font-bold text-blue-600" [class.lg:block]="collapsed">L</span>
   </div>
-  <!-- Logo tablet colapsado (sm: sin lg:) -->
-  <div class="hidden sm:flex lg:hidden items-center justify-center py-5 border-b border-gray-100">
+  <!-- Logo tablet colapsado (sm: sin lg:) — h-16 para alinear con el border-b del topbar -->
+  <div class="hidden sm:flex lg:hidden items-center justify-center h-16 shrink-0 border-b border-gray-100">
     <span class="text-xl font-bold text-blue-600">L</span>
   </div>
 
