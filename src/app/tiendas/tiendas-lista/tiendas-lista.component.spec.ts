@@ -60,8 +60,8 @@ describe('TiendasListaComponent', () => {
 
   // --- ngOnInit ---
 
-  it('llama a listar() en ngOnInit con filtro "todas"', () => {
-    expect(serviceSpy.listar).toHaveBeenCalledWith('todas', 1, 50);
+  it('llama a listar() en ngOnInit con filtro "activo"', () => {
+    expect(serviceSpy.listar).toHaveBeenCalledWith('activo', 1, 50);
   });
 
   // --- navegación ---
@@ -130,23 +130,23 @@ describe('TiendasListaComponent', () => {
 
   // --- filtro de estado ---
 
-  it('cambiarFiltro() relanza listar() con el nuevo estado', () => {
+  it('onFilters() relanza listar() con el nuevo estado', () => {
     serviceSpy.listar.and.returnValue(of(listaVacia));
-    component.cambiarFiltro('activas');
-    expect(serviceSpy.listar).toHaveBeenCalledWith('activas', 1, 50);
+    component.onFilters({ estado: 'activo' });
+    expect(serviceSpy.listar).toHaveBeenCalledWith('activo', 1, 50);
   });
 
-  it('cambiarFiltro() resetea pagina a 1', () => {
+  it('onFilters() resetea pagina a 1', () => {
     component.pagina.set(3);
     serviceSpy.listar.and.returnValue(of(listaVacia));
-    component.cambiarFiltro('inactivas');
+    component.onFilters({ estado: 'inactivo' });
     expect(component.pagina()).toBe(1);
   });
 
-  it('actualiza Signal filtroEstado al cambiar filtro', () => {
+  it('onFilters() con estado "inactivo" llama a listar() con ese estado', () => {
     serviceSpy.listar.and.returnValue(of(listaVacia));
-    component.cambiarFiltro('activas');
-    expect(component.filtroEstado()).toBe('activas');
+    component.onFilters({ estado: 'inactivo' });
+    expect(serviceSpy.listar).toHaveBeenCalledWith('inactivo', 1, 50);
   });
 
   // --- error en carga ---
