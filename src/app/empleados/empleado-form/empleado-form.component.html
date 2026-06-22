@@ -250,6 +250,34 @@
   </div>
 }
 
+<!-- Modal confirmar resetear contraseña -->
+@if (mostrarModalResetContrasena()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-reset-titulo">
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-reset-titulo" class="text-lg font-semibold text-gray-900 mb-3">¿Resetear contraseña?</h2>
+      <p class="text-sm text-gray-600 mb-6">
+        Se generará una contraseña temporal que deberás compartir con el empleado de forma segura.
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          (click)="cancelarResetContrasena()"
+          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarResetContrasena()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          Resetear
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Modal confirmar inactivar/reactivar -->
 @if (mostrarModalEstado()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-estado-titulo">
