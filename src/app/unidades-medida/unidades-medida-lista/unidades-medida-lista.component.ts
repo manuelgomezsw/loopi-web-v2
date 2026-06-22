@@ -1,20 +1,37 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 import { UnidadesMedidaService, UnidadMedida } from '../unidades-medida.service';
+import { ActiveFilters, ColumnDef, FilterDefinition } from '../../shared/models/filter.model';
+import { FilterBarComponent } from '../../shared/components/filter-bar/filter-bar.component';
+import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ListCardComponent } from '../../shared/components/list-card/list-card.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { AppCellTemplateDirective } from '../../shared/components/data-table/cell-template.directive';
 
 @Component({
   selector: 'app-unidades-medida-lista',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    RouterModule,
+    FilterBarComponent,
+    DataTableComponent,
+    PaginationComponent,
+    PageHeaderComponent,
+    ListCardComponent,
+    EmptyStateComponent,
+    StatusBadgeComponent,
+    AppCellTemplateDirective,
+  ],
   templateUrl: './unidades-medida-lista.component.html',
 })
-export class UnidadesMedidaListaComponent implements OnInit, OnDestroy {
+export class UnidadesMedidaListaComponent implements OnDestroy {
   private readonly svc = inject(UnidadesMedidaService);
-  private readonly router = inject(Router);
+  protected readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
   readonly unidades = signal<UnidadMedida[]>([]);
@@ -26,27 +43,66 @@ export class UnidadesMedidaListaComponent implements OnInit, OnDestroy {
 
   readonly pagina = signal(1);
   readonly limit = 50;
-  readonly filtroTipo = signal('');
 
-  ngOnInit(): void {
-    this.cargar();
-  }
+  private activeFilters: ActiveFilters = { estado: 'activo', tipo: 'todos' };
+
+  readonly filterDefs: FilterDefinition[] = [
+    {
+      key: 'estado',
+      defaultValue: 'activo',
+      options: [
+        { label: 'Activas', value: 'activo' },
+        { label: 'Inactivas', value: 'inactivo' },
+        { label: 'Todas', value: 'todos' },
+      ],
+    },
+    {
+      key: 'tipo',
+      defaultValue: 'todos',
+      options: [
+        { label: 'Todos', value: 'todos' },
+        { label: 'Peso', value: 'peso' },
+        { label: 'Volumen', value: 'volumen' },
+        { label: 'Unidad', value: 'unidad' },
+      ],
+    },
+  ];
+
+  readonly cols: ColumnDef[] = [
+    { key: 'codigo', label: 'Código' },
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'tipo_medida', label: 'Tipo' },
+    { key: 'factor_conversion', label: 'Factor' },
+    { key: 'activo', label: 'Estado' },
+  ];
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
+  onFilters(filters: ActiveFilters): void {
+    this.activeFilters = filters;
+    this.pagina.set(1);
+    this.cargar();
+  }
+
+  onPage(page: number): void {
+    this.pagina.set(page);
+    this.cargar();
+  }
+
   cargar(): void {
     this.cargando.set(true);
     this.errorMsg.set('');
-    const params = {
-      page: this.pagina(),
-      limit: this.limit,
-      tipo: this.filtroTipo() || undefined,
-    };
+    const tipo = this.activeFilters['tipo'];
     this.svc
-      .listar(params)
+      .listar({
+        page: this.pagina(),
+        limit: this.limit,
+        tipo: tipo && tipo !== 'todos' ? tipo : undefined,
+        estado: this.activeFilters['estado'],
+      })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (resp) => {
@@ -59,38 +115,6 @@ export class UnidadesMedidaListaComponent implements OnInit, OnDestroy {
           this.cargando.set(false);
         },
       });
-  }
-
-  onFiltroTipo(tipo: string): void {
-    this.filtroTipo.set(tipo);
-    this.pagina.set(1);
-    this.cargar();
-  }
-
-  paginaAnterior(): void {
-    if (this.pagina() > 1) {
-      this.pagina.update((p) => p - 1);
-      this.cargar();
-    }
-  }
-
-  paginaSiguiente(): void {
-    if (this.pagina() * this.limit < this.total()) {
-      this.pagina.update((p) => p + 1);
-      this.cargar();
-    }
-  }
-
-  get hayPaginaAnterior(): boolean {
-    return this.pagina() > 1;
-  }
-
-  get hayPaginaSiguiente(): boolean {
-    return this.pagina() * this.limit < this.total();
-  }
-
-  get paginaFin(): number {
-    return Math.min(this.pagina() * this.limit, this.total());
   }
 
   irAEditar(id: number): void {

@@ -11,8 +11,8 @@ export interface FilterDefinition {
 
 export type ActiveFilters = Record<string, string>;
 
-export interface ColumnDef<T = unknown> {
-  key: keyof T & string;
+export interface ColumnDef {
+  key: string;
   label: string;
   width?: string;
 }

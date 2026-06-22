@@ -1,7 +1,4 @@
-import { Component, OnChanges, inject, input } from '@angular/core';
-
-import { FormMode } from '../../models/filter.model';
-import { FormModeService } from '../../services/form-mode.service';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-form-card',
@@ -16,15 +13,7 @@ import { FormModeService } from '../../services/form-mode.service';
       <ng-content />
     </div>
   `,
-  providers: [FormModeService],
 })
-export class FormCardComponent implements OnChanges {
+export class FormCardComponent {
   readonly size = input<'sm' | 'md' | 'lg'>('md');
-  readonly mode = input<FormMode>('create');
-
-  private readonly formMode = inject(FormModeService);
-
-  ngOnChanges(): void {
-    this.formMode.mode.set(this.mode());
-  }
 }

@@ -1,51 +1,54 @@
-<div class="max-w-lg mx-auto">
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
 
-  <h1 class="text-2xl font-semibold text-gray-800 mb-6">
-    {{ modoEdicion() ? 'Editar unidad de medida' : 'Nueva unidad de medida' }}
-  </h1>
+<div class="p-6">
+  <app-page-header
+    [title]="modoEdicion() ? 'Editar unidad de medida' : 'Nueva unidad de medida'"
+    [breadcrumb]="[{label: 'Unidades de medida', route: '/unidades-medida'}, {label: modoEdicion() ? 'Editar' : 'Nueva'}]"
+  />
 
-  <!-- Toast -->
-  @if (toastMsg()) {
-    <div
-      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
-      [class.bg-green-100]="toastTipo() === 'verde'"
-      [class.text-green-800]="toastTipo() === 'verde'"
-      [class.bg-red-100]="toastTipo() === 'rojo'"
-      [class.text-red-800]="toastTipo() === 'rojo'"
-      role="alert"
-      aria-live="polite"
-    >
-      {{ toastMsg() }}
-    </div>
-  }
-
-  <!-- Tarjeta del formulario -->
-  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:p-8">
+  <app-form-card size="md">
     <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
 
-      <!-- Código -->
-      <div>
-        <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
-          Código <span class="text-red-500" aria-hidden="true">*</span>
-          <span class="sr-only">(requerido)</span>
-        </label>
-        <input
-          id="codigo"
-          type="text"
-          formControlName="codigo"
-          maxlength="20"
-          placeholder="kg"
-          autocomplete="off"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('codigo')"
-          [class.border-gray-300]="!errorDe('codigo')"
-          [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
-          [attr.aria-invalid]="!!errorDe('codigo')"
-        />
-        @if (errorDe('codigo')) {
-          <p id="error-codigo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('codigo') }}</p>
-        }
-      </div>
+      <!-- Código: readonly en edición, input en creación -->
+      @if (modoEdicion()) {
+        <app-readonly-field label="Código" [value]="form.getRawValue().codigo ?? ''" />
+      } @else {
+        <div>
+          <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
+            Código <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <input
+            id="codigo"
+            type="text"
+            formControlName="codigo"
+            maxlength="20"
+            placeholder="kg"
+            autocomplete="off"
+            class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [class.border-red-500]="errorDe('codigo')"
+            [class.border-gray-300]="!errorDe('codigo')"
+            [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
+            [attr.aria-invalid]="!!errorDe('codigo')"
+          />
+          @if (errorDe('codigo')) {
+            <p id="error-codigo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('codigo') }}</p>
+          }
+        </div>
+      }
 
       <!-- Nombre -->
       <div>
@@ -70,30 +73,34 @@
         }
       </div>
 
-      <!-- Tipo de medida -->
-      <div>
-        <label for="tipo_medida" class="block text-sm font-medium text-gray-700 mb-1">
-          Tipo de medida <span class="text-red-500" aria-hidden="true">*</span>
-          <span class="sr-only">(requerido)</span>
-        </label>
-        <select
-          id="tipo_medida"
-          formControlName="tipo_medida"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('tipo_medida')"
-          [class.border-gray-300]="!errorDe('tipo_medida')"
-          [attr.aria-describedby]="errorDe('tipo_medida') ? 'error-tipo' : null"
-          [attr.aria-invalid]="!!errorDe('tipo_medida')"
-        >
-          <option value="" disabled>Selecciona un tipo</option>
-          @for (tipo of tiposMedida; track tipo) {
-            <option [value]="tipo">{{ tipo | titlecase }}</option>
+      <!-- Tipo de medida: readonly en edición, select en creación -->
+      @if (modoEdicion()) {
+        <app-readonly-field label="Tipo de medida" [value]="form.getRawValue().tipo_medida ?? ''" />
+      } @else {
+        <div>
+          <label for="tipo_medida" class="block text-sm font-medium text-gray-700 mb-1">
+            Tipo de medida <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <select
+            id="tipo_medida"
+            formControlName="tipo_medida"
+            class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            [class.border-red-500]="errorDe('tipo_medida')"
+            [class.border-gray-300]="!errorDe('tipo_medida')"
+            [attr.aria-describedby]="errorDe('tipo_medida') ? 'error-tipo' : null"
+            [attr.aria-invalid]="!!errorDe('tipo_medida')"
+          >
+            <option value="" disabled>Selecciona un tipo</option>
+            @for (tipo of tiposMedida; track tipo) {
+              <option [value]="tipo">{{ tipo | titlecase }}</option>
+            }
+          </select>
+          @if (errorDe('tipo_medida')) {
+            <p id="error-tipo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('tipo_medida') }}</p>
           }
-        </select>
-        @if (errorDe('tipo_medida')) {
-          <p id="error-tipo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('tipo_medida') }}</p>
-        }
-      </div>
+        </div>
+      }
 
       <!-- Factor de conversión -->
       <div>
@@ -158,25 +165,22 @@
       </div>
 
     </form>
-  </div>
 
-  <!-- Zona de precaución: inactivar (solo en edición y si la unidad está activa) -->
-  @if (modoEdicion() && unidad()?.activo) {
-    <div class="mt-6 border border-red-200 rounded-xl p-4 lg:p-6 bg-red-50">
-      <h2 class="text-sm font-semibold text-red-700 mb-1">Zona de precaución</h2>
-      <p class="text-xs text-red-600 mb-3">
-        Al inactivar esta unidad de medida, los ítems que la usen no podrán registrar nuevas transacciones.
-      </p>
-      <button
-        type="button"
-        (click)="solicitarInactivar()"
-        class="px-4 py-2 text-sm rounded-md border border-red-400 text-red-700 font-medium hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-      >
-        Inactivar unidad de medida
-      </button>
-    </div>
-  }
-
+    <app-danger-zone title="Zona de precaución">
+      @if (unidad()?.activo) {
+        <p class="text-xs text-red-600 mb-3">
+          Al inactivar esta unidad de medida, los ítems que la usen no podrán registrar nuevas transacciones.
+        </p>
+        <button
+          type="button"
+          (click)="solicitarInactivar()"
+          class="px-4 py-2 text-sm rounded-md border border-red-400 text-red-700 font-medium hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          Inactivar unidad de medida
+        </button>
+      }
+    </app-danger-zone>
+  </app-form-card>
 </div>
 
 <!-- Modal confirmar inactivación -->

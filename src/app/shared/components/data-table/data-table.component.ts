@@ -32,10 +32,10 @@ import { AppCellTemplateDirective } from './cell-template.directive';
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 bg-white">
-            @for (row of rows(); track row[trackByField()]) {
+            @for (row of rows(); track $any(row)[trackByField()]) {
               <tr
                 class="hover:bg-gray-50 cursor-pointer transition-colors"
-                [class.opacity-60]="!row['activo']"
+                [class.opacity-60]="isInactive(row)"
                 (click)="rowClick.emit(row)"
               >
                 @for (col of columns(); track col.key) {
@@ -46,7 +46,7 @@ import { AppCellTemplateDirective } from './cell-template.directive';
                         [ngTemplateOutletContext]="{ $implicit: row }"
                       />
                     } @else {
-                      {{ row[col.key] }}
+                      {{ $any(row)[col.key] }}
                     }
                   </td>
                 }
@@ -58,8 +58,8 @@ import { AppCellTemplateDirective } from './cell-template.directive';
     }
   `,
 })
-export class DataTableComponent<T extends Record<string, unknown>> {
-  readonly columns = input.required<ColumnDef<T>[]>();
+export class DataTableComponent<T extends object> {
+  readonly columns = input.required<ColumnDef[]>();
   readonly rows = input.required<T[]>();
   readonly trackByField = input<string>('id');
   readonly rowClick = output<T>();
@@ -69,4 +69,8 @@ export class DataTableComponent<T extends Record<string, unknown>> {
   readonly templateMap = computed(
     () => new Map(this.cellTemplates().map((d) => [d.appCellTemplate(), d.tpl])),
   );
+
+  protected isInactive(row: T): boolean {
+    return (row as Record<string, unknown>)['activo'] === false;
+  }
 }

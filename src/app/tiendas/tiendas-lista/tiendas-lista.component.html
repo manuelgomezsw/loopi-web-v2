@@ -1,113 +1,72 @@
-<div class="p-6">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-gray-800">Tiendas</h1>
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-gray-100]="toastTipo() === 'neutro'"
+    [class.text-gray-800]="toastTipo() === 'neutro'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<app-list-card>
+  <app-page-header title="Tiendas">
     <a
+      slot="actions"
       routerLink="/tiendas/nueva"
       class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
     >
       + Nueva tienda
     </a>
-  </div>
+  </app-page-header>
 
-  <!-- Toast -->
-  @if (toastMsg()) {
-    <div
-      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
-      [class.bg-green-100]="toastTipo() === 'verde'"
-      [class.text-green-800]="toastTipo() === 'verde'"
-      [class.bg-gray-100]="toastTipo() === 'neutro'"
-      [class.text-gray-800]="toastTipo() === 'neutro'"
-      [class.bg-red-100]="toastTipo() === 'rojo'"
-      [class.text-red-800]="toastTipo() === 'rojo'"
-      role="alert"
-      aria-live="polite"
-    >
-      {{ toastMsg() }}
-    </div>
-  }
+  <app-filter-bar
+    [filters]="filterDefs"
+    routeKey="/tiendas"
+    (filtersChange)="onFilters($event)"
+  />
 
-  <!-- Filtro de estado -->
-  <div class="flex gap-2 mb-4">
-    @for (opcion of ['todas', 'activas', 'inactivas']; track opcion) {
-      <button
-        (click)="cambiarFiltro(opcion)"
-        class="px-3 py-1 rounded-full text-sm border capitalize"
-        [class.bg-indigo-600]="filtroEstado() === opcion"
-        [class.text-white]="filtroEstado() === opcion"
-        [class.border-indigo-600]="filtroEstado() === opcion"
-        [class.border-gray-300]="filtroEstado() !== opcion"
-        [class.text-gray-600]="filtroEstado() !== opcion"
-      >
-        {{ opcion | titlecase }}
-      </button>
-    }
-  </div>
-
-  <!-- Error -->
   @if (errorMsg()) {
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" role="alert">
       {{ errorMsg() }}
     </div>
   }
 
-  <!-- Cargando -->
   @if (cargando()) {
     <div class="text-center py-12 text-gray-500">Cargando tiendas...</div>
   }
 
-  <!-- Estado vacío -->
-  @if (!cargando() && tiendas().length === 0) {
-    <div class="text-center py-16 text-gray-500">
-      <p class="text-lg">No hay tiendas registradas aún.</p>
-      <p class="text-sm mt-1">
-        <a routerLink="/tiendas/nueva" class="text-indigo-600 hover:underline">
-          Crea la primera tienda
-        </a>
-      </p>
-    </div>
+  @if (!cargando() && tiendas().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay tiendas"
+      description="Crea la primera tienda para empezar."
+      actionLabel="+ Nueva tienda"
+      (action)="router.navigate(['/tiendas/nueva'])"
+    />
   }
 
-  <!-- Tabla -->
   @if (!cargando() && tiendas().length > 0) {
-    <div class="overflow-x-auto rounded-lg border border-gray-200">
-      <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Código</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Ciudad</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100 bg-white">
-          @for (tienda of tiendas(); track tienda.id) {
-            <tr
-              class="hover:bg-indigo-50 cursor-pointer"
-              (click)="irAEditar(tienda.id)"
-              (keydown.enter)="irAEditar(tienda.id)"
-              tabindex="0"
-              role="button"
-              [attr.aria-label]="'Editar ' + tienda.nombre"
-            >
-              <td class="px-4 py-3 font-medium text-gray-900">{{ tienda.nombre }}</td>
-              <td class="px-4 py-3 text-gray-600 font-mono">{{ tienda.codigo }}</td>
-              <td class="px-4 py-3 text-gray-600">{{ tienda.ciudad }}</td>
-              <td class="px-4 py-3">
-                @if (tienda.activo) {
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Activa
-                  </span>
-                } @else {
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                    Inactiva
-                  </span>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <p class="text-xs text-gray-400 mt-2">Total: {{ total() }} tienda(s)</p>
+    <app-data-table
+      [columns]="cols"
+      [rows]="tiendas()"
+      (rowClick)="irAEditar($any($event).id)"
+    >
+      <ng-template appCellTemplate="activo" let-row>
+        <app-status-badge [activo]="$any(row).activo" />
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination
+      [page]="pagina()"
+      [pageSize]="limite"
+      [total]="total()"
+      (pageChange)="onPage($event)"
+    />
   }
-</div>
+</app-list-card>

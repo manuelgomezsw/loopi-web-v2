@@ -1,15 +1,27 @@
-<main class="p-4 lg:p-8">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-gray-900">Empleados</h1>
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-white shadow-lg"
+    [class.bg-green-600]="toastTipo() === 'verde'"
+    [class.bg-red-600]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<app-list-card>
+  <app-page-header title="Empleados">
     <a
+      slot="actions"
       routerLink="/empleados/nuevo"
-      class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
     >
       + Nuevo empleado
     </a>
-  </div>
+  </app-page-header>
 
-  <!-- Búsqueda -->
   <div class="mb-4">
     <label for="busqueda" class="sr-only">Buscar empleados</label>
     <input
@@ -22,106 +34,53 @@
     />
   </div>
 
-  <!-- Toast -->
-  @if (toastMsg()) {
-    <div
-      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-white shadow-lg"
-      [class.bg-green-600]="toastTipo() === 'verde'"
-      [class.bg-red-600]="toastTipo() === 'rojo'"
-      role="alert"
-      aria-live="polite"
-    >
-      {{ toastMsg() }}
-    </div>
-  }
+  <app-filter-bar
+    [filters]="filterDefs"
+    routeKey="/empleados"
+    (filtersChange)="onFilters($event)"
+  />
 
-  <!-- Error -->
   @if (errorMsg()) {
     <p class="mb-4 text-sm text-red-600" role="alert">{{ errorMsg() }}</p>
   }
 
-  <!-- Spinner -->
   @if (cargando()) {
     <div class="flex justify-center py-12" aria-label="Cargando empleados">
       <div class="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
     </div>
   }
 
-  <!-- Tabla -->
-  @if (!cargando()) {
-    @if (empleados().length === 0) {
-      <div class="py-12 text-center text-gray-500">
-        <p class="text-base">Aún no hay empleados registrados.</p>
-        <p class="text-sm mt-1">
-          <a routerLink="/empleados/nuevo" class="text-indigo-600 hover:underline">Crea el primer empleado →</a>
-        </p>
-      </div>
-    } @else {
-      <div class="overflow-x-auto rounded-lg border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
-              <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Usuario</th>
-              <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Rol</th>
-              <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Tienda</th>
-              <th scope="col" class="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 bg-white">
-            @for (emp of empleados(); track emp.id) {
-              <tr
-                class="hover:bg-indigo-50 cursor-pointer"
-                (click)="irAEditar(emp.id)"
-                (keydown.enter)="irAEditar(emp.id)"
-                tabindex="0"
-                role="button"
-                [attr.aria-label]="'Editar ' + emp.nombre + ' ' + emp.apellido"
-              >
-                <td class="px-4 py-3 font-medium text-gray-900">{{ emp.nombre }} {{ emp.apellido }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ emp.usuario }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ emp.rol }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ emp.tienda_id ?? '—' }}</td>
-                <td class="px-4 py-3">
-                  <span
-                    class="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
-                    [class.bg-green-100]="emp.activo"
-                    [class.text-green-800]="emp.activo"
-                    [class.bg-gray-100]="!emp.activo"
-                    [class.text-gray-600]="!emp.activo"
-                  >
-                    {{ emp.activo ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Paginación -->
-      <div class="mt-4 flex items-center justify-between text-sm text-gray-600">
-        <span>{{ total() }} empleado{{ total() !== 1 ? 's' : '' }}</span>
-        <div class="flex gap-2">
-          <button
-            (click)="paginaAnterior()"
-            [disabled]="!hayPaginaAnterior"
-            class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-            aria-label="Página anterior"
-          >
-            ← Anterior
-          </button>
-          <span class="px-3 py-1">Página {{ pagina() }}</span>
-          <button
-            (click)="paginaSiguiente()"
-            [disabled]="!hayPaginaSiguiente"
-            class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-            aria-label="Página siguiente"
-          >
-            Siguiente →
-          </button>
-        </div>
-      </div>
-    }
+  @if (!cargando() && empleados().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay empleados"
+      description="Crea el primer empleado para empezar."
+      actionLabel="+ Nuevo empleado"
+      (action)="router.navigate(['/empleados/nuevo'])"
+    />
   }
-</main>
+
+  @if (!cargando() && empleados().length > 0) {
+    <app-data-table
+      [columns]="cols"
+      [rows]="empleados()"
+      (rowClick)="irAEditar($any($event).id)"
+    >
+      <ng-template appCellTemplate="nombre_completo" let-emp>
+        {{ $any(emp).nombre }} {{ $any(emp).apellido }}
+      </ng-template>
+      <ng-template appCellTemplate="tienda_id" let-emp>
+        {{ $any(emp).tienda_id ?? '—' }}
+      </ng-template>
+      <ng-template appCellTemplate="activo" let-emp>
+        <app-status-badge [activo]="$any(emp).activo" />
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination
+      [page]="pagina()"
+      [pageSize]="limit"
+      [total]="total()"
+      (pageChange)="onPage($event)"
+    />
+  }
+</app-list-card>

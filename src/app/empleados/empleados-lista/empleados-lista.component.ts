@@ -1,20 +1,39 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import { Empleado, EmpleadosService } from '../empleados.service';
+import { ActiveFilters, ColumnDef, FilterDefinition } from '../../shared/models/filter.model';
+import { FilterBarComponent } from '../../shared/components/filter-bar/filter-bar.component';
+import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ListCardComponent } from '../../shared/components/list-card/list-card.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { AppCellTemplateDirective } from '../../shared/components/data-table/cell-template.directive';
 
 @Component({
   selector: 'app-empleados-lista',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    FormsModule,
+    RouterModule,
+    FilterBarComponent,
+    DataTableComponent,
+    PaginationComponent,
+    PageHeaderComponent,
+    ListCardComponent,
+    EmptyStateComponent,
+    StatusBadgeComponent,
+    AppCellTemplateDirective,
+  ],
   templateUrl: './empleados-lista.component.html',
 })
 export class EmpleadosListaComponent implements OnInit, OnDestroy {
   private readonly svc = inject(EmpleadosService);
-  private readonly router = inject(Router);
+  protected readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
   private readonly busqueda$ = new Subject<string>();
 
@@ -29,6 +48,28 @@ export class EmpleadosListaComponent implements OnInit, OnDestroy {
   readonly limit = 20;
   readonly busqueda = signal<string>('');
 
+  private activeFilters: ActiveFilters = { estado: 'activo' };
+
+  readonly filterDefs: FilterDefinition[] = [
+    {
+      key: 'estado',
+      defaultValue: 'activo',
+      options: [
+        { label: 'Activos', value: 'activo' },
+        { label: 'Inactivos', value: 'inactivo' },
+        { label: 'Todos', value: 'todos' },
+      ],
+    },
+  ];
+
+  readonly cols: ColumnDef[] = [
+    { key: 'nombre_completo', label: 'Nombre' },
+    { key: 'usuario', label: 'Usuario' },
+    { key: 'rol', label: 'Rol' },
+    { key: 'tienda_id', label: 'Tienda' },
+    { key: 'activo', label: 'Estado' },
+  ];
+
   ngOnInit(): void {
     this.busqueda$
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -36,7 +77,6 @@ export class EmpleadosListaComponent implements OnInit, OnDestroy {
         this.pagina.set(1);
         this.cargar();
       });
-    this.cargar();
   }
 
   ngOnDestroy(): void {
@@ -49,11 +89,27 @@ export class EmpleadosListaComponent implements OnInit, OnDestroy {
     this.busqueda$.next(q);
   }
 
+  onFilters(filters: ActiveFilters): void {
+    this.activeFilters = filters;
+    this.pagina.set(1);
+    this.cargar();
+  }
+
+  onPage(page: number): void {
+    this.pagina.set(page);
+    this.cargar();
+  }
+
   cargar(): void {
     this.cargando.set(true);
     this.errorMsg.set('');
     this.svc
-      .listar({ q: this.busqueda(), page: this.pagina(), limit: this.limit })
+      .listar({
+        q: this.busqueda(),
+        estado: this.activeFilters['estado'],
+        page: this.pagina(),
+        limit: this.limit,
+      })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (resp) => {
@@ -68,30 +124,8 @@ export class EmpleadosListaComponent implements OnInit, OnDestroy {
       });
   }
 
-  paginaAnterior(): void {
-    if (this.pagina() > 1) {
-      this.pagina.update((p) => p - 1);
-      this.cargar();
-    }
-  }
-
-  paginaSiguiente(): void {
-    if (this.pagina() * this.limit < this.total()) {
-      this.pagina.update((p) => p + 1);
-      this.cargar();
-    }
-  }
-
   irAEditar(id: number): void {
     this.router.navigate(['/empleados', id, 'editar']);
-  }
-
-  get hayPaginaAnterior(): boolean {
-    return this.pagina() > 1;
-  }
-
-  get hayPaginaSiguiente(): boolean {
-    return this.pagina() * this.limit < this.total();
   }
 
   mostrarToast(msg: string, tipo: 'verde' | 'rojo', duracion = 3000): void {

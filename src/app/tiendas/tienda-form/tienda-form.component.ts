@@ -6,18 +6,22 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
 
 import {
   TiendaResponse,
   TiendasService,
   TiendaUpdateRequest,
 } from '../tiendas.service';
+import { FormModeService } from '../../shared/services/form-mode.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
+import { DangerZoneComponent } from '../../shared/components/danger-zone/danger-zone.component';
 
 @Component({
   selector: 'app-tienda-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule, PageHeaderComponent, FormCardComponent, DangerZoneComponent],
+  providers: [FormModeService],
   templateUrl: './tienda-form.component.html',
 })
 export class TiendaFormComponent implements OnInit {
@@ -25,8 +29,9 @@ export class TiendaFormComponent implements OnInit {
   private readonly tiendasService = inject(TiendasService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly formMode = inject(FormModeService);
 
-  readonly modoEdicion = signal<boolean>(false);
+  readonly modoEdicion = this.formMode.isEdit;
   readonly tiendaID = signal<number | null>(null);
   readonly tiendaActiva = signal<boolean>(true);
   readonly guardando = signal<boolean>(false);
@@ -50,7 +55,7 @@ export class TiendaFormComponent implements OnInit {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const id = Number(idParam);
-      this.modoEdicion.set(true);
+      this.formMode.mode.set('edit');
       this.tiendaID.set(id);
       this.form.get('codigo')?.disable();
       this.cargarTienda(id);
