@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 
 import { ActiveFilters, FilterDefinition } from '../../models/filter.model';
 import { FilterStateService } from '../../services/filter-state.service';
@@ -7,25 +7,26 @@ import { FilterStateService } from '../../services/filter-state.service';
   selector: 'app-filter-bar',
   standalone: true,
   template: `
-    <div class="flex flex-wrap gap-3 mb-4">
-      @for (filter of filters(); track filter.key) {
-        @if (filter.defaultValue !== null) {
-          <div class="flex gap-1">
-            @for (opt of filter.options; track opt.value) {
-              <button
-                type="button"
-                (click)="select(filter.key, opt.value)"
-                class="px-3 py-1 rounded-full text-sm border capitalize transition-colors"
-                [class.bg-indigo-600]="activeFilters()[filter.key] === opt.value"
-                [class.text-white]="activeFilters()[filter.key] === opt.value"
-                [class.border-indigo-600]="activeFilters()[filter.key] === opt.value"
-                [class.border-gray-300]="activeFilters()[filter.key] !== opt.value"
-                [class.text-gray-600]="activeFilters()[filter.key] !== opt.value"
-              >
-                {{ opt.label }}
-              </button>
-            }
-          </div>
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      @for (filter of visibleFilters(); track filter.key; let last = $last) {
+        <div class="flex gap-1">
+          @for (opt of filter.options; track opt.value) {
+            <button
+              type="button"
+              (click)="select(filter.key, opt.value)"
+              class="px-3 py-1 rounded-full text-sm border capitalize transition-colors"
+              [class.bg-indigo-600]="activeFilters()[filter.key] === opt.value"
+              [class.text-white]="activeFilters()[filter.key] === opt.value"
+              [class.border-indigo-600]="activeFilters()[filter.key] === opt.value"
+              [class.border-gray-300]="activeFilters()[filter.key] !== opt.value"
+              [class.text-gray-600]="activeFilters()[filter.key] !== opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+        @if (!last) {
+          <span class="text-gray-300 select-none" aria-hidden="true">|</span>
         }
       }
     </div>
@@ -39,6 +40,9 @@ export class FilterBarComponent implements OnInit {
   readonly filtersChange = output<ActiveFilters>();
 
   protected readonly activeFilters = signal<ActiveFilters>({});
+  protected readonly visibleFilters = computed(() =>
+    this.filters().filter((f) => f.defaultValue !== null),
+  );
 
   ngOnInit(): void {
     const stored = this.filterState.get(this.routeKey());
