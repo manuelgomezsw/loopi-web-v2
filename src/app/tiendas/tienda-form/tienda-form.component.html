@@ -138,13 +138,15 @@
         type="button"
         [disabled]="cambiandoEstado()"
         (click)="solicitarCambioEstado()"
-        class="px-4 py-2 rounded-md text-sm font-medium border disabled:opacity-60"
+        class="px-4 py-2 rounded-md text-sm font-medium border disabled:opacity-60 transition-colors duration-200"
         [class.bg-red-50]="tiendaActiva()"
         [class.text-red-700]="tiendaActiva()"
         [class.border-red-300]="tiendaActiva()"
+        [class.hover:bg-red-100]="tiendaActiva()"
         [class.bg-green-50]="!tiendaActiva()"
         [class.text-green-700]="!tiendaActiva()"
         [class.border-green-300]="!tiendaActiva()"
+        [class.hover:bg-green-100]="!tiendaActiva()"
       >
         {{ cambiandoEstado() ? 'Procesando...' : (tiendaActiva() ? 'Inactivar tienda' : 'Reactivar tienda') }}
       </button>

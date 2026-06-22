@@ -42,6 +42,10 @@ body {
   min-height: 100dvh;
 }
 
+button {
+  cursor: pointer;
+}
+
 /* ─── Utilidades de componente ──────────────────────────────────────────────
    Contrato: specs/000-design-system/contracts/utilities.md
    ─────────────────────────────────────────────────────────────────────────── */
