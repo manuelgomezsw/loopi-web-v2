@@ -71,6 +71,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'unidades-medida',
+        canActivate: [roleGuard(['admin'])],
+        loadChildren: () =>
+          import('./unidades-medida/unidades-medida.routes').then(
+            (m) => m.UNIDADES_MEDIDA_ROUTES,
+          ),
+      },
+      {
         path: 'sin-permiso',
         loadComponent: () =>
           import('./shared/components/forbidden/forbidden.component').then(

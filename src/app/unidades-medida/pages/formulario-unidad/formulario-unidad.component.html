@@ -1,0 +1,163 @@
+<div class="max-w-lg mx-auto">
+
+  <h1 class="text-2xl font-semibold text-gray-800 mb-6">
+    {{ modoEdicion() ? 'Editar unidad de medida' : 'Nueva unidad de medida' }}
+  </h1>
+
+  <!-- Toast -->
+  @if (toastMsg()) {
+    <div
+      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+      [class.bg-green-100]="toastTipo() === 'verde'"
+      [class.text-green-800]="toastTipo() === 'verde'"
+      [class.bg-red-100]="toastTipo() === 'rojo'"
+      [class.text-red-800]="toastTipo() === 'rojo'"
+      role="alert"
+      aria-live="polite"
+    >
+      {{ toastMsg() }}
+    </div>
+  }
+
+  <!-- Tarjeta del formulario -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 lg:p-8">
+    <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
+
+      <!-- Código -->
+      <div>
+        <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
+          Código <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <input
+          id="codigo"
+          type="text"
+          formControlName="codigo"
+          maxlength="20"
+          placeholder="kg"
+          autocomplete="off"
+          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [class.border-red-500]="errorDe('codigo')"
+          [class.border-gray-300]="!errorDe('codigo')"
+          [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
+          [attr.aria-invalid]="!!errorDe('codigo')"
+        />
+        @if (errorDe('codigo')) {
+          <p id="error-codigo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('codigo') }}</p>
+        }
+      </div>
+
+      <!-- Nombre -->
+      <div>
+        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+          Nombre <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <input
+          id="nombre"
+          type="text"
+          formControlName="nombre"
+          maxlength="100"
+          placeholder="Kilogramo"
+          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [class.border-red-500]="errorDe('nombre')"
+          [class.border-gray-300]="!errorDe('nombre')"
+          [attr.aria-describedby]="errorDe('nombre') ? 'error-nombre' : null"
+          [attr.aria-invalid]="!!errorDe('nombre')"
+        />
+        @if (errorDe('nombre')) {
+          <p id="error-nombre" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('nombre') }}</p>
+        }
+      </div>
+
+      <!-- Tipo de medida -->
+      <div>
+        <label for="tipo_medida" class="block text-sm font-medium text-gray-700 mb-1">
+          Tipo de medida <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <select
+          id="tipo_medida"
+          formControlName="tipo_medida"
+          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [class.border-red-500]="errorDe('tipo_medida')"
+          [class.border-gray-300]="!errorDe('tipo_medida')"
+          [attr.aria-describedby]="errorDe('tipo_medida') ? 'error-tipo' : null"
+          [attr.aria-invalid]="!!errorDe('tipo_medida')"
+        >
+          <option value="" disabled>Selecciona un tipo</option>
+          @for (tipo of tiposMedida; track tipo) {
+            <option [value]="tipo">{{ tipo | titlecase }}</option>
+          }
+        </select>
+        @if (errorDe('tipo_medida')) {
+          <p id="error-tipo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('tipo_medida') }}</p>
+        }
+      </div>
+
+      <!-- Factor de conversión -->
+      <div>
+        <label for="factor_conversion" class="block text-sm font-medium text-gray-700 mb-1">
+          Factor de conversión <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <input
+          id="factor_conversion"
+          type="number"
+          formControlName="factor_conversion"
+          min="0.0001"
+          step="0.0001"
+          placeholder="1000"
+          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [class.border-red-500]="errorDe('factor_conversion')"
+          [class.border-gray-300]="!errorDe('factor_conversion')"
+          [attr.aria-describedby]="errorDe('factor_conversion') ? 'error-factor' : null"
+          [attr.aria-invalid]="!!errorDe('factor_conversion')"
+        />
+        <p class="text-xs text-gray-500 mt-1">
+          Factor respecto a la unidad base del mismo tipo (ej: 1&nbsp;kg&nbsp;=&nbsp;1000&nbsp;g → factor&nbsp;1000).
+        </p>
+        @if (esUnidadBase()) {
+          <p class="text-xs text-amber-600 mt-1">La unidad base siempre tiene factor 1 y no se puede modificar.</p>
+        }
+        @if (errorDe('factor_conversion')) {
+          <p id="error-factor" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('factor_conversion') }}</p>
+        }
+      </div>
+
+      <!-- Unidad base (solo en creación) -->
+      @if (!modoEdicion()) {
+        <div class="flex items-center gap-2">
+          <input
+            id="unidad_base"
+            type="checkbox"
+            formControlName="unidad_base"
+            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          <label for="unidad_base" class="text-sm text-gray-700">
+            Es la unidad base del tipo (factor = 1)
+          </label>
+        </div>
+      }
+
+      <!-- Acciones -->
+      <div class="flex gap-3 pt-2">
+        <button
+          type="submit"
+          [disabled]="guardando()"
+          class="bg-indigo-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <a
+          routerLink="/unidades-medida"
+          class="px-5 py-2 rounded-md text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+        >
+          Cancelar
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>

@@ -1,0 +1,67 @@
+@if (cargando()) {
+  <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">Cargando…</div>
+} @else if (errorMsg()) {
+  <div class="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm" role="alert">
+    {{ errorMsg() }}
+  </div>
+} @else if (unidad()) {
+  <div class="max-w-lg mx-auto">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-semibold text-gray-800">
+        {{ unidad()!.nombre }}
+        <span class="font-mono text-lg text-gray-500 ml-2">({{ unidad()!.codigo }})</span>
+      </h1>
+      <a
+        [routerLink]="['../', unidad()!.id, 'editar']"
+        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium focus:outline-none focus:underline"
+      >
+        Editar
+      </a>
+    </div>
+
+    <!-- Tarjeta de datos -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        <dt class="font-medium text-gray-500">Tipo de medida</dt>
+        <dd class="text-gray-800 capitalize">{{ unidad()!.tipo_medida }}</dd>
+
+        <dt class="font-medium text-gray-500">Factor de conversión</dt>
+        <dd class="text-gray-800">{{ unidad()!.factor_conversion }}</dd>
+
+        <dt class="font-medium text-gray-500">Unidad base</dt>
+        <dd class="text-gray-800">{{ unidad()!.unidad_base ? 'Sí' : 'No' }}</dd>
+
+        <dt class="font-medium text-gray-500">Estado</dt>
+        <dd>
+          @if (unidad()!.activo) {
+            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+              Activa
+            </span>
+          } @else {
+            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+              Inactiva
+            </span>
+          }
+        </dd>
+
+        <dt class="font-medium text-gray-500">Ítems que la usan</dt>
+        <dd class="text-gray-800">{{ unidad()!.items_con_unidad_canonica }}</dd>
+      </dl>
+
+    </div>
+
+    <!-- Volver -->
+    <div class="mt-6">
+      <a
+        routerLink="../"
+        class="text-sm text-gray-600 hover:text-gray-800 focus:outline-none focus:underline"
+      >
+        ← Volver a la lista
+      </a>
+    </div>
+
+  </div>
+}
