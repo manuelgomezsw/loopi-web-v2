@@ -14,8 +14,13 @@ export class NavConfigService {
     if (!sesion) return [];
 
     const rol = sesion.rol as Rol;
-    return NAV_ITEMS.filter((item) => item.roles.includes(rol)).sort(
-      (a, b) => a.orden - b.orden,
-    );
+    return NAV_ITEMS.filter((item) => item.roles.includes(rol))
+      .map((item) => ({
+        ...item,
+        children: item.children
+          ?.filter((child) => child.roles.includes(rol))
+          .sort((a, b) => a.orden - b.orden),
+      }))
+      .sort((a, b) => a.orden - b.orden);
   });
 }

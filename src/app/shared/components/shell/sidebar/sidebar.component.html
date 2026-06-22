@@ -50,22 +50,68 @@
   <ul class="flex-1 overflow-y-auto px-2 py-2 space-y-1" role="list">
     @for (item of navItems(); track trackById($index, item)) {
       <li>
-        <a
-          [routerLink]="item.route"
-          routerLinkActive="bg-blue-50 text-blue-700 font-medium"
-          [routerLinkActiveOptions]="{ exact: false }"
-          (click)="cerrar()"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-          [attr.aria-label]="item.label"
-          [attr.title]="item.label"
-          #rla="routerLinkActive"
-          [attr.aria-current]="rla.isActive ? 'page' : null"
-        >
-          <!-- Ícono SVG -->
-          <app-icon [name]="item.icon" />
-          <!-- Texto: oculto en tablet (sm:) pero visible en desktop (lg:) y mobile -->
-          <span class="truncate sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ item.label }}</span>
-        </a>
+        @if (item.children && item.children.length > 0) {
+          <!-- Ítem con sub-menú -->
+          <button
+            type="button"
+            (click)="toggleExpanded(item.id)"
+            class="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [attr.aria-expanded]="isExpanded(item.id)"
+            [attr.aria-label]="item.label"
+            [attr.title]="item.label"
+          >
+            <app-icon [name]="item.icon" />
+            <span class="truncate flex-1 text-left sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ item.label }}</span>
+            <svg
+              class="h-4 w-4 shrink-0 transition-transform sm:hidden lg:block"
+              [class.lg:hidden]="collapsed"
+              [class.rotate-180]="isExpanded(item.id)"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Sub-ítems -->
+          @if (isExpanded(item.id)) {
+            <ul class="mt-1 ml-4 space-y-1 border-l border-gray-100 pl-3" role="list">
+              @for (child of item.children; track child.id) {
+                <li>
+                  <a
+                    [routerLink]="child.route"
+                    routerLinkActive="bg-blue-50 text-blue-700 font-medium"
+                    [routerLinkActiveOptions]="{ exact: false }"
+                    (click)="cerrar()"
+                    class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    [attr.aria-label]="child.label"
+                    [attr.title]="child.label"
+                    #rlaChild="routerLinkActive"
+                    [attr.aria-current]="rlaChild.isActive ? 'page' : null"
+                  >
+                    <app-icon [name]="child.icon" />
+                    <span class="truncate sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ child.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          <!-- Ítem sin sub-menú -->
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-blue-50 text-blue-700 font-medium"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="cerrar()"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [attr.aria-label]="item.label"
+            [attr.title]="item.label"
+            #rla="routerLinkActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+          >
+            <app-icon [name]="item.icon" />
+            <span class="truncate sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ item.label }}</span>
+          </a>
+        }
       </li>
     }
   </ul>

@@ -4,6 +4,7 @@ import {
   Output,
   EventEmitter,
   inject,
+  signal,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -27,8 +28,26 @@ export class SidebarComponent {
 
   readonly navItems = this.navConfig.navItems;
 
+  private readonly expandedIds = signal<Set<string>>(new Set());
+
   trackById(_index: number, item: NavItem): string {
     return item.id;
+  }
+
+  isExpanded(id: string): boolean {
+    return this.expandedIds().has(id);
+  }
+
+  toggleExpanded(id: string): void {
+    this.expandedIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   cerrar(): void {

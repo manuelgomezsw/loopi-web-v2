@@ -71,6 +71,30 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'unidades-medida',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./unidades-medida/unidades-medida-lista/unidades-medida-lista.component').then(
+            (m) => m.UnidadesMedidaListaComponent,
+          ),
+      },
+      {
+        path: 'unidades-medida/nueva',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./unidades-medida/unidad-medida-form/unidad-medida-form.component').then(
+            (m) => m.UnidadMedidaFormComponent,
+          ),
+      },
+      {
+        path: 'unidades-medida/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./unidades-medida/unidad-medida-form/unidad-medida-form.component').then(
+            (m) => m.UnidadMedidaFormComponent,
+          ),
+      },
+      {
         path: 'sin-permiso',
         loadComponent: () =>
           import('./shared/components/forbidden/forbidden.component').then(
