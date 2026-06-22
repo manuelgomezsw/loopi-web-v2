@@ -30,9 +30,8 @@
           formControlName="codigo"
           maxlength="20"
           placeholder="TDA-001"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('codigo')"
-          [class.border-gray-300]="!errorDe('codigo')"
+          class="input-field"
+          [class.input-field-error]="errorDe('codigo')"
         />
         @if (errorDe('codigo')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('codigo') }}</p>
@@ -50,9 +49,8 @@
           formControlName="nombre"
           maxlength="150"
           placeholder="Tienda Norte"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('nombre')"
-          [class.border-gray-300]="!errorDe('nombre')"
+          class="input-field"
+          [class.input-field-error]="errorDe('nombre')"
         />
         @if (errorDe('nombre')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('nombre') }}</p>
@@ -70,9 +68,8 @@
           formControlName="direccion"
           maxlength="255"
           placeholder="Calle 100 #20-30"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('direccion')"
-          [class.border-gray-300]="!errorDe('direccion')"
+          class="input-field"
+          [class.input-field-error]="errorDe('direccion')"
         />
         @if (errorDe('direccion')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('direccion') }}</p>
@@ -90,9 +87,8 @@
           formControlName="ciudad"
           maxlength="100"
           placeholder="Bogotá"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('ciudad')"
-          [class.border-gray-300]="!errorDe('ciudad')"
+          class="input-field"
+          [class.input-field-error]="errorDe('ciudad')"
         />
         @if (errorDe('ciudad')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('ciudad') }}</p>
@@ -110,9 +106,8 @@
           formControlName="telefono"
           maxlength="20"
           placeholder="3001234567"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('telefono')"
-          [class.border-gray-300]="!errorDe('telefono')"
+          class="input-field"
+          [class.input-field-error]="errorDe('telefono')"
         />
         @if (errorDe('telefono')) {
           <p class="text-red-600 text-xs mt-1">{{ errorDe('telefono') }}</p>
@@ -124,13 +119,13 @@
         <button
           type="submit"
           [disabled]="guardando()"
-          class="bg-indigo-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
+          class="btn-primary"
         >
           {{ guardando() ? 'Guardando...' : 'Guardar' }}
         </button>
         <a
           routerLink="/tiendas"
-          class="px-5 py-2 rounded-md text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50"
+          class="btn-secondary"
         >
           Cancelar
         </a>

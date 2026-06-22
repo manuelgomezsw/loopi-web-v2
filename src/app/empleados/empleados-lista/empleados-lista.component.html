@@ -16,7 +16,7 @@
     <a
       slot="actions"
       routerLink="/empleados/nuevo"
-      class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+      class="btn-primary"
     >
       + Nuevo empleado
     </a>
@@ -30,7 +30,7 @@
       placeholder="Buscar por nombre o usuario..."
       [value]="busqueda()"
       (input)="onBusqueda($any($event.target).value)"
-      class="w-full sm:w-80 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      class="input-field sm:w-80"
     />
   </div>
 

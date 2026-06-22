@@ -38,9 +38,8 @@
             maxlength="20"
             placeholder="kg"
             autocomplete="off"
-            class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            [class.border-red-500]="errorDe('codigo')"
-            [class.border-gray-300]="!errorDe('codigo')"
+            class="input-field"
+            [class.input-field-error]="errorDe('codigo')"
             [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
             [attr.aria-invalid]="!!errorDe('codigo')"
           />
@@ -62,9 +61,8 @@
           formControlName="nombre"
           maxlength="100"
           placeholder="Kilogramo"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('nombre')"
-          [class.border-gray-300]="!errorDe('nombre')"
+          class="input-field"
+          [class.input-field-error]="errorDe('nombre')"
           [attr.aria-describedby]="errorDe('nombre') ? 'error-nombre' : null"
           [attr.aria-invalid]="!!errorDe('nombre')"
         />
@@ -85,9 +83,8 @@
           <select
             id="tipo_medida"
             formControlName="tipo_medida"
-            class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            [class.border-red-500]="errorDe('tipo_medida')"
-            [class.border-gray-300]="!errorDe('tipo_medida')"
+            class="select-field"
+            [class.input-field-error]="errorDe('tipo_medida')"
             [attr.aria-describedby]="errorDe('tipo_medida') ? 'error-tipo' : null"
             [attr.aria-invalid]="!!errorDe('tipo_medida')"
           >
@@ -115,9 +112,8 @@
           min="0.0001"
           step="0.0001"
           placeholder="1000"
-          class="bg-white w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          [class.border-red-500]="errorDe('factor_conversion')"
-          [class.border-gray-300]="!errorDe('factor_conversion')"
+          class="input-field"
+          [class.input-field-error]="errorDe('factor_conversion')"
           [attr.aria-describedby]="errorDe('factor_conversion') ? 'error-factor' : null"
           [attr.aria-invalid]="!!errorDe('factor_conversion')"
         />
@@ -139,7 +135,7 @@
             id="unidad_base"
             type="checkbox"
             formControlName="unidad_base"
-            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
           />
           <label for="unidad_base" class="text-sm text-gray-700">
             Es la unidad base del tipo (factor = 1)
@@ -152,13 +148,13 @@
         <button
           type="submit"
           [disabled]="guardando()"
-          class="bg-indigo-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          class="btn-primary"
         >
           {{ guardando() ? 'Guardando...' : 'Guardar' }}
         </button>
         <a
           routerLink="/unidades-medida"
-          class="px-5 py-2 rounded-md text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+          class="btn-secondary"
         >
           Cancelar
         </a>
