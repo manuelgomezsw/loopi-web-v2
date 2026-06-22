@@ -75,5 +75,5 @@ export type IconName =
   `,
 })
 export class IconComponent {
-  @Input({ required: true }) name: string = '';
+  @Input({ required: true }) name = '';
 }
