@@ -49,7 +49,7 @@ describe('SidebarComponent', () => {
   });
 
   it('muestra las etiquetas correctas de los ítems', () => {
-    const texts = fixture.nativeElement.querySelectorAll('ul li a span:last-child');
+    const texts = fixture.nativeElement.querySelectorAll('ul li a span');
     const labels = Array.from(texts).map((el) => (el as Element).textContent?.trim());
     expect(labels).toContain('Tiendas');
     expect(labels).toContain('Empleados');
@@ -88,16 +88,53 @@ describe('SidebarComponent', () => {
     expect(nav.getAttribute('aria-label')).toBe('Menú principal');
   });
 
-  it('iconEmoji retorna un valor para cada ícono conocido', () => {
-    const icons = ['home', 'building-storefront', 'users', 'squares-2x2',
-      'book-open', 'clipboard-document-list', 'trash', 'shopping-cart',
-      'banknotes', 'chart-bar', 'presentation-chart-line'];
-    icons.forEach((icon) => {
-      expect(component.iconEmoji(icon)).toBeTruthy();
-    });
+  it('cada ítem de menú usa app-icon en lugar de texto emoji', () => {
+    const icons = fixture.nativeElement.querySelectorAll('ul li a app-icon');
+    expect(icons.length).toBe(ITEMS_ADMIN.length);
   });
 
-  it('iconEmoji retorna ● para ícono desconocido', () => {
-    expect(component.iconEmoji('unknown-icon')).toBe('●');
+  it('cada enlace tiene aria-label con el nombre del módulo', () => {
+    const links = fixture.nativeElement.querySelectorAll('ul li a');
+    const labels = Array.from(links).map((el) => (el as Element).getAttribute('aria-label'));
+    expect(labels).toContain('Tiendas');
+    expect(labels).toContain('Empleados');
+  });
+
+  it('cada enlace tiene title con el nombre del módulo', () => {
+    const links = fixture.nativeElement.querySelectorAll('ul li a');
+    const titles = Array.from(links).map((el) => (el as Element).getAttribute('title'));
+    expect(titles).toContain('Tiendas');
+    expect(titles).toContain('Empleados');
+  });
+
+  describe('collapsed input (HU-2)', () => {
+    it('el texto del ítem es visible por defecto (collapsed=false)', () => {
+      component.collapsed = false;
+      fixture.detectChanges();
+      const span = fixture.nativeElement.querySelector('ul li a span');
+      expect(span.classList.contains('lg:hidden')).toBeFalse();
+    });
+
+    it('el texto del ítem tiene lg:hidden cuando collapsed=true', () => {
+      component.collapsed = true;
+      fixture.detectChanges();
+      const span = fixture.nativeElement.querySelector('ul li a span');
+      expect(span.classList.contains('lg:hidden')).toBeTrue();
+    });
+
+    it('el botón chevron emite collapseToggled al hacer clic', () => {
+      let emitted = false;
+      component.collapseToggled.subscribe(() => (emitted = true));
+      const btn = fixture.nativeElement.querySelector('button[aria-label="Colapsar menú"]');
+      btn?.click();
+      expect(emitted).toBeTrue();
+    });
+
+    it('el botón chevron muestra aria-label "Expandir menú" cuando collapsed=true', () => {
+      component.collapsed = true;
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('button[aria-label="Expandir menú"]');
+      expect(btn).toBeTruthy();
+    });
   });
 });
