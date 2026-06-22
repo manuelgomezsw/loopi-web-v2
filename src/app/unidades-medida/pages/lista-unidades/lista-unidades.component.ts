@@ -94,6 +94,10 @@ export class ListaUnidadesComponent implements OnInit, OnDestroy {
     return this.pagina() * this.limit < this.total();
   }
 
+  get paginaFin(): number {
+    return Math.min(this.pagina() * this.limit, this.total());
+  }
+
   solicitarInactivar(u: UnidadMedida): void {
     this.unidadAInactivar.set(u);
     this.impacto.set(null);

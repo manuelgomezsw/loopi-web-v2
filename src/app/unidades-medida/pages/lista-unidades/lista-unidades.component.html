@@ -123,7 +123,7 @@
       <!-- Paginación -->
       @if (total() > limit) {
         <div class="flex items-center justify-between mt-4 text-sm text-gray-600">
-          <span>{{ (pagina() - 1) * limit + 1 }}–{{ [pagina() * limit, total()] | min }} de {{ total() }}</span>
+          <span>{{ (pagina() - 1) * limit + 1 }}–{{ paginaFin() }} de {{ total() }}</span>
           <div class="flex gap-2">
             <button
               type="button"
