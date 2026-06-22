@@ -126,12 +126,12 @@
                 [class.border-red-500]="form.get('tienda_id')?.errors?.['servidor']"
                 [class.border-gray-300]="!form.get('tienda_id')?.errors?.['servidor']"
               >
-                <option [value]="null">— Seleccionar tienda —</option>
+                <option [ngValue]="null">— Seleccionar tienda —</option>
                 @if (tiendasActivas().length === 0) {
                   <option disabled>No hay tiendas activas disponibles</option>
                 }
                 @for (tienda of tiendasActivas(); track tienda.id) {
-                  <option [value]="tienda.id">{{ tienda.nombre }}</option>
+                  <option [ngValue]="tienda.id">{{ tienda.nombre }}</option>
                 }
               </select>
             }
