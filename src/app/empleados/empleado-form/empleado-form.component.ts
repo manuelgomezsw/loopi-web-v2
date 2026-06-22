@@ -37,6 +37,9 @@ export class EmpleadoFormComponent implements OnInit {
   readonly mostrarModalEstado = signal<boolean>(false);
   readonly nuevoEstado = signal<boolean>(true);
 
+  // Modal confirmación resetear contraseña
+  readonly mostrarModalResetContrasena = signal<boolean>(false);
+
   readonly empleado = signal<Empleado | null>(null);
 
   readonly form = this.fb.group({
@@ -200,7 +203,11 @@ export class EmpleadoFormComponent implements OnInit {
   }
 
   resetearContrasena(): void {
-    if (!confirm('¿Resetear la contraseña de este empleado?')) return;
+    this.mostrarModalResetContrasena.set(true);
+  }
+
+  confirmarResetContrasena(): void {
+    this.mostrarModalResetContrasena.set(false);
     this.svc.resetearContrasena(this.empleadoID()!).subscribe({
       next: (resp) => {
         this.contrasenaTemporal.set(resp.contrasena_temporal);
@@ -211,6 +218,10 @@ export class EmpleadoFormComponent implements OnInit {
         this.errorApi.set(err?.error?.mensaje ?? 'Error al resetear la contraseña.');
       },
     });
+  }
+
+  cancelarResetContrasena(): void {
+    this.mostrarModalResetContrasena.set(false);
   }
 
   cerrarModalContrasena(): void {
