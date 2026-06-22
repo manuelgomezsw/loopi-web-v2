@@ -21,6 +21,9 @@ describe('ShellComponent', () => {
       context: signal({ tienda_id: null, nombre: null }),
     });
 
+    spyOn(window.localStorage, 'getItem').and.returnValue(null);
+    spyOn(window.localStorage, 'setItem');
+
     await TestBed.configureTestingModule({
       imports: [ShellComponent, HttpClientTestingModule],
       providers: [
@@ -73,5 +76,46 @@ describe('ShellComponent', () => {
     const sidebar = fixture.nativeElement.querySelector('app-sidebar');
     expect(topbar).toBeTruthy();
     expect(sidebar).toBeTruthy();
+  });
+
+  describe('sidebarCollapsed (HU-2)', () => {
+    it('sidebarCollapsed inicia en false cuando localStorage está vacío', () => {
+      expect(component.sidebarCollapsed()).toBeFalse();
+    });
+
+    it('toggleCollapse alterna sidebarCollapsed de false a true', () => {
+      component.toggleCollapse();
+      expect(component.sidebarCollapsed()).toBeTrue();
+    });
+
+    it('toggleCollapse doble vuelve a false', () => {
+      component.toggleCollapse();
+      component.toggleCollapse();
+      expect(component.sidebarCollapsed()).toBeFalse();
+    });
+
+    it('toggleCollapse escribe el nuevo estado en localStorage', () => {
+      component.toggleCollapse();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith('loopi_sidebar_collapsed', 'true');
+    });
+
+    it('toggleCollapse doble escribe false en localStorage', () => {
+      component.toggleCollapse();
+      component.toggleCollapse();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith('loopi_sidebar_collapsed', 'false');
+    });
+  });
+
+  describe('layout P2 (HU-3)', () => {
+    it('el div raíz usa flex (flex-row) para el layout', () => {
+      const root = fixture.nativeElement.querySelector('div');
+      expect(root.classList.contains('flex')).toBeTrue();
+    });
+
+    it('app-sidebar es el primer hijo del div raíz', () => {
+      const root = fixture.nativeElement.querySelector('div');
+      const firstChild = root.children[0];
+      expect(firstChild.tagName.toLowerCase()).toBe('app-sidebar');
+    });
   });
 });

@@ -9,11 +9,15 @@
 
 <!-- Sidebar -->
 <nav
-  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-lg transition-transform duration-200 ease-in-out
-         w-64 sm:relative sm:translate-x-0 sm:w-16 sm:shadow-none lg:w-64"
+  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-lg
+         transition-transform duration-200 ease-in-out transition-[width]
+         w-64 sm:relative sm:translate-x-0 sm:shadow-none sm:w-16
+         lg:w-64"
   [class.translate-x-0]="isOpen"
   [class.-translate-x-full]="!isOpen"
   [class.sm:translate-x-0]="true"
+  [class.lg:w-16]="collapsed"
+  [class.lg:w-64]="!collapsed"
   role="navigation"
   aria-label="Menú principal"
 >
@@ -33,11 +37,12 @@
   </div>
 
   <!-- Logo desktop (lg:) -->
-  <div class="hidden lg:flex items-center px-4 py-5">
-    <span class="text-xl font-bold text-blue-600">Loopi</span>
+  <div class="hidden lg:flex items-center px-4 py-5 border-b border-gray-100">
+    <span class="text-xl font-bold text-blue-600" [class.lg:hidden]="collapsed">Loopi</span>
+    <span class="hidden text-xl font-bold text-blue-600" [class.lg:block]="collapsed">L</span>
   </div>
   <!-- Logo tablet colapsado (sm: sin lg:) -->
-  <div class="hidden sm:flex lg:hidden items-center justify-center py-5">
+  <div class="hidden sm:flex lg:hidden items-center justify-center py-5 border-b border-gray-100">
     <span class="text-xl font-bold text-blue-600">L</span>
   </div>
 
@@ -52,17 +57,26 @@
           (click)="cerrar()"
           class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           [attr.aria-label]="item.label"
+          [attr.title]="item.label"
           #rla="routerLinkActive"
           [attr.aria-current]="rla.isActive ? 'page' : null"
         >
-          <!-- Ícono -->
-          <span class="flex h-5 w-5 shrink-0 items-center justify-center text-gray-500" aria-hidden="true">
-            {{ iconEmoji(item.icon) }}
-          </span>
+          <!-- Ícono SVG -->
+          <app-icon [name]="item.icon" />
           <!-- Texto: oculto en tablet (sm:) pero visible en desktop (lg:) y mobile -->
-          <span class="truncate sm:hidden lg:block">{{ item.label }}</span>
+          <span class="truncate sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ item.label }}</span>
         </a>
       </li>
     }
   </ul>
+
+  <!-- Botón colapso: solo desktop -->
+  <button
+    type="button"
+    class="hidden lg:flex items-center justify-center w-full p-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border-t border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    (click)="collapseToggled.emit()"
+    [attr.aria-label]="collapsed ? 'Expandir menú' : 'Colapsar menú'"
+  >
+    <app-icon [name]="collapsed ? 'chevron-right' : 'chevron-left'" />
+  </button>
 </nav>
