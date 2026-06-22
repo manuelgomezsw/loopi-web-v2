@@ -33,7 +33,7 @@ export class StoreSelectorComponent implements OnInit {
     this.error.set(false);
 
     const params = new HttpParams()
-      .set('estado', 'activas')
+      .set('estado', 'activo')
       .set('pagina', '1')
       .set('limite', '100');
 
