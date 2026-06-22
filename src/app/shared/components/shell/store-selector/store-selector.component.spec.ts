@@ -14,7 +14,7 @@ const TIENDAS: TiendaOpcion[] = [
   { id: 2, nombre: 'Tienda Sur', codigo: 'TS01' },
 ];
 
-const API_URL = '/api/v1/tiendas?estado=activas&pagina=1&limite=100';
+const API_URL = '/api/v1/tiendas?estado=activo&pagina=1&limite=100';
 
 describe('StoreSelectorComponent', () => {
   let fixture: ComponentFixture<StoreSelectorComponent>;
