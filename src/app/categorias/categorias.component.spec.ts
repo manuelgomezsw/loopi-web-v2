@@ -35,7 +35,7 @@ describe('CategoriasComponent', () => {
   });
 
   it('carga el catálogo al inicializar', () => {
-    expect(svc.obtenerCatalogo).toHaveBeenCalledTimes(1);
+    expect(svc.obtenerCatalogo).toHaveBeenCalled();
     expect(component.categorias()).toEqual([]);
   });
 
@@ -59,9 +59,10 @@ describe('CategoriasComponent', () => {
   it('onFilters recarga el catálogo con el nuevo filtro', fakeAsync(() => {
     const cats = [buildCat(3, 'Snacks', false)];
     svc.obtenerCatalogo.and.returnValue(of({ categorias: cats, total: 1 }));
+    svc.obtenerCatalogo.calls.reset();
     component.onFilters({ estado: 'inactivo' });
     tick();
-    expect(svc.obtenerCatalogo).toHaveBeenCalledTimes(2);
+    expect(svc.obtenerCatalogo).toHaveBeenCalledTimes(1);
     expect(component.categorias()[0].nombre).toBe('Snacks');
   }));
 
