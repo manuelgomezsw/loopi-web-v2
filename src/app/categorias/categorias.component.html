@@ -39,10 +39,7 @@
   @if (!cargando() && categorias().length > 0) {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
       @for (cat of categorias(); track cat.id) {
-        <app-categoria-card
-          [categoria]="cat"
-          (catalogoModificado)="cargar()"
-        />
+        <app-categoria-card [categoria]="cat" />
       }
     </div>
   }

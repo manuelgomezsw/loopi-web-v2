@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, signal } from '@angular/core';
 
 import { CategoriasService, Categoria, Subcategoria } from '../../categorias.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
@@ -13,7 +13,15 @@ export class CategoriaCardComponent {
   private readonly svc = inject(CategoriasService);
 
   readonly categoria = input.required<Categoria>();
-  readonly catalogoModificado = output<void>();
+
+  // Copia local mutable — se sincroniza con el input vía effect().
+  // Cada operación exitosa actualiza este signal directamente desde
+  // la respuesta del backend, sin necesidad de recargar el catálogo completo.
+  readonly _categoria = signal<Categoria>(null as unknown as Categoria);
+
+  constructor() {
+    effect(() => this._categoria.set(this.categoria()));
+  }
 
   // ─── Quick-add subcategoría ────────────────────────────────────────────────
   readonly subcatFormVisible = signal(false);
@@ -46,7 +54,7 @@ export class CategoriaCardComponent {
   // ── Categoría: renombrar ──────────────────────────────────────────────────
 
   abrirModalCat(): void {
-    this.editCatNombre.set(this.categoria().nombre);
+    this.editCatNombre.set(this._categoria().nombre);
     this.errorCatNombre.set('');
     this.modalCatVisible.set(true);
   }
@@ -60,11 +68,15 @@ export class CategoriaCardComponent {
   guardarNombreCat(): void {
     const nombre = this.editCatNombre().trim();
     if (!nombre) { this.errorCatNombre.set('El nombre es obligatorio.'); return; }
-    if (nombre === this.categoria().nombre) { this.cerrarModalCat(); return; }
+    if (nombre === this._categoria().nombre) { this.cerrarModalCat(); return; }
     this.guardandoCat.set(true);
     this.errorCatNombre.set('');
-    this.svc.editarCategoria(this.categoria().id, nombre).subscribe({
-      next: () => { this.guardandoCat.set(false); this.cerrarModalCat(); this.catalogoModificado.emit(); },
+    this.svc.editarCategoria(this._categoria().id, nombre).subscribe({
+      next: () => {
+        this._categoria.update(cat => ({ ...cat, nombre }));
+        this.guardandoCat.set(false);
+        this.cerrarModalCat();
+      },
       error: (err) => {
         this.guardandoCat.set(false);
         this.errorCatNombre.set(
@@ -79,7 +91,7 @@ export class CategoriaCardComponent {
   // ── Categoría: desactivar ─────────────────────────────────────────────────
 
   solicitarDesactivarCat(): void {
-    this.svc.impactoCategoria(this.categoria().id).subscribe({
+    this.svc.impactoCategoria(this._categoria().id).subscribe({
       next: (resp) => { this.subcatsActivasCount.set(resp.subcategorias_activas); this.modalDesactivarCatVisible.set(true); },
       error: () => { this.subcatsActivasCount.set(0); this.modalDesactivarCatVisible.set(true); },
     });
@@ -92,8 +104,16 @@ export class CategoriaCardComponent {
 
   confirmarDesactivarCat(): void {
     this.desactivandoCat.set(true);
-    this.svc.inactivarCategoria(this.categoria().id).subscribe({
-      next: () => { this.desactivandoCat.set(false); this.cerrarModalDesactivarCat(); this.catalogoModificado.emit(); },
+    this.svc.inactivarCategoria(this._categoria().id).subscribe({
+      next: () => {
+        this._categoria.update(cat => ({
+          ...cat,
+          activo: false,
+          subcategorias: cat.subcategorias.map(s => ({ ...s, activo: false })),
+        }));
+        this.desactivandoCat.set(false);
+        this.cerrarModalDesactivarCat();
+      },
       error: () => { this.desactivandoCat.set(false); },
     });
   }
@@ -102,8 +122,11 @@ export class CategoriaCardComponent {
 
   reactivarCat(): void {
     this.procesandoCatEstado.set(true);
-    this.svc.reactivarCategoria(this.categoria().id).subscribe({
-      next: () => { this.procesandoCatEstado.set(false); this.catalogoModificado.emit(); },
+    this.svc.reactivarCategoria(this._categoria().id).subscribe({
+      next: () => {
+        this._categoria.update(cat => ({ ...cat, activo: true }));
+        this.procesandoCatEstado.set(false);
+      },
       error: () => { this.procesandoCatEstado.set(false); },
     });
   }
@@ -136,7 +159,14 @@ export class CategoriaCardComponent {
     this.guardandoSubcatNombre.set(true);
     this.errorSubcatNombre.set('');
     this.svc.editarSubcategoria(sub.id, nombre).subscribe({
-      next: () => { this.guardandoSubcatNombre.set(false); this.cerrarModalSubcat(); this.catalogoModificado.emit(); },
+      next: (updatedSub) => {
+        this._categoria.update(cat => ({
+          ...cat,
+          subcategorias: cat.subcategorias.map(s => s.id === updatedSub.id ? updatedSub : s),
+        }));
+        this.guardandoSubcatNombre.set(false);
+        this.cerrarModalSubcat();
+      },
       error: (err) => {
         this.guardandoSubcatNombre.set(false);
         this.errorSubcatNombre.set(
@@ -155,7 +185,14 @@ export class CategoriaCardComponent {
     if (!sub) return;
     this.procesandoSubcatEstado.set(true);
     this.svc.inactivarSubcategoria(sub.id).subscribe({
-      next: () => { this.procesandoSubcatEstado.set(false); this.cerrarModalSubcat(); this.catalogoModificado.emit(); },
+      next: (updatedSub) => {
+        this._categoria.update(cat => ({
+          ...cat,
+          subcategorias: cat.subcategorias.map(s => s.id === updatedSub.id ? updatedSub : s),
+        }));
+        this.procesandoSubcatEstado.set(false);
+        this.cerrarModalSubcat();
+      },
       error: () => { this.procesandoSubcatEstado.set(false); },
     });
   }
@@ -165,7 +202,14 @@ export class CategoriaCardComponent {
     if (!sub) return;
     this.procesandoSubcatEstado.set(true);
     this.svc.reactivarSubcategoria(sub.id).subscribe({
-      next: () => { this.procesandoSubcatEstado.set(false); this.cerrarModalSubcat(); this.catalogoModificado.emit(); },
+      next: (updatedSub) => {
+        this._categoria.update(cat => ({
+          ...cat,
+          subcategorias: cat.subcategorias.map(s => s.id === updatedSub.id ? updatedSub : s),
+        }));
+        this.procesandoSubcatEstado.set(false);
+        this.cerrarModalSubcat();
+      },
       error: () => { this.procesandoSubcatEstado.set(false); },
     });
   }
@@ -177,12 +221,15 @@ export class CategoriaCardComponent {
     if (!nombre) { this.errorMsg.set('El nombre es obligatorio.'); return; }
     this.guardando.set(true);
     this.errorMsg.set('');
-    this.svc.crearSubcategoria(nombre, this.categoria().id).subscribe({
-      next: () => {
+    this.svc.crearSubcategoria(nombre, this._categoria().id).subscribe({
+      next: (newSub) => {
+        this._categoria.update(cat => ({
+          ...cat,
+          subcategorias: [...cat.subcategorias, newSub],
+        }));
         this.nuevoNombre.set('');
         this.subcatFormVisible.set(false);
         this.guardando.set(false);
-        this.catalogoModificado.emit();
       },
       error: (err) => {
         this.guardando.set(false);

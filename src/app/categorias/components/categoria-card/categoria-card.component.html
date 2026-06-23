@@ -4,7 +4,7 @@
      ═══════════════════════════════════════════════════════════════════════════ -->
 <div
   class="card flex flex-col gap-3 transition-all duration-200 hover:shadow-md hover:border-primary-200"
-  [class.opacity-60]="!categoria().activo"
+  [class.opacity-60]="!_categoria().activo"
 >
 
   <!-- ── Encabezado: renombrar categoría + estado ──────────────────────────── -->
@@ -13,12 +13,11 @@
       type="button"
       class="group flex items-center gap-1 text-left min-w-0 focus:outline-none focus-visible:underline"
       (click)="abrirModalCat()"
-      [attr.aria-label]="'Renombrar categoría ' + categoria().nombre"
+      [attr.aria-label]="'Renombrar categoría ' + _categoria().nombre"
     >
       <h3 class="font-semibold text-gray-800 text-sm group-hover:text-primary-700 transition-colors truncate">
-        {{ categoria().nombre }}
+        {{ _categoria().nombre }}
       </h3>
-      <!-- Pencil: visible on hover -->
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
@@ -29,7 +28,7 @@
         <path d="M2.695 14.763l-1.262 3.154a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.885L17.5 5.5a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.885 1.343z"/>
       </svg>
     </button>
-    <app-status-badge [activo]="categoria().activo" />
+    <app-status-badge [activo]="_categoria().activo" />
   </div>
 
   <!-- ── Separador ────────────────────────────────────────────────────────── -->
@@ -37,7 +36,7 @@
 
   <!-- ── Chips de subcategorías ──────────────────────────────────────────── -->
   <div class="flex flex-wrap gap-1.5 min-h-6">
-    @for (sub of categoria().subcategorias; track sub.id) {
+    @for (sub of _categoria().subcategorias; track sub.id) {
       <button
         type="button"
         class="chip-subcat"
@@ -53,7 +52,7 @@
   </div>
 
   <!-- ── Quick-add (solo si la categoría está activa) ────────────────────── -->
-  @if (categoria().activo) {
+  @if (_categoria().activo) {
     <div class="border-t border-gray-100 pt-2">
       @if (!subcatFormVisible()) {
         <button
@@ -66,11 +65,11 @@
       } @else {
         <div class="flex gap-2 items-start">
           <div class="flex-1">
-            <label [for]="'subcat-' + categoria().id" class="sr-only">
-              Nombre de subcategoría para {{ categoria().nombre }}
+            <label [for]="'subcat-' + _categoria().id" class="sr-only">
+              Nombre de subcategoría para {{ _categoria().nombre }}
             </label>
             <input
-              [id]="'subcat-' + categoria().id"
+              [id]="'subcat-' + _categoria().id"
               type="text"
               [value]="nuevoNombre()"
               (input)="nuevoNombre.set($any($event.target).value)"
@@ -82,10 +81,10 @@
                      transition-colors"
               (keyup.enter)="crearSubcategoria()"
               (keyup.escape)="cancelarForm()"
-              [attr.aria-describedby]="errorMsg() ? 'error-subcat-' + categoria().id : null"
+              [attr.aria-describedby]="errorMsg() ? 'error-subcat-' + _categoria().id : null"
             />
             @if (errorMsg()) {
-              <p [id]="'error-subcat-' + categoria().id" class="text-red-600 text-xs mt-1" role="alert">
+              <p [id]="'error-subcat-' + _categoria().id" class="text-red-600 text-xs mt-1" role="alert">
                 {{ errorMsg() }}
               </p>
             }
@@ -112,7 +111,7 @@
 
   <!-- ── Footer: cambiar estado de la categoría ──────────────────────────── -->
   <div class="border-t border-gray-100 pt-2 flex justify-end">
-    @if (categoria().activo) {
+    @if (_categoria().activo) {
       <button
         type="button"
         class="text-xs text-red-500 hover:text-red-700 hover:underline transition-colors"
@@ -150,11 +149,8 @@
       class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm"
       (click)="$event.stopPropagation()"
     >
-      <!-- Header -->
       <div class="flex items-center justify-between mb-4">
-        <h2 id="modal-cat-titulo" class="text-base font-semibold text-gray-900">
-          Renombrar categoría
-        </h2>
+        <h2 id="modal-cat-titulo" class="text-base font-semibold text-gray-900">Renombrar categoría</h2>
         <button
           type="button"
           (click)="cerrarModalCat()"
@@ -167,7 +163,6 @@
         </button>
       </div>
 
-      <!-- Campo -->
       <div>
         <label for="cat-nombre-modal" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
         <input
@@ -188,7 +183,6 @@
         }
       </div>
 
-      <!-- Acciones -->
       <div class="flex justify-end gap-3 mt-5">
         <button type="button" (click)="cerrarModalCat()" class="btn-secondary text-sm">Cancelar</button>
         <button
@@ -268,7 +262,6 @@
       class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm"
       (click)="$event.stopPropagation()"
     >
-      <!-- Header -->
       <div class="flex items-center justify-between mb-4">
         <h2
           [id]="'modal-subcat-titulo-' + subcatActual()!.id"
@@ -288,7 +281,7 @@
         </button>
       </div>
 
-      <!-- Sección: Renombrar -->
+      <!-- Renombrar -->
       <div>
         <label for="subcat-nombre-modal" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
         <input
@@ -322,7 +315,7 @@
       <!-- Separador -->
       <div class="border-t border-gray-100 my-4"></div>
 
-      <!-- Sección: Estado -->
+      <!-- Estado -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-600">Estado:</span>
@@ -342,8 +335,8 @@
           <button
             type="button"
             (click)="reactivarSubcat()"
-            [disabled]="procesandoSubcatEstado() || !categoria().activo"
-            [title]="!categoria().activo ? 'Reactiva la categoría primero' : ''"
+            [disabled]="procesandoSubcatEstado() || !_categoria().activo"
+            [title]="!_categoria().activo ? 'Reactiva la categoría primero' : ''"
             class="text-xs text-green-700 hover:text-green-900 hover:underline transition-colors disabled:opacity-50"
           >
             {{ procesandoSubcatEstado() ? '…' : 'Reactivar' }}
