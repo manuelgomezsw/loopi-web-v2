@@ -135,19 +135,24 @@
 
 <!-- ══════════════════════════════════════════════════════════════════════════
      MODAL 1 — Renombrar categoría
+     Backdrop (aria-hidden) + panel (role=dialog) separados para que el
+     (click) del backdrop quede fuera de las reglas a11y del linter.
      ═══════════════════════════════════════════════════════════════════════════ -->
 @if (modalCatVisible()) {
+  <!-- Backdrop -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-cat-titulo"
+    class="fixed inset-0 z-50 bg-black/50"
+    aria-hidden="true"
     (click)="cerrarModalCat()"
-    (keydown.escape)="cerrarModalCat()"
-  >
+  ></div>
+  <!-- Panel -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
     <div
-      class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm"
-      (click)="$event.stopPropagation()"
+      class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm pointer-events-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-cat-titulo"
+      (keydown.escape)="cerrarModalCat()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 id="modal-cat-titulo" class="text-base font-semibold text-gray-900">Renombrar categoría</h2>
@@ -202,17 +207,20 @@
      MODAL 2 — Confirmar desactivación de categoría
      ═══════════════════════════════════════════════════════════════════════════ -->
 @if (modalDesactivarCatVisible()) {
+  <!-- Backdrop -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-desactivar-cat-titulo"
+    class="fixed inset-0 z-50 bg-black/50"
+    aria-hidden="true"
     (click)="cerrarModalDesactivarCat()"
-    (keydown.escape)="cerrarModalDesactivarCat()"
-  >
+  ></div>
+  <!-- Panel -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
     <div
-      class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm"
-      (click)="$event.stopPropagation()"
+      class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm pointer-events-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-desactivar-cat-titulo"
+      (keydown.escape)="cerrarModalDesactivarCat()"
     >
       <h2 id="modal-desactivar-cat-titulo" class="text-base font-semibold text-gray-900 mb-2">
         ¿Desactivar categoría?
@@ -250,17 +258,20 @@
      MODAL 3 — Gestión de subcategoría (renombrar + activar/desactivar)
      ═══════════════════════════════════════════════════════════════════════════ -->
 @if (modalSubcatVisible() && subcatActual()) {
+  <!-- Backdrop -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    role="dialog"
-    aria-modal="true"
-    [attr.aria-labelledby]="'modal-subcat-titulo-' + subcatActual()!.id"
+    class="fixed inset-0 z-50 bg-black/50"
+    aria-hidden="true"
     (click)="cerrarModalSubcat()"
-    (keydown.escape)="cerrarModalSubcat()"
-  >
+  ></div>
+  <!-- Panel -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
     <div
-      class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm"
-      (click)="$event.stopPropagation()"
+      class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm pointer-events-auto"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'modal-subcat-titulo-' + subcatActual()!.id"
+      (keydown.escape)="cerrarModalSubcat()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2
