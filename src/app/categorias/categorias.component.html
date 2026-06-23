@@ -1,0 +1,46 @@
+<app-list-card>
+  <app-page-header title="Catálogo de Categorías">
+    <a
+      slot="actions"
+      routerLink="./nueva"
+      class="btn-primary"
+    >
+      + Nueva categoría
+    </a>
+  </app-page-header>
+
+  <app-filter-bar
+    [filters]="filters"
+    routeKey="/categorias"
+    (filtersChange)="onFilters($event)"
+  />
+
+  @if (errorMsg()) {
+    <div class="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm" role="alert">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">
+      Cargando catálogo…
+    </div>
+  }
+
+  @if (!cargando() && categorias().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="Sin categorías"
+      description="Crea la primera categoría para empezar a organizar el catálogo."
+      actionLabel="+ Nueva categoría"
+      (action)="router.navigate(['/categorias/nueva'])"
+    />
+  }
+
+  @if (!cargando() && categorias().length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+      @for (cat of categorias(); track cat.id) {
+        <app-categoria-card [categoria]="cat" />
+      }
+    </div>
+  }
+</app-list-card>
