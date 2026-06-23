@@ -103,6 +103,22 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'categorias/nueva',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./categorias/categoria-form/categoria-form.component').then(
+            (m) => m.CategoriaFormComponent,
+          ),
+      },
+      {
+        path: 'categorias/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./categorias/categoria-form/categoria-form.component').then(
+            (m) => m.CategoriaFormComponent,
+          ),
+      },
+      {
         path: 'sin-permiso',
         loadComponent: () =>
           import('./shared/components/forbidden/forbidden.component').then(

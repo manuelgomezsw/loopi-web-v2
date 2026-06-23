@@ -1,0 +1,276 @@
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<div class="p-6">
+  <app-page-header
+    [title]="modoEdicion() ? 'Editar categoría' : 'Nueva categoría'"
+    [breadcrumb]="[{label:'Catálogo de Categorías', route:'/categorias'}, {label: modoEdicion() ? 'Editar' : 'Nueva'}]"
+  />
+
+  <app-form-card size="md">
+    <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
+
+      <!-- Nombre de la categoría -->
+      <div>
+        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+          Nombre <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
+        </label>
+        <input
+          id="nombre"
+          type="text"
+          formControlName="nombre"
+          maxlength="100"
+          placeholder="Ej: Lácteo"
+          autocomplete="off"
+          class="input-field"
+          [class.input-field-error]="errorDe('nombre')"
+          [attr.aria-describedby]="errorDe('nombre') ? 'error-nombre' : null"
+          [attr.aria-invalid]="!!errorDe('nombre')"
+        />
+        @if (errorDe('nombre')) {
+          <p id="error-nombre" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('nombre') }}</p>
+        }
+      </div>
+
+      <!-- Acciones -->
+      <div class="flex gap-3 pt-2">
+        <button
+          type="submit"
+          [disabled]="guardando()"
+          class="btn-primary"
+        >
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <a routerLink="/categorias" class="btn-secondary">Cancelar</a>
+      </div>
+
+    </form>
+
+    <!-- Subcategorías (solo en modo edición) -->
+    @if (modoEdicion()) {
+      <div class="mt-6 pt-6 border-t border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Subcategorías</h3>
+
+        @if (subcategorias().length === 0) {
+          <p class="text-sm text-gray-400 mb-3">Esta categoría aún no tiene subcategorías.</p>
+        } @else {
+          <ul class="space-y-1 mb-3">
+            @for (sub of subcategorias(); track sub.id) {
+              <li
+                class="flex items-center justify-between gap-2 py-2 px-3 rounded-lg"
+                [class.opacity-60]="!sub.activo"
+              >
+                @if (editandoSubcat() === sub.id) {
+                  <div class="flex gap-2 flex-1 items-center">
+                    <label [for]="'edit-sub-' + sub.id" class="sr-only">Nombre de subcategoría</label>
+                    <input
+                      [id]="'edit-sub-' + sub.id"
+                      type="text"
+                      [value]="editSubcatNombre()"
+                      (input)="editSubcatNombre.set($any($event.target).value)"
+                      maxlength="100"
+                      class="flex-1 px-2 py-1 border border-primary-400 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-600"
+                      (keyup.enter)="guardarEditSubcat(sub.id)"
+                    />
+                    <button
+                      type="button"
+                      (click)="guardarEditSubcat(sub.id)"
+                      [disabled]="procesando()[sub.id]"
+                      class="btn-primary py-1 px-3 text-xs"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="cancelarEditSubcat()"
+                      class="px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                } @else {
+                  <div class="flex items-center gap-2 flex-1">
+                    <span class="text-sm text-gray-700">{{ sub.nombre }}</span>
+                    <app-status-badge [activo]="sub.activo" />
+                    @if (sub.total_items > 0) {
+                      <span class="text-xs text-gray-400">({{ sub.total_items }} ítems)</span>
+                    }
+                  </div>
+                  <div class="flex gap-2 flex-shrink-0">
+                    @if (sub.activo) {
+                      <button
+                        type="button"
+                        (click)="activarEditSubcat(sub)"
+                        class="text-xs text-primary-600 hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="inactivarSubcategoria(sub.id)"
+                        [disabled]="procesando()[sub.id]"
+                        class="text-xs text-red-600 hover:underline disabled:opacity-50"
+                      >
+                        {{ procesando()[sub.id] ? '…' : 'Desactivar' }}
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="reactivarSubcategoria(sub.id)"
+                        [disabled]="procesando()[sub.id] || !categoria()?.activo"
+                        class="text-xs text-green-700 hover:underline disabled:opacity-50"
+                        [title]="!categoria()?.activo ? 'Reactiva la categoría primero' : ''"
+                      >
+                        {{ procesando()[sub.id] ? '…' : 'Reactivar' }}
+                      </button>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        }
+
+        <!-- Agregar subcategoría (solo si la categoría está activa) -->
+        @if (categoria()?.activo) {
+          @if (!subcatFormVisible()) {
+            <button
+              type="button"
+              (click)="subcatFormVisible.set(true)"
+              class="text-sm text-blue-600 hover:underline"
+            >
+              + Agregar subcategoría
+            </button>
+          } @else {
+            <div class="mt-2">
+              <label for="nueva-subcat" class="block text-xs font-medium text-gray-600 mb-1">
+                Nombre de la subcategoría
+              </label>
+              <div class="flex gap-2 items-start">
+                <div class="flex-1">
+                  <input
+                    id="nueva-subcat"
+                    type="text"
+                    [value]="nuevaSubcatNombre()"
+                    (input)="nuevaSubcatNombre.set($any($event.target).value)"
+                    maxlength="100"
+                    placeholder="Ej: Quesos"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
+                    (keyup.enter)="crearSubcategoria()"
+                  />
+                  @if (errorNuevaSubcat()) {
+                    <p class="text-red-600 text-xs mt-1" role="alert">{{ errorNuevaSubcat() }}</p>
+                  }
+                </div>
+                <button
+                  type="button"
+                  (click)="crearSubcategoria()"
+                  [disabled]="creandoSubcat()"
+                  class="btn-primary"
+                >
+                  {{ creandoSubcat() ? 'Guardando…' : 'Agregar' }}
+                </button>
+                <button
+                  type="button"
+                  (click)="subcatFormVisible.set(false); nuevaSubcatNombre.set(''); errorNuevaSubcat.set('')"
+                  class="btn-secondary"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- Reactivar (solo si la categoría está inactiva en modo edición) -->
+    @if (modoEdicion() && categoria() && !categoria()!.activo) {
+      <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <p class="text-sm text-amber-700 mb-3">
+          Esta categoría está desactivada. Sus subcategorías no aparecen como opción al crear ítems.
+        </p>
+        <button
+          type="button"
+          (click)="reactivarCategoria()"
+          class="px-4 py-2 text-sm rounded-md border border-amber-400 text-amber-800 font-medium hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+        >
+          Reactivar categoría
+        </button>
+      </div>
+    }
+
+    <!-- Zona de precaución: desactivar categoría (solo si activa y en modo edición) -->
+    <app-danger-zone title="Zona de precaución">
+      @if (categoria()?.activo) {
+        <p class="text-xs text-red-600 mb-3">
+          Al desactivar esta categoría, todas sus subcategorías activas también se desactivarán.
+          Los ítems que ya las tenían asignadas conservarán su clasificación.
+        </p>
+        <button
+          type="button"
+          (click)="solicitarInactivar()"
+          class="px-4 py-2 text-sm rounded-md border border-red-400 text-red-700 font-medium hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          Desactivar categoría
+        </button>
+      }
+    </app-danger-zone>
+  </app-form-card>
+</div>
+
+<!-- Modal confirmación de desactivación -->
+@if (modalVisible()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-inactivar-titulo"
+  >
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-inactivar-titulo" class="text-lg font-semibold text-gray-900 mb-2">
+        ¿Desactivar categoría?
+      </h2>
+      @if (modalSubcatsActivas() > 0) {
+        <p class="text-sm text-gray-600 mb-4">
+          Esta categoría tiene <strong>{{ modalSubcatsActivas() }} subcategoría(s) activa(s)</strong>
+          que también se desactivarán. Podrás reactivarlas individualmente en cualquier momento.
+        </p>
+      } @else {
+        <p class="text-sm text-gray-600 mb-4">
+          La categoría se desactivará y no aparecerá como opción al crear ítems.
+        </p>
+      }
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="cancelarModal()"
+          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          [disabled]="inactivando()"
+          (click)="confirmarInactivar()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          {{ inactivando() ? 'Desactivando…' : 'Desactivar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
