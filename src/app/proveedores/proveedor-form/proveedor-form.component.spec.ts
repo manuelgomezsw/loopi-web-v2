@@ -81,8 +81,16 @@ describe('ProveedorFormComponent — modo creación', () => {
     expect(component.form.invalid).toBeTrue();
   });
 
-  it('el formulario es válido con razon_social y nit completos', () => {
+  it('el formulario sigue siendo inválido si falta nombre_contacto o telefono_contacto', () => {
     component.form.patchValue({ razon_social: 'Proveedor X', nit: 'PROV-001' });
+    expect(component.form.invalid).toBeTrue();
+  });
+
+  it('el formulario es válido con razon_social, nit, nombre_contacto y telefono_contacto completos', () => {
+    component.form.patchValue({
+      razon_social: 'Proveedor X', nit: 'PROV-001',
+      nombre_contacto: 'Juan Pérez', telefono_contacto: '3009998877',
+    });
     expect(component.form.valid).toBeTrue();
   });
 
@@ -97,11 +105,17 @@ describe('ProveedorFormComponent — modo creación', () => {
 
   it('enviar() llama a crear() con el payload correcto', () => {
     serviceSpy.crear.and.returnValue(of({ ...proveedorEjemplo }));
-    component.form.patchValue({ razon_social: 'Proveedor X', nit: 'PROV-001' });
+    component.form.patchValue({
+      razon_social: 'Proveedor X', nit: 'PROV-001',
+      nombre_contacto: 'Juan Pérez', telefono_contacto: '3009998877',
+    });
     component.enviar();
 
     expect(serviceSpy.crear).toHaveBeenCalledWith(
-      jasmine.objectContaining({ razon_social: 'Proveedor X', nit: 'PROV-001' }),
+      jasmine.objectContaining({
+        razon_social: 'Proveedor X', nit: 'PROV-001',
+        nombre_contacto: 'Juan Pérez', telefono_contacto: '3009998877',
+      }),
     );
   });
 
@@ -109,7 +123,10 @@ describe('ProveedorFormComponent — modo creación', () => {
     serviceSpy.crear.and.returnValue(
       throwError(() => ({ status: 409, error: { error: 'nit_duplicado', mensaje: 'Ya existe.', campo: 'nit' } })),
     );
-    component.form.patchValue({ razon_social: 'Proveedor X', nit: 'PROV-001' });
+    component.form.patchValue({
+      razon_social: 'Proveedor X', nit: 'PROV-001',
+      nombre_contacto: 'Juan Pérez', telefono_contacto: '3009998877',
+    });
     component.enviar();
 
     expect(component.form.get('nit')?.errors?.['apiError']).toBe('Ya existe.');

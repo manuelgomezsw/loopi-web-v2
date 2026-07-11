@@ -85,6 +85,8 @@ describe('ProveedoresService', () => {
     const payload: CrearProveedorRequest = {
       razon_social: 'Distribuidora La Cosecha S.A.S',
       nit: '900123456-7',
+      nombre_contacto: 'Carlos Rodríguez',
+      telefono_contacto: '3001234567',
     };
     service.crear(payload).subscribe((resp) => {
       expect(resp.id).toBe(1);

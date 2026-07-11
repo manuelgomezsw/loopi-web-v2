@@ -49,8 +49,8 @@ export class ProveedorFormComponent implements OnInit {
     this.form = this.fb.group({
       razon_social: ['', [Validators.required, Validators.maxLength(255)]],
       nit: ['', [Validators.required, Validators.maxLength(50)]],
-      nombre_contacto: ['', Validators.maxLength(150)],
-      telefono_contacto: ['', Validators.maxLength(50)],
+      nombre_contacto: ['', [Validators.required, Validators.maxLength(150)]],
+      telefono_contacto: ['', [Validators.required, Validators.maxLength(50)]],
       email_contacto: ['', [Validators.email, Validators.maxLength(255)]],
     });
 
@@ -70,8 +70,8 @@ export class ProveedorFormComponent implements OnInit {
         this.form.patchValue({
           razon_social: p.razon_social,
           nit: p.nit,
-          nombre_contacto: p.nombre_contacto ?? '',
-          telefono_contacto: p.telefono_contacto ?? '',
+          nombre_contacto: p.nombre_contacto,
+          telefono_contacto: p.telefono_contacto,
           email_contacto: p.email_contacto ?? '',
         });
       },
@@ -118,8 +118,8 @@ export class ProveedorFormComponent implements OnInit {
     const req = {
       razon_social: valores.razon_social,
       nit: valores.nit,
-      nombre_contacto: valores.nombre_contacto || undefined,
-      telefono_contacto: valores.telefono_contacto || undefined,
+      nombre_contacto: valores.nombre_contacto,
+      telefono_contacto: valores.telefono_contacto,
       email_contacto: valores.email_contacto || undefined,
     };
 

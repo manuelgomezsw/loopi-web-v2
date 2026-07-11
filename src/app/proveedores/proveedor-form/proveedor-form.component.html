@@ -72,7 +72,8 @@
       <!-- Nombre de contacto -->
       <div>
         <label for="nombre_contacto" class="block text-sm font-medium text-gray-700 mb-1">
-          Nombre de contacto
+          Nombre de contacto <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
         </label>
         <input
           id="nombre_contacto"
@@ -81,13 +82,20 @@
           maxlength="150"
           placeholder="Carlos Rodríguez"
           class="input-field"
+          [class.input-field-error]="errorDe('nombre_contacto')"
+          [attr.aria-describedby]="errorDe('nombre_contacto') ? 'error-nombre-contacto' : null"
+          [attr.aria-invalid]="!!errorDe('nombre_contacto')"
         />
+        @if (errorDe('nombre_contacto')) {
+          <p id="error-nombre-contacto" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('nombre_contacto') }}</p>
+        }
       </div>
 
       <!-- Teléfono de contacto -->
       <div>
         <label for="telefono_contacto" class="block text-sm font-medium text-gray-700 mb-1">
-          Teléfono de contacto
+          Teléfono de contacto <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="sr-only">(requerido)</span>
         </label>
         <input
           id="telefono_contacto"
@@ -96,7 +104,13 @@
           maxlength="50"
           placeholder="3001234567"
           class="input-field"
+          [class.input-field-error]="errorDe('telefono_contacto')"
+          [attr.aria-describedby]="errorDe('telefono_contacto') ? 'error-telefono-contacto' : null"
+          [attr.aria-invalid]="!!errorDe('telefono_contacto')"
         />
+        @if (errorDe('telefono_contacto')) {
+          <p id="error-telefono-contacto" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('telefono_contacto') }}</p>
+        }
       </div>
 
       <!-- Email de contacto -->

@@ -6,8 +6,8 @@ export interface Proveedor {
   id: number;
   razon_social: string;
   nit: string;
-  nombre_contacto: string | null;
-  telefono_contacto: string | null;
+  nombre_contacto: string;
+  telefono_contacto: string;
   email_contacto: string | null;
   activo: boolean;
   creado_en: string;
@@ -28,8 +28,8 @@ export interface ListarProveedoresResponse {
 export interface CrearProveedorRequest {
   razon_social: string;
   nit: string;
-  nombre_contacto?: string;
-  telefono_contacto?: string;
+  nombre_contacto: string;
+  telefono_contacto: string;
   email_contacto?: string;
 }
 
