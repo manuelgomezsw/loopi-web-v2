@@ -119,6 +119,30 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'proveedores',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./proveedores/proveedores-lista/proveedores-lista.component').then(
+            (m) => m.ProveedoresListaComponent,
+          ),
+      },
+      {
+        path: 'proveedores/nuevo',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./proveedores/proveedor-form/proveedor-form.component').then(
+            (m) => m.ProveedorFormComponent,
+          ),
+      },
+      {
+        path: 'proveedores/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./proveedores/proveedor-form/proveedor-form.component').then(
+            (m) => m.ProveedorFormComponent,
+          ),
+      },
+      {
         path: 'sin-permiso',
         loadComponent: () =>
           import('./shared/components/forbidden/forbidden.component').then(

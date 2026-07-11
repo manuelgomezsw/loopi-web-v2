@@ -1,0 +1,76 @@
+<app-list-card>
+  <app-page-header title="Proveedores">
+    <a
+      slot="actions"
+      routerLink="/proveedores/nuevo"
+      class="btn-primary"
+    >
+      + Nuevo proveedor
+    </a>
+  </app-page-header>
+
+  <div class="mb-4">
+    <label for="busqueda" class="sr-only">Buscar proveedores</label>
+    <input
+      id="busqueda"
+      type="search"
+      placeholder="Buscar por razón social o NIT..."
+      [value]="busqueda()"
+      (input)="onBusqueda($any($event.target).value)"
+      class="input-field sm:w-80"
+    />
+  </div>
+
+  <app-filter-bar
+    [filters]="filterDefs"
+    routeKey="/proveedores"
+    (filtersChange)="onFilters($event)"
+  />
+
+  @if (errorMsg()) {
+    <div class="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm mb-4" role="alert">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">Cargando proveedores…</div>
+  }
+
+  @if (!cargando() && proveedores().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay proveedores registrados"
+      description="Crea el primer proveedor para empezar a asignarlo a items y pedidos."
+      actionLabel="+ Crear el primero"
+      (action)="router.navigate(['/proveedores/nuevo'])"
+    />
+  }
+
+  @if (!cargando() && proveedores().length > 0) {
+    <app-data-table
+      [columns]="cols"
+      [rows]="proveedores()"
+      (rowClick)="irAEditar($any($event).id)"
+    >
+      <ng-template appCellTemplate="razon_social" let-row>
+        <span class="font-medium text-gray-800">{{ $any(row).razon_social }}</span>
+      </ng-template>
+      <ng-template appCellTemplate="nit" let-row>
+        <span class="font-mono">{{ $any(row).nit }}</span>
+      </ng-template>
+      <ng-template appCellTemplate="nombre_contacto" let-row>
+        {{ $any(row).nombre_contacto ?? '—' }}
+      </ng-template>
+      <ng-template appCellTemplate="activo" let-row>
+        <app-status-badge [activo]="$any(row).activo" />
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination
+      [page]="pagina()"
+      [pageSize]="limit"
+      [total]="total()"
+      (pageChange)="onPage($event)"
+    />
+  }
+</app-list-card>
