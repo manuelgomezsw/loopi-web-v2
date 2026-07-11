@@ -49,6 +49,14 @@ export const NAV_ITEMS: NavItem[] = [
         roles: ['admin'],
         orden: 2,
       },
+      {
+        id: 'proveedores',
+        label: 'Proveedores',
+        icon: 'truck',
+        route: '/proveedores',
+        roles: ['admin'],
+        orden: 3,
+      },
     ],
   },
   {
