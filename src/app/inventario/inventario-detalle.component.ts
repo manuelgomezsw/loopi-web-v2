@@ -9,14 +9,14 @@ import { InventarioService, InventarioResp } from './inventario.service';
 })
 export class InventarioDetalleComponent implements OnInit {
   inventario: InventarioResp | null = null;
-  cargando: boolean = false;
-  editando: boolean = false;
-  guardando: boolean = false;
-  eliminando: boolean = false;
-  itemsEditados: Set<number> = new Set();
-  itemErrors: Map<number, string> = new Map();
-  errorEliminar: string = '';
-  userRole: string = 'admin';
+  cargando = false;
+  editando = false;
+  guardando = false;
+  eliminando = false;
+  itemsEditados = new Set<number>();
+  itemErrors = new Map<number, string>();
+  errorEliminar = '';
+  userRole = 'admin';
 
   constructor(
     private route: ActivatedRoute,

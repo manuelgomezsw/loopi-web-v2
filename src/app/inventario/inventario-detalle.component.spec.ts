@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioDetalleComponent } from './inventario-detalle.component';
 import { InventarioService } from './inventario.service';
 import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 
 describe('InventarioDetalleComponent', () => {
   let component: InventarioDetalleComponent;

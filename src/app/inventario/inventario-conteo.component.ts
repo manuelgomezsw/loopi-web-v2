@@ -18,12 +18,12 @@ export class InventarioConteoComponent implements OnInit {
     horario: ''
   };
 
-  valoresRegistrados: Map<number, number> = new Map();
-  itemErrors: Map<number, string> = new Map();
-  loadingItems: Set<number> = new Set();
-  confirmationError: string = '';
+  valoresRegistrados = new Map<number, number>();
+  itemErrors = new Map<number, string>();
+  loadingItems = new Set<number>();
+  confirmationError = '';
   itemsSinRegistrar: number[] = [];
-  isConfirming: boolean = false;
+  isConfirming = false;
 
   constructor(
     private inventarioService: InventarioService,

@@ -31,6 +31,9 @@ module.exports = defineConfig([
           style: "kebab-case",
         },
       ],
+      "@angular-eslint/prefer-inject": "warn",
+      "@typescript-eslint/consistent-generic-constructors": "warn",
+      "@typescript-eslint/no-inferrable-types": "warn",
     },
   },
   {
@@ -39,6 +42,10 @@ module.exports = defineConfig([
       angular.configs.templateRecommended,
       angular.configs.templateAccessibility,
     ],
-    rules: {},
+    rules: {
+      "@angular-eslint/template/prefer-control-flow": "warn",
+      "@angular-eslint/template/click-events-have-key-events": "warn",
+      "@angular-eslint/template/interactive-supports-focus": "warn",
+    },
   }
 ]);

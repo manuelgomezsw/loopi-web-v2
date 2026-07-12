@@ -40,7 +40,7 @@ export interface ErrorResp {
   error: string;
   mensaje: string;
   campo?: string;
-  detalles?: any;
+  detalles?: Record<string, unknown>;
 }
 
 @Injectable({

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { InventarioService, HistorialResp, InventarioResp } from './inventario.service';
+import { InventarioService, InventarioResp } from './inventario.service';
 
 @Component({
   selector: 'app-inventario-historial',
@@ -9,10 +9,10 @@ import { InventarioService, HistorialResp, InventarioResp } from './inventario.s
 })
 export class InventarioHistorialComponent implements OnInit {
   inventarios: InventarioResp[] = [];
-  total: number = 0;
-  paginaActual: number = 1;
-  totalPaginas: number = 1;
-  cargando: boolean = false;
+  total = 0;
+  paginaActual = 1;
+  totalPaginas = 1;
+  cargando = false;
 
   filtros = {
     tipo: '',
@@ -33,7 +33,7 @@ export class InventarioHistorialComponent implements OnInit {
   cargarHistorial(): void {
     this.cargando = true;
 
-    const filtrosObj: any = {
+    const filtrosObj: Record<string, string | number> = {
       pagina: this.paginaActual,
       por_pagina: 50
     };
