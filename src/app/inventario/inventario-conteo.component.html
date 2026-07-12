@@ -1,0 +1,102 @@
+<div class="inventario-container">
+  <!-- Step 1: Seleccionar tipo y horario -->
+  <div *ngIf="step === 'select'" class="step-section">
+    <h2>Iniciar Conteo de Inventario</h2>
+
+    <div class="form-group">
+      <label for="tipo">Tipo de Conteo</label>
+      <select [(ngModel)]="formData.tipo" id="tipo">
+        <option value="diario">Diario</option>
+        <option value="semanal">Semanal</option>
+        <option value="mensual">Mensual</option>
+        <option value="inicial">Inicial</option>
+      </select>
+    </div>
+
+    <div class="form-group" *ngIf="formData.tipo === 'diario'">
+      <label for="horario">Horario</label>
+      <select [(ngModel)]="formData.horario" id="horario">
+        <option value="apertura">Apertura (06:00-11:00)</option>
+        <option value="mediodia">Mediodía (11:00-17:00)</option>
+        <option value="cierre">Cierre (17:00-23:59)</option>
+      </select>
+    </div>
+
+    <div *ngIf="sugerencia" class="suggestion">
+      <p>Sugerencia: {{ sugerencia.tipo }} {{ sugerencia.horario }}</p>
+    </div>
+
+    <button (click)="iniciarConteo()" class="btn-primary">
+      Iniciar Conteo
+    </button>
+  </div>
+
+  <!-- Step 2: Registrar valores -->
+  <div *ngIf="step === 'register'" class="step-section">
+    <h2>Registrar Valores ({{ inventarioActual?.items.length }} items)</h2>
+
+    <div class="items-list">
+      <div *ngFor="let item of inventarioActual?.items" class="item-card">
+        <div class="item-header">
+          <span class="item-id">Item {{ item.item_id }}</span>
+          <span class="valor-sugerido">Sugerido: {{ item.valor_sugerido }}</span>
+        </div>
+
+        <div class="item-input">
+          <input
+            type="number"
+            [(ngModel)]="item.valor_real"
+            (blur)="registrarValor(item.item_id, item.valor_real || 0)"
+            placeholder="Ingresa valor real"
+            class="input-valor"
+          />
+        </div>
+
+        <div class="item-diferencia" *ngIf="item.diferencia !== null && item.diferencia !== undefined">
+          <span [class.positive]="item.diferencia >= 0" [class.negative]="item.diferencia < 0">
+            Diferencia: {{ item.diferencia > 0 ? '+' : '' }}{{ item.diferencia }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button (click)="volver()" class="btn-secondary">Volver</button>
+      <button
+        (click)="step = 'confirm'"
+        [disabled]="!todosRegistrados()"
+        class="btn-primary"
+      >
+        Continuar a Confirmación
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Confirmación -->
+  <div *ngIf="step === 'confirm'" class="step-section">
+    <h2>Confirmar Conteo</h2>
+
+    <div class="summary">
+      <p>Se registraron {{ inventarioActual?.items.length }} items</p>
+      <p>Tipo: {{ inventarioActual?.tipo }}</p>
+      <p *ngIf="inventarioActual?.horario">Horario: {{ inventarioActual?.horario }}</p>
+    </div>
+
+    <div class="buttons">
+      <button (click)="volver()" class="btn-secondary">Volver a Registrar</button>
+      <button (click)="confirmarConteo()" class="btn-primary">Confirmar</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Completado -->
+  <div *ngIf="step === 'complete'" class="step-section complete">
+    <h2>✓ Conteo Completado</h2>
+    <p>El conteo ha sido registrado exitosamente</p>
+    <p class="completed-time" *ngIf="inventarioActual?.completado_en">
+      Completado: {{ inventarioActual?.completado_en }}
+    </p>
+    <button (click)="step = 'select'; inventarioActual = null;" class="btn-primary">
+      Nuevo Conteo
+    </button>
+  </div>
+</div>
