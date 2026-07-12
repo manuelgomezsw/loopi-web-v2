@@ -159,19 +159,14 @@ export const routes: Routes = [
           ),
       },
       {
+        // Sirve tanto de formulario de edición (admin) como de vista de detalle de solo
+        // lectura (resto de roles autenticados) — ver FE-LISTFORM-01: una entidad de
+        // catálogo no tiene una pantalla de detalle separada del formulario.
         path: 'items/:id/editar',
-        canActivate: [roleGuard(['admin'])],
+        canActivate: [roleGuard(['admin', 'lider_compras', 'lider_tienda', 'barista'])],
         loadComponent: () =>
           import('./items/item-form/item-form.component').then(
             (m) => m.ItemFormComponent,
-          ),
-      },
-      {
-        path: 'items/:id',
-        canActivate: [roleGuard(['admin', 'lider_compras', 'lider_tienda', 'barista'])],
-        loadComponent: () =>
-          import('./items/item-detalle/item-detalle.component').then(
-            (m) => m.ItemDetalleComponent,
           ),
       },
       {

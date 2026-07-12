@@ -15,8 +15,8 @@
 
 <div class="p-6">
   <app-page-header
-    [title]="modoEdicion() ? 'Editar item' : 'Nuevo item'"
-    [breadcrumb]="[{label: 'Items', route: '/items'}, {label: modoEdicion() ? 'Editar' : 'Nuevo'}]"
+    [title]="titulo()"
+    [breadcrumb]="[{label: 'Items', route: '/items'}, {label: titulo()}]"
   />
 
   @if (cargandoOpciones()) {
@@ -24,6 +24,8 @@
   } @else {
     <app-form-card size="md">
       <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
+
+        <!-- Grupo: Identificación -->
 
         <!-- Código -->
         <div>
@@ -91,6 +93,8 @@
           </div>
         }
 
+        <!-- Grupo: Clasificación -->
+
         <!-- Subcategoría -->
         <div>
           <label for="subcategoria_id" class="block text-sm font-medium text-gray-700 mb-1">
@@ -111,19 +115,6 @@
           @if (errorDe('subcategoria_id')) {
             <p class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('subcategoria_id') }}</p>
           }
-        </div>
-
-        <!-- Proveedor -->
-        <div>
-          <label for="proveedor_id" class="block text-sm font-medium text-gray-700 mb-1">
-            Proveedor
-          </label>
-          <select id="proveedor_id" formControlName="proveedor_id" class="input-field">
-            <option [ngValue]="null">Sin proveedor asignado</option>
-            @for (p of proveedores(); track p.id) {
-              <option [ngValue]="p.id">{{ p.razon_social }}</option>
-            }
-          </select>
         </div>
 
         <!-- Unidad de medida -->
@@ -147,6 +138,39 @@
             <p class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('unidad_medida_id') }}</p>
           }
         </div>
+
+        <!-- Grupo: Proveedor -->
+
+        <!-- Proveedor -->
+        <div>
+          <label for="proveedor_id" class="block text-sm font-medium text-gray-700 mb-1">
+            Proveedor
+          </label>
+          <select id="proveedor_id" formControlName="proveedor_id" class="input-field">
+            <option [ngValue]="null">Sin proveedor asignado</option>
+            @for (p of proveedores(); track p.id) {
+              <option [ngValue]="p.id">{{ p.razon_social }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Tiempo de entrega del proveedor -->
+        <div>
+          <label for="tiempo_entrega_dias" class="block text-sm font-medium text-gray-700 mb-1">
+            Tiempo de entrega del proveedor (días)
+          </label>
+          <input
+            id="tiempo_entrega_dias"
+            type="number"
+            min="0"
+            step="1"
+            formControlName="tiempo_entrega_dias"
+            placeholder="2"
+            class="input-field"
+          />
+        </div>
+
+        <!-- Grupo: Planeación de inventario -->
 
         <!-- Costo unitario -->
         <div>
@@ -198,46 +222,113 @@
           }
         </div>
 
-        <!-- Tiempo de entrega -->
-        <div>
-          <label for="tiempo_entrega_dias" class="block text-sm font-medium text-gray-700 mb-1">
-            Tiempo de entrega del proveedor (días)
-          </label>
-          <input
-            id="tiempo_entrega_dias"
-            type="number"
-            min="0"
-            step="1"
-            formControlName="tiempo_entrega_dias"
-            placeholder="2"
-            class="input-field"
-          />
-        </div>
-
-        <p class="text-xs text-gray-500">* Campo obligatorio</p>
+        @if (!modoEdicion() || esAdmin()) {
+          <p class="text-xs text-gray-500">* Campo obligatorio</p>
+        }
 
         <!-- Acciones -->
         <div class="flex gap-3 pt-2">
-          <button
-            type="submit"
-            [disabled]="guardando()"
-            class="btn-primary"
-          >
-            @if (guardando()) {
-              <span class="inline-flex items-center gap-2">
-                <span class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                Guardando...
-              </span>
-            } @else {
-              Guardar
-            }
-          </button>
-          <a routerLink="/items" class="btn-secondary">Cancelar</a>
+          @if (!modoEdicion() || esAdmin()) {
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="btn-primary"
+            >
+              @if (guardando()) {
+                <span class="inline-flex items-center gap-2">
+                  <span class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  Guardando...
+                </span>
+              } @else {
+                Guardar
+              }
+            </button>
+            <a routerLink="/items" class="btn-secondary">Cancelar</a>
+          } @else {
+            <a routerLink="/items" class="btn-secondary">Volver al catálogo</a>
+          }
         </div>
 
       </form>
 
-      @if (modoEdicion()) {
+      @if (modoEdicion() && esAdmin()) {
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <h2 class="text-sm font-semibold text-gray-800 mb-1">Costos por tienda</h2>
+          <p class="text-xs text-gray-500 mb-4">
+            Las tiendas sin costo propio usan el costo global (${{ costoGlobal() ?? '—' }}).
+          </p>
+
+          @if (cargandoCostos()) {
+            <div class="text-sm text-gray-500 py-4 text-center" aria-busy="true">Cargando historial de costos…</div>
+          } @else {
+            @if (costosPorTienda().length === 0) {
+              <p class="text-sm text-gray-500 mb-4">Ninguna tienda tiene un costo propio registrado todavía.</p>
+            } @else {
+              <table class="w-full text-sm mb-4">
+                <thead>
+                  <tr class="text-left text-gray-500 border-b border-gray-200">
+                    <th class="py-2 pr-4">Tienda</th>
+                    <th class="py-2 pr-4">Costo vigente</th>
+                    <th class="py-2">Última actualización</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of costosPorTienda(); track c.tienda_id) {
+                    <tr class="border-b border-gray-100">
+                      <td class="py-2 pr-4">{{ c.tienda_nombre }}</td>
+                      <td class="py-2 pr-4 font-medium">${{ c.costo_vigente }}</td>
+                      <td class="py-2 text-gray-500">{{ c.historial[0]?.vigente_desde | date: 'medium' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+
+            <form [formGroup]="costoForm" (ngSubmit)="registrarCosto()" novalidate class="flex flex-wrap items-end gap-3">
+              <div>
+                <label for="tienda_id" class="block text-xs font-medium text-gray-700 mb-1">Tienda</label>
+                <select id="tienda_id" formControlName="tienda_id" class="input-field">
+                  <option [ngValue]="null" disabled>Selecciona una tienda</option>
+                  @for (t of tiendas(); track t.id) {
+                    <option [ngValue]="t.id">
+                      {{ t.nombre }}
+                      @if (costoVigenteDeTienda(t.id) !== null) {
+                        (vigente: ${{ costoVigenteDeTienda(t.id) }})
+                      } @else {
+                        (usa costo global: ${{ costoGlobal() ?? '—' }})
+                      }
+                    </option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label for="costo_unitario_tienda" class="block text-xs font-medium text-gray-700 mb-1">Costo (COP)</label>
+                <input
+                  id="costo_unitario_tienda"
+                  type="number"
+                  min="1"
+                  step="1"
+                  formControlName="costo_unitario"
+                  placeholder="3400"
+                  class="input-field w-32"
+                />
+              </div>
+              <button type="submit" [disabled]="guardandoCosto()" class="btn-primary">
+                @if (guardandoCosto()) {
+                  <span class="inline-flex items-center gap-2">
+                    <span class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    Guardando...
+                  </span>
+                } @else {
+                  Registrar costo
+                }
+              </button>
+            </form>
+          }
+        </div>
+      }
+
+      @if (modoEdicion() && esAdmin()) {
         <app-danger-zone title="Zona de precaución">
           @if (item()?.activo) {
             <p class="text-xs text-red-600 mb-3">

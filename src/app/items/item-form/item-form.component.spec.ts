@@ -1,12 +1,14 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { ItemFormComponent } from './item-form.component';
-import { ItemDetalle, ItemsService } from '../items.service';
+import { HistorialCostosResponse, ItemDetalle, ItemsService } from '../items.service';
 import { CategoriasService, CatalogoResponse } from '../../categorias/categorias.service';
 import { ProveedoresService, ListarProveedoresResponse } from '../../proveedores/proveedores.service';
 import { UnidadesMedidaService, ListarUnidadesMedidaResponse } from '../../unidades-medida/unidades-medida.service';
+import { TiendasService, ListaTiendasResponse } from '../../tiendas/tiendas.service';
+import { AuthService } from '../../auth/auth.service';
 
 const catalogoVacio: CatalogoResponse = {
   categorias: [
@@ -28,6 +30,7 @@ const catalogoVacio: CatalogoResponse = {
 
 const proveedoresVacio: ListarProveedoresResponse = { proveedores: [], total: 0, page: 1, limit: 200 };
 const unidadesVacio: ListarUnidadesMedidaResponse = { unidades_medida: [], total: 0, page: 1, limit: 200 };
+const tiendasVacio: ListaTiendasResponse = { datos: [], total: 0, pagina: 1, limite: 200 };
 
 const itemEjemplo: ItemDetalle = {
   id: 1,
@@ -52,13 +55,29 @@ const itemEjemplo: ItemDetalle = {
   actualizado_en: '2026-05-24T10:00:00',
 };
 
+const historialEjemplo: HistorialCostosResponse = {
+  item_id: 1,
+  costo_global: 3200,
+  costos_por_tienda: [
+    {
+      tienda_id: 1,
+      tienda_nombre: 'Sede Norte',
+      costo_vigente: 3600,
+      historial: [{ id: 5, costo_unitario: 3600, vigente_desde: '2026-05-20T09:00:00', creado_por: 1, creado_en: '2026-05-20T09:00:00' }],
+    },
+  ],
+};
+
 function mockRoute(id: string | null) {
   return { snapshot: { paramMap: { get: () => id } } };
 }
 
-async function setupComponent(idParam: string | null, itemMock: ItemDetalle = itemEjemplo) {
-  const itemsSvc = jasmine.createSpyObj<ItemsService>('ItemsService', ['crearItem', 'obtenerItem', 'editarItem', 'inactivarItem', 'reactivarItem']);
+async function setupComponent(idParam: string | null, itemMock: ItemDetalle = itemEjemplo, rol = 'admin') {
+  const itemsSvc = jasmine.createSpyObj<ItemsService>('ItemsService', [
+    'crearItem', 'obtenerItem', 'editarItem', 'inactivarItem', 'reactivarItem', 'obtenerCostosTienda', 'registrarCostoTienda',
+  ]);
   if (idParam) itemsSvc.obtenerItem.and.returnValue(of(itemMock));
+  itemsSvc.obtenerCostosTienda.and.returnValue(of(historialEjemplo));
 
   const categoriasSvc = jasmine.createSpyObj<CategoriasService>('CategoriasService', ['obtenerCatalogo']);
   categoriasSvc.obtenerCatalogo.and.returnValue(of(catalogoVacio));
@@ -69,6 +88,9 @@ async function setupComponent(idParam: string | null, itemMock: ItemDetalle = it
   const unidadesSvc = jasmine.createSpyObj<UnidadesMedidaService>('UnidadesMedidaService', ['listar']);
   unidadesSvc.listar.and.returnValue(of(unidadesVacio));
 
+  const tiendasSvc = jasmine.createSpyObj<TiendasService>('TiendasService', ['listar']);
+  tiendasSvc.listar.and.returnValue(of(tiendasVacio));
+
   await TestBed.configureTestingModule({
     imports: [ItemFormComponent],
     providers: [
@@ -77,6 +99,8 @@ async function setupComponent(idParam: string | null, itemMock: ItemDetalle = it
       { provide: CategoriasService, useValue: categoriasSvc },
       { provide: ProveedoresService, useValue: proveedoresSvc },
       { provide: UnidadesMedidaService, useValue: unidadesSvc },
+      { provide: TiendasService, useValue: tiendasSvc },
+      { provide: AuthService, useValue: { sesion: () => ({ rol, tienda_id: null }) } },
       { provide: ActivatedRoute, useValue: mockRoute(idParam) },
     ],
   }).compileComponents();
@@ -85,7 +109,7 @@ async function setupComponent(idParam: string | null, itemMock: ItemDetalle = it
   const component = fixture.componentInstance;
   fixture.detectChanges();
 
-  return { fixture, component, itemsSvc };
+  return { fixture, component, itemsSvc, tiendasSvc };
 }
 
 describe('ItemFormComponent — modo creación', () => {
@@ -158,5 +182,55 @@ describe('ItemFormComponent — código bloqueado por uso', () => {
   it('deshabilita el campo código cuando esta_en_uso=true', async () => {
     const { component } = await setupComponent('1', { ...itemEjemplo, esta_en_uso: true });
     expect(component.form.get('codigo')?.disabled).toBeTrue();
+  });
+});
+
+describe('ItemFormComponent — costos por tienda (rol admin, modo edición)', () => {
+  let fixture: ComponentFixture<ItemFormComponent>;
+  let component: ItemFormComponent;
+  let itemsSvc: jasmine.SpyObj<ItemsService>;
+  let tiendasSvc: jasmine.SpyObj<TiendasService>;
+
+  beforeEach(async () => {
+    ({ fixture, component, itemsSvc, tiendasSvc } = await setupComponent('1', itemEjemplo, 'admin'));
+  });
+
+  it('carga el historial de costos por tienda y la lista de tiendas activas', () => {
+    expect(itemsSvc.obtenerCostosTienda).toHaveBeenCalledWith(1);
+    expect(tiendasSvc.listar).toHaveBeenCalledWith('activo', 1, 200);
+    expect(component.costosPorTienda().length).toBe(1);
+    expect(component.costoVigenteDeTienda(1)).toBe(3600);
+  });
+
+  it('muestra la sección "Costos por tienda" dentro del mismo formulario', () => {
+    expect(fixture.nativeElement.textContent).toContain('Costos por tienda');
+  });
+
+  it('registrarCosto() llama a registrarCostoTienda() con los valores del formulario', () => {
+    itemsSvc.registrarCostoTienda.and.returnValue(of({
+      id: 6, item_id: 1, tienda_id: 1, costo_unitario: 3700,
+      vigente_desde: '2026-05-25T09:00:00', creado_por: 1, creado_en: '2026-05-25T09:00:00',
+    }));
+    component.costoForm.setValue({ tienda_id: 1, costo_unitario: 3700 });
+    component.registrarCosto();
+
+    expect(itemsSvc.registrarCostoTienda).toHaveBeenCalledWith(1, { tienda_id: 1, costo_unitario: 3700 });
+  });
+});
+
+describe('ItemFormComponent — rol no admin', () => {
+  let fixture: ComponentFixture<ItemFormComponent>;
+  let itemsSvc: jasmine.SpyObj<ItemsService>;
+
+  beforeEach(async () => {
+    ({ fixture, itemsSvc } = await setupComponent('1', itemEjemplo, 'barista'));
+  });
+
+  it('no carga el historial de costos por tienda', () => {
+    expect(itemsSvc.obtenerCostosTienda).not.toHaveBeenCalled();
+  });
+
+  it('no muestra la sección "Costos por tienda"', () => {
+    expect(fixture.nativeElement.textContent).not.toContain('Costos por tienda');
   });
 });

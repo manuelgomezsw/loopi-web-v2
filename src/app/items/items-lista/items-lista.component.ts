@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 
 import { Item, ItemsService } from '../items.service';
-import { AuthService } from '../../auth/auth.service';
 import { ActiveFilters, ColumnDef, FilterDefinition } from '../../shared/models/filter.model';
 import { FilterBarComponent } from '../../shared/components/filter-bar/filter-bar.component';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
@@ -43,19 +42,12 @@ const FRECUENCIA_LABELS: Record<string, string> = {
 })
 export class ItemsListaComponent {
   private readonly svc = inject(ItemsService);
-  private readonly auth = inject(AuthService);
   protected readonly router = inject(Router);
-
-  readonly esAdmin = () => this.auth.sesion()?.rol === 'admin';
 
   readonly items = signal<Item[]>([]);
   readonly total = signal(0);
   readonly cargando = signal(false);
   readonly errorMsg = signal('');
-
-  readonly itemSeleccionado = signal<Item | null>(null);
-  readonly mostrarModalCambioEstado = signal(false);
-  readonly cambiandoEstado = signal(false);
 
   readonly pagina = signal(1);
   readonly porPagina = 50;
@@ -100,7 +92,6 @@ export class ItemsListaComponent {
     { key: 'tipo', label: 'Tipo' },
     { key: 'frecuencia_inventario', label: 'Frecuencia' },
     { key: 'activo', label: 'Estado' },
-    { key: 'acciones', label: '' },
   ];
 
   // El primer disparo de datos llega vía (filtersChange) de app-filter-bar en el template.
@@ -143,39 +134,8 @@ export class ItemsListaComponent {
       });
   }
 
-  irADetalle(id: number): void {
-    this.router.navigate(['/items', id]);
-  }
-
-  solicitarCambioEstado(item: Item, event: Event): void {
-    event.stopPropagation();
-    this.itemSeleccionado.set(item);
-    this.mostrarModalCambioEstado.set(true);
-  }
-
-  cancelarCambioEstado(): void {
-    this.mostrarModalCambioEstado.set(false);
-    this.itemSeleccionado.set(null);
-  }
-
-  confirmarCambioEstado(): void {
-    const item = this.itemSeleccionado();
-    if (!item) return;
-    this.cambiandoEstado.set(true);
-    const accion$ = item.activo ? this.svc.inactivarItem(item.id) : this.svc.reactivarItem(item.id);
-    accion$.subscribe({
-      next: () => {
-        this.cambiandoEstado.set(false);
-        this.mostrarModalCambioEstado.set(false);
-        this.itemSeleccionado.set(null);
-        this.cargar();
-      },
-      error: () => {
-        this.cambiandoEstado.set(false);
-        this.mostrarModalCambioEstado.set(false);
-        this.errorMsg.set('Error al cambiar el estado del item.');
-      },
-    });
+  irAEditar(id: number): void {
+    this.router.navigate(['/items', id, 'editar']);
   }
 
   labelTipo(tipo: string): string {

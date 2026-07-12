@@ -4,7 +4,6 @@ import { of, throwError } from 'rxjs';
 
 import { ItemsListaComponent } from './items-lista.component';
 import { Item, ItemsService, ListarItemsResponse } from '../items.service';
-import { AuthService } from '../../auth/auth.service';
 
 const itemActivo: Item = {
   id: 1,
@@ -39,17 +38,15 @@ describe('ItemsListaComponent', () => {
   let serviceSpy: jasmine.SpyObj<ItemsService>;
   let router: Router;
 
-  function setup(rol: string) {
-    TestBed.resetTestingModule();
-    serviceSpy = jasmine.createSpyObj('ItemsService', ['listarItems', 'inactivarItem', 'reactivarItem']);
+  beforeEach(async () => {
+    serviceSpy = jasmine.createSpyObj('ItemsService', ['listarItems']);
     serviceSpy.listarItems.and.returnValue(of(listaVacia));
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
       imports: [ItemsListaComponent],
       providers: [
         provideRouter([]),
         { provide: ItemsService, useValue: serviceSpy },
-        { provide: AuthService, useValue: { sesion: () => ({ rol, tienda_id: null }) } },
       ],
     }).compileComponents();
 
@@ -57,9 +54,7 @@ describe('ItemsListaComponent', () => {
     fixture = TestBed.createComponent(ItemsListaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  }
-
-  beforeEach(() => setup('admin'));
+  });
 
   it('debe crearse correctamente', () => {
     expect(component).toBeTruthy();
@@ -102,10 +97,21 @@ describe('ItemsListaComponent', () => {
     );
   });
 
-  it('irADetalle() navega a /items/:id', () => {
+  it('irAEditar() navega a /items/:id/editar', () => {
     const navSpy = spyOn(router, 'navigate');
-    component.irADetalle(1);
-    expect(navSpy).toHaveBeenCalledWith(['/items', 1]);
+    component.irAEditar(1);
+    expect(navSpy).toHaveBeenCalledWith(['/items', 1, 'editar']);
+  });
+
+  it('clic en fila navega directo al formulario de edición (sin pantalla intermedia)', () => {
+    serviceSpy.listarItems.and.returnValue(of(listaConItems));
+    component.cargar();
+    fixture.detectChanges();
+
+    const navSpy = spyOn(router, 'navigate');
+    const fila = fixture.nativeElement.querySelector('tbody tr');
+    fila.click();
+    expect(navSpy).toHaveBeenCalledWith(['/items', itemActivo.id, 'editar']);
   });
 
   it('muestra tabla con una fila por item', () => {
@@ -117,62 +123,20 @@ describe('ItemsListaComponent', () => {
     expect(filas.length).toBe(2);
   });
 
+  it('no muestra botones de Inactivar/Reactivar por fila (FE-LISTFORM-01)', () => {
+    serviceSpy.listarItems.and.returnValue(of(listaConItems));
+    component.cargar();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Inactivar');
+    expect(fixture.nativeElement.textContent).not.toContain('Reactivar');
+  });
+
   it('muestra mensaje de error cuando el servicio falla', () => {
     serviceSpy.listarItems.and.returnValue(throwError(() => new Error('network error')));
     component.cargar();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Error al cargar');
-  });
-
-  describe('botón inactivar con modal (rol admin)', () => {
-    beforeEach(() => {
-      serviceSpy.listarItems.and.returnValue(of(listaConItems));
-      component.cargar();
-      fixture.detectChanges();
-    });
-
-    it('abre el modal de confirmación al solicitar el cambio de estado', () => {
-      component.solicitarCambioEstado(itemActivo, new Event('click'));
-      expect(component.mostrarModalCambioEstado()).toBeTrue();
-      expect(component.itemSeleccionado()).toEqual(itemActivo);
-    });
-
-    it('confirmarCambioEstado() llama a inactivarItem() para un item activo y recarga', () => {
-      serviceSpy.inactivarItem.and.returnValue(of({ id: 1, codigo: 'LEC-001', nombre: 'Leche Entera', activo: false, actualizado_por: 1, actualizado_en: '2026-05-24T12:00:00' }));
-      component.solicitarCambioEstado(itemActivo, new Event('click'));
-      component.confirmarCambioEstado();
-
-      expect(serviceSpy.inactivarItem).toHaveBeenCalledWith(1);
-      expect(component.mostrarModalCambioEstado()).toBeFalse();
-    });
-
-    it('confirmarCambioEstado() llama a reactivarItem() para un item inactivo', () => {
-      serviceSpy.reactivarItem.and.returnValue(of({ id: 2, codigo: 'LEC-001', nombre: 'Item viejo', activo: true, actualizado_por: 1, actualizado_en: '2026-05-24T12:00:00' }));
-      component.solicitarCambioEstado(itemInactivo, new Event('click'));
-      component.confirmarCambioEstado();
-
-      expect(serviceSpy.reactivarItem).toHaveBeenCalledWith(2);
-    });
-
-    it('cancelarCambioEstado() cierra el modal sin llamar al servicio', () => {
-      component.solicitarCambioEstado(itemActivo, new Event('click'));
-      component.cancelarCambioEstado();
-
-      expect(component.mostrarModalCambioEstado()).toBeFalse();
-      expect(serviceSpy.inactivarItem).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('rol no admin', () => {
-    beforeEach(() => setup('barista'));
-
-    it('no muestra el botón de inactivar/reactivar', () => {
-      serviceSpy.listarItems.and.returnValue(of(listaConItems));
-      component.cargar();
-      fixture.detectChanges();
-
-      expect(fixture.nativeElement.textContent).not.toContain('Inactivar');
-    });
   });
 });

@@ -4,10 +4,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 
-import { ItemDetalle, ItemsService } from '../items.service';
+import { CostoPorTienda, ItemDetalle, ItemsService } from '../items.service';
 import { CategoriasService, Categoria } from '../../categorias/categorias.service';
 import { ProveedoresService, Proveedor } from '../../proveedores/proveedores.service';
 import { UnidadesMedidaService, UnidadMedida } from '../../unidades-medida/unidades-medida.service';
+import { TiendasService, TiendaResponse } from '../../tiendas/tiendas.service';
+import { AuthService } from '../../auth/auth.service';
 import { FormModeService } from '../../shared/services/form-mode.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
@@ -46,11 +48,19 @@ export class ItemFormComponent implements OnInit {
   private readonly categoriasSvc = inject(CategoriasService);
   private readonly proveedoresSvc = inject(ProveedoresService);
   private readonly unidadesSvc = inject(UnidadesMedidaService);
+  private readonly tiendasSvc = inject(TiendasService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly formMode = inject(FormModeService);
 
   readonly modoEdicion = this.formMode.isEdit;
+  readonly esAdmin = () => this.auth.sesion()?.rol === 'admin';
+  readonly titulo = () => {
+    if (!this.modoEdicion()) return 'Nuevo item';
+    return this.esAdmin() ? 'Editar item' : 'Detalle del item';
+  };
+
   readonly itemID = signal<number | null>(null);
   readonly item = signal<ItemDetalle | null>(null);
   readonly guardando = signal(false);
@@ -67,6 +77,14 @@ export class ItemFormComponent implements OnInit {
   readonly proveedores = signal<Proveedor[]>([]);
   readonly unidadesMedida = signal<UnidadMedida[]>([]);
 
+  // Costos por tienda — exclusivo admin, solo en modo edición.
+  readonly costoGlobal = signal<number | null>(null);
+  readonly costosPorTienda = signal<CostoPorTienda[]>([]);
+  readonly cargandoCostos = signal(false);
+  readonly tiendas = signal<TiendaResponse[]>([]);
+  readonly guardandoCosto = signal(false);
+  costoForm!: FormGroup;
+
   readonly tipoLabels = TIPO_LABELS;
 
   form!: FormGroup;
@@ -77,12 +95,16 @@ export class ItemFormComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.maxLength(150)]],
       tipo: ['insumo', [Validators.required]],
       subcategoria_id: [null, [Validators.required]],
-      proveedor_id: [null],
       unidad_medida_id: [null, [Validators.required]],
+      proveedor_id: [null],
+      tiempo_entrega_dias: [null],
       costo_unitario: [null],
       frecuencia_inventario: ['diario', [Validators.required]],
       stock_seguridad: ['0', [Validators.required]],
-      tiempo_entrega_dias: [null],
+    });
+    this.costoForm = this.fb.group({
+      tienda_id: [null, [Validators.required]],
+      costo_unitario: [null, [Validators.required, Validators.min(1)]],
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -150,11 +172,70 @@ export class ItemFormComponent implements OnInit {
         if (it.esta_en_uso) {
           this.form.get('codigo')?.disable();
         }
+        if (!this.esAdmin()) {
+          // Lectura únicamente: los roles no-admin pueden consultar el catálogo pero no
+          // editarlo (RBAC). Reutilizamos el mismo formulario como vista de detalle en
+          // lugar de una pantalla de solo lectura separada (ver FE-LISTFORM-01).
+          this.form.disable();
+        }
+
+        if (this.esAdmin()) {
+          this.cargarCostos(id);
+          this.tiendasSvc.listar('activo', 1, 200).subscribe({
+            next: (resp) => this.tiendas.set(resp.datos),
+            error: () => undefined,
+          });
+        }
       },
       error: () => {
         this.mostrarToast('Error al cargar los datos del item.', 'rojo', 5000);
       },
     });
+  }
+
+  private cargarCostos(id: number): void {
+    this.cargandoCostos.set(true);
+    this.svc.obtenerCostosTienda(id).subscribe({
+      next: (resp) => {
+        this.costoGlobal.set(resp.costo_global);
+        this.costosPorTienda.set(resp.costos_por_tienda);
+        this.cargandoCostos.set(false);
+      },
+      error: () => {
+        this.cargandoCostos.set(false);
+      },
+    });
+  }
+
+  costoVigenteDeTienda(tiendaId: number): number | null {
+    const entrada = this.costosPorTienda().find((c) => c.tienda_id === tiendaId);
+    return entrada ? entrada.costo_vigente : null;
+  }
+
+  registrarCosto(): void {
+    this.costoForm.markAllAsTouched();
+    if (this.costoForm.invalid) return;
+
+    const id = this.itemID();
+    if (!id) return;
+
+    this.guardandoCosto.set(true);
+    const v = this.costoForm.getRawValue();
+    this.svc
+      .registrarCostoTienda(id, { tienda_id: Number(v.tienda_id), costo_unitario: Number(v.costo_unitario) })
+      .subscribe({
+        next: () => {
+          this.guardandoCosto.set(false);
+          this.costoForm.reset();
+          this.mostrarToast('Costo por tienda registrado correctamente.', 'verde', 3000);
+          this.cargarCostos(id);
+        },
+        error: (err) => {
+          this.guardandoCosto.set(false);
+          const msg = err?.error?.mensaje ?? 'Error al registrar el costo por tienda.';
+          this.mostrarToast(msg, 'rojo', 5000);
+        },
+      });
   }
 
   unidadCambio(): boolean {
@@ -180,7 +261,7 @@ export class ItemFormComponent implements OnInit {
       next: () => {
         this.cambiandoEstado.set(false);
         this.mostrarModalCambioEstado.set(false);
-        this.router.navigate(['/items', id]);
+        this.router.navigate(['/items']);
       },
       error: (err) => {
         this.cambiandoEstado.set(false);
@@ -233,7 +314,7 @@ export class ItemFormComponent implements OnInit {
         next: () => {
           this.guardando.set(false);
           this.mostrarToast('Item actualizado correctamente.', 'verde', 3000);
-          setTimeout(() => this.router.navigate(['/items', this.itemID()]), 1500);
+          setTimeout(() => this.router.navigate(['/items']), 1500);
         },
         error: (err) => {
           this.guardando.set(false);
@@ -254,10 +335,10 @@ export class ItemFormComponent implements OnInit {
         tiempo_entrega_dias: v.tiempo_entrega_dias !== null && v.tiempo_entrega_dias !== '' ? Number(v.tiempo_entrega_dias) : undefined,
       };
       this.svc.crearItem(req).subscribe({
-        next: (creado) => {
+        next: () => {
           this.guardando.set(false);
           this.mostrarToast('Item creado correctamente.', 'verde', 3000);
-          setTimeout(() => this.router.navigate(['/items', creado.id]), 1500);
+          setTimeout(() => this.router.navigate(['/items']), 1500);
         },
         error: (err) => {
           this.guardando.set(false);

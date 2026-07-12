@@ -38,7 +38,7 @@
     <app-data-table
       [columns]="cols"
       [rows]="items()"
-      (rowClick)="irADetalle($any($event).id)"
+      (rowClick)="irAEditar($any($event).id)"
     >
       <ng-template appCellTemplate="codigo" let-row>
         <span class="font-mono font-medium text-gray-800">{{ $any(row).codigo }}</span>
@@ -55,21 +55,6 @@
       <ng-template appCellTemplate="activo" let-row>
         <app-status-badge [activo]="$any(row).activo" />
       </ng-template>
-      <ng-template appCellTemplate="acciones" let-row>
-        @if (esAdmin()) {
-          <button
-            type="button"
-            (click)="solicitarCambioEstado($any(row), $event)"
-            class="text-xs font-medium px-2 py-1 rounded border"
-            [class.border-red-300]="$any(row).activo"
-            [class.text-red-700]="$any(row).activo"
-            [class.border-gray-300]="!$any(row).activo"
-            [class.text-gray-700]="!$any(row).activo"
-          >
-            {{ $any(row).activo ? 'Inactivar' : 'Reactivar' }}
-          </button>
-        }
-      </ng-template>
     </app-data-table>
 
     <app-pagination
@@ -80,31 +65,3 @@
     />
   }
 </app-list-card>
-
-<!-- Modal confirmar cambio de estado -->
-@if (mostrarModalCambioEstado() && itemSeleccionado(); as it) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-cambio-estado-titulo">
-    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
-      <h2 id="modal-cambio-estado-titulo" class="text-lg font-semibold text-gray-900 mb-2">
-        {{ it.activo ? '¿Inactivar este item?' : '¿Reactivar este item?' }}
-      </h2>
-      <p class="text-sm text-gray-600 mb-4">
-        {{ it.activo ? 'Dejará de aparecer en nuevos inventarios y recetas.' : 'Volverá a estar disponible para conteos, recetas y pedidos.' }}
-        <strong>{{ it.nombre }}</strong>
-      </p>
-      <div class="flex gap-3 justify-end">
-        <button type="button" (click)="cancelarCambioEstado()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400">
-          Cancelar
-        </button>
-        <button
-          type="button"
-          [disabled]="cambiandoEstado()"
-          (click)="confirmarCambioEstado()"
-          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-        >
-          {{ cambiandoEstado() ? 'Procesando...' : 'Confirmar' }}
-        </button>
-      </div>
-    </div>
-  </div>
-}
