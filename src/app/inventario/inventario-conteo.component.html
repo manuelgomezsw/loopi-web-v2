@@ -47,15 +47,22 @@
             type="number"
             [(ngModel)]="item.valor_real"
             (blur)="registrarValor(item.item_id, item.valor_real || 0)"
+            [disabled]="loadingItems.has(item.item_id)"
             placeholder="Ingresa valor real"
             class="input-valor"
           />
+          <span *ngIf="loadingItems.has(item.item_id)" class="loading-spinner">Guardando...</span>
         </div>
 
         <div class="item-diferencia" *ngIf="item.diferencia !== null && item.diferencia !== undefined">
           <span [class.positive]="item.diferencia >= 0" [class.negative]="item.diferencia < 0">
             Diferencia: {{ item.diferencia > 0 ? '+' : '' }}{{ item.diferencia }}
           </span>
+        </div>
+
+        <div *ngIf="itemErrors.has(item.item_id)" class="item-error">
+          <p class="error-message">{{ itemErrors.get(item.item_id) }}</p>
+          <button (click)="reintentar(item.item_id)" class="btn-retry">Reintentar</button>
         </div>
       </div>
     </div>
@@ -76,6 +83,13 @@
   <div *ngIf="step === 'confirm'" class="step-section">
     <h2>Confirmar Conteo</h2>
 
+    <div *ngIf="confirmationError" class="error-banner">
+      <p>{{ confirmationError }}</p>
+      <div *ngIf="itemsSinRegistrar.length > 0" class="missing-items">
+        <p>Items pendientes: {{ itemsSinRegistrar.join(', ') }}</p>
+      </div>
+    </div>
+
     <div class="summary">
       <p>Se registraron {{ inventarioActual?.items.length }} items</p>
       <p>Tipo: {{ inventarioActual?.tipo }}</p>
@@ -84,7 +98,9 @@
 
     <div class="buttons">
       <button (click)="volver()" class="btn-secondary">Volver a Registrar</button>
-      <button (click)="confirmarConteo()" class="btn-primary">Confirmar</button>
+      <button (click)="confirmarConteo()" [disabled]="isConfirming" class="btn-primary">
+        {{ isConfirming ? 'Confirmando...' : 'Confirmar' }}
+      </button>
     </div>
   </div>
 

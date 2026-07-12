@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
 
 @Component({
@@ -18,11 +19,26 @@ export class InventarioConteoComponent implements OnInit {
   };
 
   valoresRegistrados: Map<number, number> = new Map();
+  itemErrors: Map<number, string> = new Map();
+  loadingItems: Set<number> = new Set();
+  confirmationError: string = '';
+  itemsSinRegistrar: number[] = [];
+  isConfirming: boolean = false;
 
-  constructor(private inventarioService: InventarioService) { }
+  constructor(
+    private inventarioService: InventarioService,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
-    this.loadSugerencia();
+    this.route.queryParams.subscribe(params => {
+      const inventarioId = params['inventario_id'];
+      if (inventarioId) {
+        this.recuperarSesion(parseInt(inventarioId, 10));
+      } else {
+        this.loadSugerencia();
+      }
+    });
   }
 
   loadSugerencia(): void {
@@ -33,6 +49,35 @@ export class InventarioConteoComponent implements OnInit {
         this.formData.horario = data.horario;
       },
       error: (err) => console.error('Error al obtener sugerencia:', err)
+    });
+  }
+
+  recuperarSesion(inventarioId: number): void {
+    this.inventarioService.getInventario(inventarioId).subscribe({
+      next: (data) => {
+        if (data.estado === 'en_progreso') {
+          this.inventarioActual = data;
+          this.formData.tipo = data.tipo;
+          this.formData.horario = data.horario;
+          this.step = 'register';
+          this.precargarvValoresReales();
+        } else {
+          this.loadSugerencia();
+        }
+      },
+      error: (err) => {
+        console.error('Error recuperando sesión:', err);
+        this.loadSugerencia();
+      }
+    });
+  }
+
+  precargarvValoresReales(): void {
+    if (!this.inventarioActual) return;
+    this.inventarioActual.items.forEach(item => {
+      if (item.valor_real !== null && item.valor_real !== undefined) {
+        this.valoresRegistrados.set(item.item_id, item.valor_real);
+      }
     });
   }
 
@@ -53,29 +98,65 @@ export class InventarioConteoComponent implements OnInit {
   registrarValor(itemId: number, valor: number): void {
     if (!this.inventarioActual) return;
 
+    this.loadingItems.add(itemId);
+    this.itemErrors.delete(itemId);
+
     this.inventarioService.registrarValorReal(this.inventarioActual.id, itemId, valor).subscribe({
       next: (data) => {
         this.valoresRegistrados.set(itemId, valor);
-        // Actualizar el item en la lista local
+        this.itemErrors.delete(itemId);
         const item = this.inventarioActual!.items.find(i => i.item_id === itemId);
         if (item) {
           item.valor_real = data.valor_real;
           item.diferencia = data.diferencia;
         }
+        this.loadingItems.delete(itemId);
       },
-      error: (err) => console.error('Error al registrar valor:', err)
+      error: (err) => {
+        const errorMsg = err?.error?.mensaje || 'Error temporal al guardar valor';
+        this.itemErrors.set(itemId, errorMsg);
+        this.loadingItems.delete(itemId);
+      }
     });
+  }
+
+  reintentar(itemId: number): void {
+    const valor = this.valoresRegistrados.get(itemId);
+    if (valor !== undefined) {
+      this.registrarValor(itemId, valor);
+    }
   }
 
   confirmarConteo(): void {
     if (!this.inventarioActual) return;
 
+    this.isConfirming = true;
+    this.confirmationError = '';
+    this.itemsSinRegistrar = [];
+
     this.inventarioService.confirmarConteo(this.inventarioActual.id).subscribe({
       next: (data) => {
         this.inventarioActual = data;
+        this.isConfirming = false;
         this.step = 'complete';
       },
-      error: (err) => console.error('Error al confirmar conteo:', err)
+      error: (err) => {
+        this.isConfirming = false;
+        const status = err?.status;
+        const errorCode = err?.error?.error;
+
+        if (status === 422 && errorCode === 'items_sin_registrar') {
+          this.itemsSinRegistrar = err.error?.detalles?.items_sin_registrar || [];
+          this.confirmationError = 'Hay items sin registrar. Por favor completa todos antes de confirmar.';
+          this.step = 'register';
+        } else if (status === 409) {
+          this.confirmationError = 'Este conteo ya fue completado anteriormente.';
+        } else if (status === 403) {
+          this.confirmationError = 'No tienes permiso para confirmar este conteo.';
+        } else {
+          this.confirmationError = err?.error?.mensaje || 'Error al confirmar conteo';
+        }
+      }
     });
   }
 

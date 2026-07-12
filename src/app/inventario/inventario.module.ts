@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { InventarioConteoComponent } from './inventario-conteo.component';
 import { InventarioHistorialComponent } from './inventario-historial.component';
 import { InventarioDetalleComponent } from './inventario-detalle.component';
@@ -20,6 +21,7 @@ import { InventarioDetalleComponent } from './inventario-detalle.component';
   ],
   imports: [
     CommonModule,
+    FormsModule,
     // ListCardComponent,
     // FilterBarComponent,
     // PaginationComponent,

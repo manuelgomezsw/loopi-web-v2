@@ -53,18 +53,24 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of inventario.items">
+            <tr *ngFor="let item of inventario.items" [class.editing]="editando && itemsEditados.has(item.item_id)">
               <td>{{ item.item_id }}</td>
               <td>{{ item.valor_sugerido }}</td>
               <td>{{ item.valor_esperado }}</td>
               <td>
                 <span *ngIf="!editando">{{ item.valor_real || '-' }}</span>
-                <input
-                  *ngIf="editando && puedeEditarCompletado()"
-                  type="number"
-                  [(ngModel)]="item.valor_real"
-                  class="input-edit"
-                />
+                <div *ngIf="editando && puedeEditarCompletado()" class="edit-input-group">
+                  <input
+                    type="number"
+                    [(ngModel)]="item.valor_real"
+                    (change)="marcarItemEditado(item.item_id)"
+                    class="input-edit"
+                    [disabled]="guardando"
+                  />
+                  <span *ngIf="itemErrors.has(item.item_id)" class="error-inline">
+                    {{ itemErrors.get(item.item_id) }}
+                  </span>
+                </div>
               </td>
               <td [class]="diferenciaCss(item.diferencia)">
                 <strong>{{ item.diferencia !== null && item.diferencia !== undefined ? (item.diferencia > 0 ? '+' : '') + item.diferencia : '-' }}</strong>
@@ -77,6 +83,10 @@
 
     <!-- Admin Actions -->
     <div *ngIf="puedeEditarCompletado() || puedeEliminar()" class="admin-actions">
+      <div *ngIf="errorEliminar" class="error-message-banner">
+        <p>{{ errorEliminar }}</p>
+      </div>
+
       <div *ngIf="puedeEditarCompletado()" class="action-group">
         <button
           *ngIf="!editando"
@@ -86,18 +96,26 @@
           Modificar Valores
         </button>
         <div *ngIf="editando" class="edit-actions">
-          <button (click)="guardarCambios()" class="btn-success">
-            Guardar Cambios
+          <button
+            (click)="guardarCambios()"
+            [disabled]="guardando || itemsEditados.size === 0"
+            class="btn-success"
+          >
+            {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
           </button>
-          <button (click)="cancelarEdicion()" class="btn-secondary">
+          <button (click)="cancelarEdicion()" [disabled]="guardando" class="btn-secondary">
             Cancelar
           </button>
         </div>
       </div>
 
       <div *ngIf="puedeEliminar()" class="action-group">
-        <button (click)="eliminarConteo()" class="btn-danger">
-          Eliminar Conteo
+        <button
+          (click)="eliminarConteo()"
+          [disabled]="eliminando"
+          class="btn-danger"
+        >
+          {{ eliminando ? 'Eliminando...' : 'Eliminar Conteo' }}
         </button>
       </div>
     </div>

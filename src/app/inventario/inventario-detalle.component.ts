@@ -11,6 +11,12 @@ export class InventarioDetalleComponent implements OnInit {
   inventario: InventarioResp | null = null;
   cargando: boolean = false;
   editando: boolean = false;
+  guardando: boolean = false;
+  eliminando: boolean = false;
+  itemsEditados: Set<number> = new Set();
+  itemErrors: Map<number, string> = new Map();
+  errorEliminar: string = '';
+  userRole: string = 'admin';
 
   constructor(
     private route: ActivatedRoute,
@@ -45,11 +51,19 @@ export class InventarioDetalleComponent implements OnInit {
   }
 
   guardarCambios(): void {
-    if (!this.inventario) return;
+    if (!this.inventario || this.itemsEditados.size === 0) {
+      this.editando = false;
+      return;
+    }
 
-    // Iterar sobre items y hacer PATCH para los modificados
-    this.inventario.items.forEach(item => {
-      if (item.valor_real !== null && item.valor_real !== undefined) {
+    this.guardando = true;
+    this.itemErrors.clear();
+    let guardadoCount = 0;
+    const totalItems = this.itemsEditados.size;
+
+    this.itemsEditados.forEach(itemId => {
+      const item = this.inventario!.items.find(i => i.item_id === itemId);
+      if (item && item.valor_real !== null && item.valor_real !== undefined) {
         this.inventarioService.registrarValorReal(
           this.inventario!.id,
           item.item_id,
@@ -57,13 +71,21 @@ export class InventarioDetalleComponent implements OnInit {
         ).subscribe({
           next: (data) => {
             item.diferencia = data.diferencia;
+            guardadoCount++;
+            if (guardadoCount === totalItems) {
+              this.guardando = false;
+              this.editando = false;
+              this.itemsEditados.clear();
+            }
           },
-          error: (err) => console.error('Error al guardar item:', err)
+          error: (err) => {
+            const msg = err?.error?.mensaje || 'Error al guardar';
+            this.itemErrors.set(itemId, msg);
+            this.guardando = false;
+          }
         });
       }
     });
-
-    this.editando = false;
   }
 
   cancelarEdicion(): void {
@@ -75,30 +97,52 @@ export class InventarioDetalleComponent implements OnInit {
   }
 
   eliminarConteo(): void {
-    if (!this.inventario || this.inventario.estado !== 'en_progreso') {
-      alert('Solo se pueden eliminar conteos en progreso');
+    if (!this.inventario) return;
+
+    if (this.inventario.estado !== 'en_progreso') {
+      this.errorEliminar = 'Solo se pueden eliminar conteos en progreso';
       return;
     }
 
-    if (confirm('¿Estás seguro de que deseas eliminar este conteo?')) {
+    if (this.userRole !== 'admin') {
+      this.errorEliminar = 'Solo administradores pueden eliminar conteos';
+      return;
+    }
+
+    if (confirm('¿Estás seguro de que deseas eliminar este conteo? Esta acción no se puede deshacer.')) {
+      this.eliminando = true;
+      this.errorEliminar = '';
+
       this.inventarioService.eliminarConteo(this.inventario.id).subscribe({
         next: () => {
-          alert('Conteo eliminado');
+          this.eliminando = false;
           window.history.back();
         },
-        error: (err) => console.error('Error al eliminar:', err)
+        error: (err) => {
+          this.eliminando = false;
+          const status = err?.status;
+          if (status === 403) {
+            this.errorEliminar = 'No tienes permiso para eliminar este conteo';
+          } else if (status === 422) {
+            this.errorEliminar = 'No se puede eliminar un conteo completado';
+          } else {
+            this.errorEliminar = err?.error?.mensaje || 'Error al eliminar conteo';
+          }
+        }
       });
     }
   }
 
+  marcarItemEditado(itemId: number): void {
+    this.itemsEditados.add(itemId);
+  }
+
   puedeEditarCompletado(): boolean {
-    // TODO: Verificar rol de admin desde contexto de autenticación
-    return this.inventario?.estado === 'completado';
+    return this.userRole === 'admin' && this.inventario?.estado === 'completado';
   }
 
   puedeEliminar(): boolean {
-    // TODO: Verificar rol de admin
-    return this.inventario?.estado === 'en_progreso';
+    return this.userRole === 'admin' && this.inventario?.estado === 'en_progreso';
   }
 
   diferenciaCss(diferencia: number | null | undefined): string {
