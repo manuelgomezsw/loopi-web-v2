@@ -30,7 +30,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Catálogo',
     icon: 'squares-2x2',
     route: '/catalogo',
-    roles: ['admin'],
+    roles: ['admin', 'lider_compras', 'lider_tienda', 'barista'],
     orden: 4,
     children: [
       {
@@ -56,6 +56,14 @@ export const NAV_ITEMS: NavItem[] = [
         route: '/proveedores',
         roles: ['admin'],
         orden: 3,
+      },
+      {
+        id: 'items',
+        label: 'Items',
+        icon: 'cube',
+        route: '/items',
+        roles: ['admin', 'lider_compras', 'lider_tienda', 'barista'],
+        orden: 4,
       },
     ],
   },

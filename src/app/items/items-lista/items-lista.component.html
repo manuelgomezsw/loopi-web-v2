@@ -1,0 +1,67 @@
+<app-list-card>
+  <app-page-header title="Items del catálogo">
+    <a
+      slot="actions"
+      routerLink="/items/nuevo"
+      class="btn-primary"
+    >
+      + Nuevo item
+    </a>
+  </app-page-header>
+
+  <app-filter-bar
+    [filters]="filterDefs"
+    routeKey="/items"
+    (filtersChange)="onFilters($event)"
+  />
+
+  @if (errorMsg()) {
+    <div class="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm mb-4" role="alert">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">Cargando items…</div>
+  }
+
+  @if (!cargando() && items().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="Aún no hay items registrados"
+      description="Crea el primero para empezar a construir el catálogo."
+      actionLabel="+ Crear el primero"
+      (action)="router.navigate(['/items/nuevo'])"
+    />
+  }
+
+  @if (!cargando() && items().length > 0) {
+    <app-data-table
+      [columns]="cols"
+      [rows]="items()"
+      (rowClick)="irAEditar($any($event).id)"
+    >
+      <ng-template appCellTemplate="codigo" let-row>
+        <span class="font-mono font-medium text-gray-800">{{ $any(row).codigo }}</span>
+      </ng-template>
+      <ng-template appCellTemplate="nombre" let-row>
+        {{ $any(row).nombre }}
+      </ng-template>
+      <ng-template appCellTemplate="tipo" let-row>
+        {{ labelTipo($any(row).tipo) }}
+      </ng-template>
+      <ng-template appCellTemplate="frecuencia_inventario" let-row>
+        {{ labelFrecuencia($any(row).frecuencia_inventario) }}
+      </ng-template>
+      <ng-template appCellTemplate="activo" let-row>
+        <app-status-badge [activo]="$any(row).activo" />
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination
+      [page]="pagina()"
+      [pageSize]="porPagina"
+      [total]="total()"
+      (pageChange)="onPage($event)"
+    />
+  }
+</app-list-card>
