@@ -1,0 +1,116 @@
+<div class="detalle-container">
+  <div *ngIf="cargando" class="loading">
+    Cargando detalle...
+  </div>
+
+  <div *ngIf="!cargando && inventario" class="detalle-content">
+    <!-- Header -->
+    <div class="detalle-header">
+      <h2>Detalle de Conteo #{{ inventario.id }}</h2>
+      <span [class]="'badge ' + (inventario.estado === 'completado' ? 'badge-success' : 'badge-warning')">
+        {{ inventario.estado }}
+      </span>
+    </div>
+
+    <!-- Información general -->
+    <div class="info-section">
+      <div class="info-row">
+        <span class="label">Fecha:</span>
+        <span class="value">{{ inventario.fecha | date: 'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Tipo:</span>
+        <span class="value">{{ inventario.tipo }}</span>
+      </div>
+      <div class="info-row" *ngIf="inventario.horario">
+        <span class="label">Horario:</span>
+        <span class="value">{{ inventario.horario }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Iniciado:</span>
+        <span class="value">{{ inventario.iniciado_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="info-row" *ngIf="inventario.completado_en">
+        <span class="label">Completado:</span>
+        <span class="value">{{ inventario.completado_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+
+    <!-- Items - Vista responsiva -->
+    <div class="items-section">
+      <h3>Items ({{ inventario.items.length }})</h3>
+
+      <!-- Desktop: Tabla -->
+      <div class="items-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Valor Sugerido</th>
+              <th>Valor Esperado</th>
+              <th>Valor Real</th>
+              <th>Diferencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of inventario.items">
+              <td>{{ item.item_id }}</td>
+              <td>{{ item.valor_sugerido }}</td>
+              <td>{{ item.valor_esperado }}</td>
+              <td>
+                <span *ngIf="!editando">{{ item.valor_real || '-' }}</span>
+                <input
+                  *ngIf="editando && puedeEditarCompletado()"
+                  type="number"
+                  [(ngModel)]="item.valor_real"
+                  class="input-edit"
+                />
+              </td>
+              <td [class]="diferenciaCss(item.diferencia)">
+                <strong>{{ item.diferencia !== null && item.diferencia !== undefined ? (item.diferencia > 0 ? '+' : '') + item.diferencia : '-' }}</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin Actions -->
+    <div *ngIf="puedeEditarCompletado() || puedeEliminar()" class="admin-actions">
+      <div *ngIf="puedeEditarCompletado()" class="action-group">
+        <button
+          *ngIf="!editando"
+          (click)="toggleEditMode()"
+          class="btn-warning"
+        >
+          Modificar Valores
+        </button>
+        <div *ngIf="editando" class="edit-actions">
+          <button (click)="guardarCambios()" class="btn-success">
+            Guardar Cambios
+          </button>
+          <button (click)="cancelarEdicion()" class="btn-secondary">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="puedeEliminar()" class="action-group">
+        <button (click)="eliminarConteo()" class="btn-danger">
+          Eliminar Conteo
+        </button>
+      </div>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="navigation-buttons">
+      <button (click)="window.history.back()" class="btn-secondary">
+        Volver
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!cargando && !inventario" class="error">
+    <p>No se encontró el conteo</p>
+  </div>
+</div>
