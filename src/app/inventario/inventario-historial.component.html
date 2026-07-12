@@ -1,0 +1,93 @@
+<div class="historial-container">
+  <h2>Historial de Conteos</h2>
+
+  <!-- Filtros -->
+  <div class="filter-section">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="tipo">Tipo</label>
+        <select [(ngModel)]="filtros.tipo" id="tipo">
+          <option value="">Todos</option>
+          <option value="diario">Diario</option>
+          <option value="semanal">Semanal</option>
+          <option value="mensual">Mensual</option>
+          <option value="inicial">Inicial</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="estado">Estado</label>
+        <select [(ngModel)]="filtros.estado" id="estado">
+          <option value="">Todos</option>
+          <option value="en_progreso">En Progreso</option>
+          <option value="completado">Completado</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="desde">Desde</label>
+        <input type="date" [(ngModel)]="filtros.desde" id="desde" />
+      </div>
+
+      <div class="filter-group">
+        <label for="hasta">Hasta</label>
+        <input type="date" [(ngModel)]="filtros.hasta" id="hasta" />
+      </div>
+    </div>
+
+    <div class="filter-buttons">
+      <button (click)="aplicarFiltros()" class="btn-primary">Buscar</button>
+      <button (click)="limpiarFiltros()" class="btn-secondary">Limpiar</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading">
+    Cargando...
+  </div>
+
+  <!-- Lista de conteos -->
+  <div *ngIf="!cargando && inventarios.length > 0" class="inventarios-list">
+    <div *ngFor="let inv of inventarios" class="inventario-card" (click)="verDetalle(inv.id)">
+      <div class="card-header">
+        <span class="fecha">{{ inv.fecha | date: 'dd/MM/yyyy' }}</span>
+        <span [class]="'badge ' + estadoBadgeClass(inv.estado)">{{ inv.estado }}</span>
+      </div>
+
+      <div class="card-body">
+        <p><strong>Tipo:</strong> {{ inv.tipo }}</p>
+        <p *ngIf="inv.horario"><strong>Horario:</strong> {{ inv.horario }}</p>
+        <p><strong>Items:</strong> {{ inv.items.length }}</p>
+        <p><strong>Iniciado:</strong> {{ inv.iniciado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
+        <p *ngIf="inv.completado_en"><strong>Completado:</strong> {{ inv.completado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+
+      <div class="card-footer">
+        <span class="responsable">Por: Usuario {{ inv.responsable_id }}</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin resultados -->
+  <div *ngIf="!cargando && inventarios.length === 0" class="no-results">
+    <p>No hay conteos que coincidan con los filtros</p>
+  </div>
+
+  <!-- Paginación -->
+  <div *ngIf="!cargando && totalPaginas > 1" class="pagination">
+    <button
+      *ngFor="let pagina of [].constructor(totalPaginas)"
+      [disabled]="paginaActual === (pagina + 1)"
+      (click)="cambiarPagina(pagina + 1)"
+      class="page-btn"
+    >
+      {{ pagina + 1 }}
+    </button>
+  </div>
+
+  <!-- Resumen -->
+  <div *ngIf="!cargando && inventarios.length > 0" class="summary">
+    <p>Mostrando {{ inventarios.length }} de {{ total }} conteos (página {{ paginaActual }}/{{ totalPaginas }})</p>
+  </div>
+</div>
