@@ -1,0 +1,324 @@
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<div class="p-6">
+  <app-page-header
+    [title]="modoEdicion() ? 'Editar item' : 'Nuevo item'"
+    [breadcrumb]="[{label: 'Items', route: '/items'}, {label: modoEdicion() ? 'Editar' : 'Nuevo'}]"
+  />
+
+  @if (cargandoOpciones()) {
+    <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">Cargando formulario…</div>
+  } @else {
+    <app-form-card size="md">
+      <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
+
+        <!-- Código -->
+        <div>
+          <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
+            Código <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <input
+            id="codigo"
+            type="text"
+            formControlName="codigo"
+            maxlength="20"
+            placeholder="LEC-001"
+            class="input-field font-mono"
+            [class.input-field-error]="errorDe('codigo')"
+            [attr.aria-describedby]="errorDe('codigo') ? 'error-codigo' : null"
+            [attr.aria-invalid]="!!errorDe('codigo')"
+          />
+          @if (modoEdicion() && item()?.esta_en_uso) {
+            <p class="text-xs text-amber-600 mt-1" title="Código bloqueado — el item está en uso">
+              Código bloqueado — el item está en uso.
+            </p>
+          }
+          @if (errorDe('codigo')) {
+            <p id="error-codigo" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('codigo') }}</p>
+          }
+        </div>
+
+        <!-- Nombre -->
+        <div>
+          <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+            Nombre <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            maxlength="150"
+            placeholder="Leche Entera"
+            class="input-field"
+            [class.input-field-error]="errorDe('nombre')"
+            [attr.aria-describedby]="errorDe('nombre') ? 'error-nombre' : null"
+            [attr.aria-invalid]="!!errorDe('nombre')"
+          />
+          @if (errorDe('nombre')) {
+            <p id="error-nombre" class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('nombre') }}</p>
+          }
+        </div>
+
+        <!-- Tipo -->
+        @if (modoEdicion() && item(); as it) {
+          <app-readonly-field label="Tipo" [value]="tipoLabels[it.tipo]" />
+        } @else if (!modoEdicion()) {
+          <div>
+            <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">
+              Tipo <span class="text-red-500" aria-hidden="true">*</span>
+              <span class="sr-only">(requerido)</span>
+            </label>
+            <select id="tipo" formControlName="tipo" class="input-field">
+              <option value="insumo">Insumo</option>
+              <option value="material_consumo">Material de consumo</option>
+              <option value="activo">Activo</option>
+            </select>
+          </div>
+        }
+
+        <!-- Subcategoría -->
+        <div>
+          <label for="subcategoria_id" class="block text-sm font-medium text-gray-700 mb-1">
+            Subcategoría <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <select
+            id="subcategoria_id"
+            formControlName="subcategoria_id"
+            class="input-field"
+            [class.input-field-error]="errorDe('subcategoria_id')"
+          >
+            <option [ngValue]="null" disabled>Selecciona una subcategoría</option>
+            @for (opt of subcategorias(); track opt.id) {
+              <option [ngValue]="opt.id">{{ opt.etiqueta }}</option>
+            }
+          </select>
+          @if (errorDe('subcategoria_id')) {
+            <p class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('subcategoria_id') }}</p>
+          }
+        </div>
+
+        <!-- Proveedor -->
+        <div>
+          <label for="proveedor_id" class="block text-sm font-medium text-gray-700 mb-1">
+            Proveedor
+          </label>
+          <select id="proveedor_id" formControlName="proveedor_id" class="input-field">
+            <option [ngValue]="null">Sin proveedor asignado</option>
+            @for (p of proveedores(); track p.id) {
+              <option [ngValue]="p.id">{{ p.razon_social }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Unidad de medida -->
+        <div>
+          <label for="unidad_medida_id" class="block text-sm font-medium text-gray-700 mb-1">
+            Unidad de medida <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <select
+            id="unidad_medida_id"
+            formControlName="unidad_medida_id"
+            class="input-field"
+            [class.input-field-error]="errorDe('unidad_medida_id')"
+          >
+            <option [ngValue]="null" disabled>Selecciona una unidad de medida</option>
+            @for (u of unidadesMedida(); track u.id) {
+              <option [ngValue]="u.id">{{ u.nombre }} ({{ u.codigo }})</option>
+            }
+          </select>
+          @if (errorDe('unidad_medida_id')) {
+            <p class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('unidad_medida_id') }}</p>
+          }
+        </div>
+
+        <!-- Costo unitario -->
+        <div>
+          <label for="costo_unitario" class="block text-sm font-medium text-gray-700 mb-1">
+            Costo unitario de referencia (COP)
+          </label>
+          <input
+            id="costo_unitario"
+            type="number"
+            min="0"
+            step="1"
+            formControlName="costo_unitario"
+            placeholder="3200"
+            class="input-field"
+          />
+        </div>
+
+        <!-- Frecuencia de inventario -->
+        <div>
+          <label for="frecuencia_inventario" class="block text-sm font-medium text-gray-700 mb-1">
+            Frecuencia de inventario <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <select id="frecuencia_inventario" formControlName="frecuencia_inventario" class="input-field">
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
+
+        <!-- Stock de seguridad -->
+        <div>
+          <label for="stock_seguridad" class="block text-sm font-medium text-gray-700 mb-1">
+            Stock de seguridad <span class="text-red-500" aria-hidden="true">*</span>
+            <span class="sr-only">(requerido)</span>
+          </label>
+          <input
+            id="stock_seguridad"
+            type="number"
+            min="0"
+            step="0.0001"
+            formControlName="stock_seguridad"
+            placeholder="0"
+            class="input-field"
+            [class.input-field-error]="errorDe('stock_seguridad')"
+          />
+          @if (errorDe('stock_seguridad')) {
+            <p class="text-red-600 text-xs mt-1" role="alert">{{ errorDe('stock_seguridad') }}</p>
+          }
+        </div>
+
+        <!-- Tiempo de entrega -->
+        <div>
+          <label for="tiempo_entrega_dias" class="block text-sm font-medium text-gray-700 mb-1">
+            Tiempo de entrega del proveedor (días)
+          </label>
+          <input
+            id="tiempo_entrega_dias"
+            type="number"
+            min="0"
+            step="1"
+            formControlName="tiempo_entrega_dias"
+            placeholder="2"
+            class="input-field"
+          />
+        </div>
+
+        <p class="text-xs text-gray-500">* Campo obligatorio</p>
+
+        <!-- Acciones -->
+        <div class="flex gap-3 pt-2">
+          <button
+            type="submit"
+            [disabled]="guardando()"
+            class="btn-primary"
+          >
+            @if (guardando()) {
+              <span class="inline-flex items-center gap-2">
+                <span class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                Guardando...
+              </span>
+            } @else {
+              Guardar
+            }
+          </button>
+          <a routerLink="/items" class="btn-secondary">Cancelar</a>
+        </div>
+
+      </form>
+
+      @if (modoEdicion()) {
+        <app-danger-zone title="Zona de precaución">
+          @if (item()?.activo) {
+            <p class="text-xs text-red-600 mb-3">
+              Al inactivar este item, dejará de aparecer en nuevos conteos y no será seleccionable en
+              nuevas recetas ni nuevas líneas de pedido. El historial se conserva.
+            </p>
+            <button
+              type="button"
+              (click)="solicitarCambioEstado()"
+              class="px-4 py-2 text-sm rounded-md border border-red-400 text-red-700 font-medium hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              Inactivar item
+            </button>
+          } @else {
+            <p class="text-xs text-gray-600 mb-3">
+              Este item está inactivo. Al reactivarlo, vuelve a estar disponible para conteos, recetas
+              y pedidos sin pérdida de su historial previo.
+            </p>
+            <button
+              type="button"
+              (click)="solicitarCambioEstado()"
+              class="px-4 py-2 text-sm rounded-md border border-gray-400 text-gray-700 font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              Reactivar item
+            </button>
+          }
+        </app-danger-zone>
+      }
+    </app-form-card>
+  }
+</div>
+
+<!-- Modal confirmar cambio de estado -->
+@if (mostrarModalCambioEstado()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-cambio-estado-titulo">
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-cambio-estado-titulo" class="text-lg font-semibold text-gray-900 mb-2">
+        {{ item()?.activo ? '¿Inactivar este item?' : '¿Reactivar este item?' }}
+      </h2>
+      <p class="text-sm text-gray-600 mb-4">
+        {{ item()?.activo ? 'Dejará de aparecer en nuevos inventarios y recetas.' : 'Volverá a estar disponible para conteos, recetas y pedidos.' }}
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" (click)="cancelarCambioEstado()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          [disabled]="cambiandoEstado()"
+          (click)="confirmarCambioEstado()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          {{ cambiandoEstado() ? 'Procesando...' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal confirmar cambio de unidad de medida -->
+@if (mostrarModalUnidad()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-cambio-unidad-titulo">
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-cambio-unidad-titulo" class="text-lg font-semibold text-gray-900 mb-2">
+        ¿Confirmar cambio de unidad de medida?
+      </h2>
+      <p class="text-sm text-gray-600 mb-4">
+        El historial de stock quedará en unidades inconsistentes.
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" (click)="cancelarCambioUnidad()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarCambioUnidad()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          Confirmar cambio
+        </button>
+      </div>
+    </div>
+  </div>
+}

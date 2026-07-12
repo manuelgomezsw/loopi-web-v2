@@ -1,0 +1,183 @@
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<div class="p-6">
+  <app-page-header
+    [title]="item()?.nombre ?? 'Detalle del item'"
+    [breadcrumb]="[{label: 'Items', route: '/items'}, {label: item()?.nombre ?? '...'}]"
+  >
+    <a slot="actions" [routerLink]="['/items', itemID(), 'editar']" class="btn-primary">
+      Editar
+    </a>
+  </app-page-header>
+
+  @if (errorMsg()) {
+    <div class="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm mb-4" role="alert">{{ errorMsg() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">Cargando item…</div>
+  }
+
+  @if (!cargando() && item(); as it) {
+    <app-form-card size="md">
+      <div class="flex items-center gap-3 mb-4">
+        <app-status-badge [activo]="it.activo" />
+        @if (it.esta_en_uso) {
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+            En uso
+          </span>
+        }
+      </div>
+
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <app-readonly-field label="Código" [value]="it.codigo" />
+        <app-readonly-field label="Nombre" [value]="it.nombre" />
+        <app-readonly-field label="Tipo" [value]="tipoLabels[it.tipo]" />
+        <app-readonly-field label="Subcategoría" [value]="it.subcategoria_nombre" />
+        <app-readonly-field label="Proveedor" [value]="it.proveedor_nombre ?? '—'" />
+        <app-readonly-field label="Unidad de medida" [value]="it.unidad_medida_simbolo" />
+        <app-readonly-field label="Costo global (COP)" [value]="it.costo_unitario !== null ? ('$' + it.costo_unitario) : '—'" />
+        <app-readonly-field label="Frecuencia de inventario" [value]="frecuenciaLabels[it.frecuencia_inventario]" />
+        <app-readonly-field label="Stock de seguridad" [value]="it.stock_seguridad" />
+        <app-readonly-field label="Tiempo de entrega (días)" [value]="it.tiempo_entrega_dias !== null ? (it.tiempo_entrega_dias + '') : '—'" />
+      </dl>
+
+      <div class="flex gap-3 pt-6">
+        @if (it.activo) {
+          <button
+            type="button"
+            (click)="solicitarCambioEstado()"
+            class="px-4 py-2 text-sm rounded-md border border-red-400 text-red-700 font-medium hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Inactivar item
+          </button>
+        } @else {
+          <button
+            type="button"
+            (click)="solicitarCambioEstado()"
+            class="px-4 py-2 text-sm rounded-md border border-gray-400 text-gray-700 font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Reactivar item
+          </button>
+        }
+      </div>
+    </app-form-card>
+
+    @if (esAdmin()) {
+      <app-form-card size="md">
+        <h2 class="text-lg font-semibold text-gray-800 mb-1">Costos por tienda</h2>
+        <p class="text-xs text-gray-500 mb-4">
+          Las tiendas sin costo propio usan el costo global (${{ costoGlobal() ?? '—' }}).
+        </p>
+
+        @if (cargandoCostos()) {
+          <div class="text-sm text-gray-500 py-4 text-center" aria-busy="true">Cargando historial de costos…</div>
+        } @else {
+          @if (costosPorTienda().length === 0) {
+            <p class="text-sm text-gray-500 mb-4">Ninguna tienda tiene un costo propio registrado todavía.</p>
+          } @else {
+            <table class="w-full text-sm mb-4">
+              <thead>
+                <tr class="text-left text-gray-500 border-b border-gray-200">
+                  <th class="py-2 pr-4">Tienda</th>
+                  <th class="py-2 pr-4">Costo vigente</th>
+                  <th class="py-2">Última actualización</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of costosPorTienda(); track c.tienda_id) {
+                  <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4">{{ c.tienda_nombre }}</td>
+                    <td class="py-2 pr-4 font-medium">${{ c.costo_vigente }}</td>
+                    <td class="py-2 text-gray-500">{{ c.historial[0]?.vigente_desde | date: 'medium' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+
+          <form [formGroup]="costoForm" (ngSubmit)="registrarCosto()" novalidate class="flex flex-wrap items-end gap-3">
+            <div>
+              <label for="tienda_id" class="block text-xs font-medium text-gray-700 mb-1">Tienda</label>
+              <select id="tienda_id" formControlName="tienda_id" class="input-field">
+                <option [ngValue]="null" disabled>Selecciona una tienda</option>
+                @for (t of tiendas(); track t.id) {
+                  <option [ngValue]="t.id">
+                    {{ t.nombre }}
+                    @if (costoVigenteDeTienda(t.id) !== null) {
+                      (vigente: ${{ costoVigenteDeTienda(t.id) }})
+                    } @else {
+                      (usa costo global: ${{ costoGlobal() ?? '—' }})
+                    }
+                  </option>
+                }
+              </select>
+            </div>
+            <div>
+              <label for="costo_unitario_tienda" class="block text-xs font-medium text-gray-700 mb-1">Costo (COP)</label>
+              <input
+                id="costo_unitario_tienda"
+                type="number"
+                min="1"
+                step="1"
+                formControlName="costo_unitario"
+                placeholder="3400"
+                class="input-field w-32"
+              />
+            </div>
+            <button type="submit" [disabled]="guardandoCosto()" class="btn-primary">
+              @if (guardandoCosto()) {
+                <span class="inline-flex items-center gap-2">
+                  <span class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  Guardando...
+                </span>
+              } @else {
+                Registrar costo
+              }
+            </button>
+          </form>
+        }
+      </app-form-card>
+    }
+  }
+</div>
+
+<!-- Modal confirmar cambio de estado -->
+@if (mostrarModalCambioEstado()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-cambio-estado-titulo">
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-cambio-estado-titulo" class="text-lg font-semibold text-gray-900 mb-2">
+        {{ item()?.activo ? '¿Inactivar este item?' : '¿Reactivar este item?' }}
+      </h2>
+      <p class="text-sm text-gray-600 mb-4">
+        {{ item()?.activo ? 'Dejará de aparecer en nuevos inventarios y recetas.' : 'Volverá a estar disponible para conteos, recetas y pedidos.' }}
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" (click)="cancelarCambioEstado()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          [disabled]="cambiandoEstado()"
+          (click)="confirmarCambioEstado()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          {{ cambiandoEstado() ? 'Procesando...' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

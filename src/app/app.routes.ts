@@ -143,6 +143,38 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'items',
+        canActivate: [roleGuard(['admin', 'lider_compras', 'lider_tienda', 'barista'])],
+        loadComponent: () =>
+          import('./items/items-lista/items-lista.component').then(
+            (m) => m.ItemsListaComponent,
+          ),
+      },
+      {
+        path: 'items/nuevo',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./items/item-form/item-form.component').then(
+            (m) => m.ItemFormComponent,
+          ),
+      },
+      {
+        path: 'items/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./items/item-form/item-form.component').then(
+            (m) => m.ItemFormComponent,
+          ),
+      },
+      {
+        path: 'items/:id',
+        canActivate: [roleGuard(['admin', 'lider_compras', 'lider_tienda', 'barista'])],
+        loadComponent: () =>
+          import('./items/item-detalle/item-detalle.component').then(
+            (m) => m.ItemDetalleComponent,
+          ),
+      },
+      {
         path: 'sin-permiso',
         loadComponent: () =>
           import('./shared/components/forbidden/forbidden.component').then(

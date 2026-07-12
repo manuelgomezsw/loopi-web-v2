@@ -53,9 +53,16 @@ describe('NavConfigService', () => {
     expect(ids).toContain('ventas');
     expect(ids).not.toContain('tiendas');
     expect(ids).not.toContain('empleados');
-    expect(ids).not.toContain('catalogo');
+    expect(ids).toContain('catalogo');
     expect(ids).not.toContain('menu');
     expect(ids).not.toContain('demanda');
+  });
+
+  it('lider_tienda solo ve el hijo "items" dentro de Catálogo (categorías/proveedores/unidades son admin-only)', () => {
+    setup({ rol: 'lider_tienda', tienda_id: 1 });
+    const catalogo = service.navItems().find((i) => i.id === 'catalogo');
+    const childIds = catalogo?.children?.map((c) => c.id) ?? [];
+    expect(childIds).toEqual(['items']);
   });
 
   it('barista recibe solo sus módulos autorizados', () => {

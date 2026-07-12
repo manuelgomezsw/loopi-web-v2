@@ -16,7 +16,8 @@ export type IconName =
   | 'chevron-right'
   | 'scale'
   | 'tag'
-  | 'truck';
+  | 'truck'
+  | 'cube';
 
 @Component({
   selector: 'app-icon',
@@ -79,6 +80,9 @@ export type IconName =
         }
         @case ('truck') {
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v11.177m0-11.177L16.5 7.573M2.25 5.25v9.75m14.25-9.75H4.5a1.125 1.125 0 00-1.125 1.125v8.625m14.25-9.75h.005" />
+        }
+        @case ('cube') {
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
         }
         @default {
           <circle cx="12" cy="12" r="4" fill="currentColor" />
