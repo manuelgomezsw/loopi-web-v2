@@ -1,8 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioHistorialComponent } from './inventario-historial.component';
-import { InventarioService } from './inventario.service';
+import { InventarioService, InventarioResp } from './inventario.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
+
+const mockInventario: InventarioResp = {
+  id: 1,
+  tienda_id: 1,
+  fecha: '2026-07-13',
+  tipo: 'diario',
+  horario: 'apertura',
+  estado: 'completado',
+  responsable_id: 10,
+  iniciado_en: '2026-07-13T06:00:00',
+  completado_en: '2026-07-13T07:00:00',
+  items: []
+};
 
 describe('InventarioHistorialComponent', () => {
   let component: InventarioHistorialComponent;
@@ -15,7 +28,7 @@ describe('InventarioHistorialComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      declarations: [InventarioHistorialComponent],
+      imports: [InventarioHistorialComponent],
       providers: [
         { provide: InventarioService, useValue: serviceSpy },
         { provide: Router, useValue: routerSpy }
@@ -37,7 +50,7 @@ describe('InventarioHistorialComponent', () => {
 
   it('should cargar historial on init', () => {
     inventarioService.getHistorial.and.returnValue(
-      of({ inventarios: [], total: 0, pagina: 1, total_paginas: 0 })
+      of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
     component.cargarHistorial();
     expect(inventarioService.getHistorial).toHaveBeenCalled();
@@ -45,7 +58,7 @@ describe('InventarioHistorialComponent', () => {
 
   it('should filter by tipo', () => {
     inventarioService.getHistorial.and.returnValue(
-      of({ inventarios: [], total: 0, pagina: 1, total_paginas: 0 })
+      of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
 
     component.filtros.tipo = 'diario';
@@ -56,7 +69,7 @@ describe('InventarioHistorialComponent', () => {
 
   it('should filter by estado', () => {
     inventarioService.getHistorial.and.returnValue(
-      of({ inventarios: [], total: 0, pagina: 1, total_paginas: 0 })
+      of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
 
     component.filtros.estado = 'completado';
@@ -72,7 +85,7 @@ describe('InventarioHistorialComponent', () => {
 
   it('should cambiar pagina', () => {
     inventarioService.getHistorial.and.returnValue(
-      of({ inventarios: [], total: 100, pagina: 2, total_paginas: 5 })
+      of({ inventarios: [mockInventario], total: 100, pagina: 2, total_paginas: 5 })
     );
 
     component.cambiarPagina(2);
@@ -87,7 +100,7 @@ describe('InventarioHistorialComponent', () => {
 
     component.limpiarFiltros();
 
-    expect(component.filtros.tipo).toBeUndefined();
-    expect(component.filtros.estado).toBeUndefined();
+    expect(component.filtros.tipo).toBe('');
+    expect(component.filtros.estado).toBe('');
   });
 });

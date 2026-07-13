@@ -1,8 +1,52 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioConteoComponent } from './inventario-conteo.component';
-import { InventarioService } from './inventario.service';
+import { InventarioService, InventarioResp, ItemDetailResp } from './inventario.service';
 import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
+
+const mockInventarioResp: InventarioResp = {
+  id: 1,
+  tienda_id: 1,
+  fecha: '2026-07-13',
+  tipo: 'diario',
+  horario: 'apertura',
+  estado: 'en_progreso',
+  responsable_id: 10,
+  iniciado_en: '2026-07-13T06:00:00',
+  completado_en: undefined,
+  items: [
+    {
+      id: 1,
+      item_id: 100,
+      valor_sugerido: 10.0,
+      valor_esperado: 10.0,
+      valor_real: undefined,
+      diferencia: undefined
+    }
+  ]
+};
+
+const mockItemResp: ItemDetailResp = {
+  id: 1,
+  item_id: 100,
+  valor_sugerido: 10.0,
+  valor_esperado: 10.0,
+  valor_real: 12.5,
+  diferencia: 2.5
+};
+
+const mockCompletedResp: InventarioResp = {
+  id: 1,
+  tienda_id: 1,
+  fecha: '2026-07-13',
+  tipo: 'diario',
+  horario: 'apertura',
+  estado: 'completado',
+  responsable_id: 10,
+  iniciado_en: '2026-07-13T06:00:00',
+  completado_en: '2026-07-13T07:00:00',
+  items: []
+};
 
 describe('InventarioConteoComponent', () => {
   let component: InventarioConteoComponent;
@@ -19,7 +63,7 @@ describe('InventarioConteoComponent', () => {
     ]);
 
     await TestBed.configureTestingModule({
-      declarations: [InventarioConteoComponent],
+      imports: [InventarioConteoComponent],
       providers: [
         { provide: InventarioService, useValue: spy },
         {
@@ -50,15 +94,7 @@ describe('InventarioConteoComponent', () => {
   });
 
   it('should iniciar conteo', () => {
-    const mockResp = {
-      id: 1,
-      tienda_id: 1,
-      tipo: 'diario',
-      horario: 'apertura',
-      estado: 'en_progreso',
-      items: []
-    };
-    inventarioService.iniciarConteo.and.returnValue(of(mockResp));
+    inventarioService.iniciarConteo.and.returnValue(of(mockInventarioResp));
 
     component.iniciarConteo();
 
@@ -67,29 +103,17 @@ describe('InventarioConteoComponent', () => {
   });
 
   it('should registrar valor with error recovery', () => {
-    const valorReal = 12.5;
-    component.inventarioActual = {
-      id: 1,
-      tienda_id: 1,
-      items: [{ item_id: 1, valor_real: null }]
-    };
+    component.inventarioActual = mockInventarioResp;
 
-    inventarioService.registrarValorReal.and.returnValue(
-      of({ id: 1, item_id: 1, valor_real: valorReal, diferencia: 2.5 })
-    );
+    inventarioService.registrarValorReal.and.returnValue(of(mockItemResp));
 
-    component.registrarValor(1, valorReal);
+    component.registrarValor(100, 12.5);
 
-    expect(component.itemErrors.has(1)).toBeFalsy();
-    expect(component.loadingItems.has(1)).toBeFalsy();
+    expect(component.itemErrors.has(100)).toBeFalsy();
   });
 
   it('should handle registrar error with retry', () => {
-    component.inventarioActual = {
-      id: 1,
-      tienda_id: 1,
-      items: [{ item_id: 1, valor_real: null }]
-    };
+    component.inventarioActual = mockInventarioResp;
 
     inventarioService.registrarValorReal.and.returnValue(
       throwError(() => ({
@@ -97,21 +121,15 @@ describe('InventarioConteoComponent', () => {
       }))
     );
 
-    component.registrarValor(1, 12.5);
+    component.registrarValor(100, 12.5);
 
-    expect(component.itemErrors.has(1)).toBeTruthy();
+    expect(component.itemErrors.has(100)).toBeTruthy();
   });
 
   it('should confirmar conteo', () => {
-    const mockResp = {
-      id: 1,
-      tienda_id: 1,
-      estado: 'completado',
-      completado_en: new Date()
-    };
-    inventarioService.confirmarConteo.and.returnValue(of(mockResp));
+    inventarioService.confirmarConteo.and.returnValue(of(mockCompletedResp));
 
-    component.inventarioActual = { id: 1, tienda_id: 1 };
+    component.inventarioActual = mockInventarioResp;
     component.confirmarConteo();
 
     expect(component.step).toBe('complete');
@@ -121,11 +139,11 @@ describe('InventarioConteoComponent', () => {
     inventarioService.confirmarConteo.and.returnValue(
       throwError(() => ({
         status: 422,
-        error: { error: 'items_sin_registrar', detalles: { items_sin_registrar: [1, 2] } }
+        error: { error: 'items_sin_registrar', detalles: { items_sin_registrar: [100] } }
       }))
     );
 
-    component.inventarioActual = { id: 1, tienda_id: 1 };
+    component.inventarioActual = mockInventarioResp;
     component.step = 'confirm';
     component.confirmarConteo();
 

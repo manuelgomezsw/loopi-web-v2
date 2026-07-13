@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioDetalleComponent } from './inventario-detalle.component';
-import { InventarioService, InventarioResp } from './inventario.service';
+import { InventarioService, InventarioResp, ItemDetailResp } from './inventario.service';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -13,7 +13,26 @@ const mockInventario: InventarioResp = {
   estado: 'en_progreso',
   responsable_id: 1,
   iniciado_en: '2026-07-12T10:00:00Z',
-  items: []
+  completado_en: undefined,
+  items: [
+    {
+      id: 1,
+      item_id: 1,
+      valor_sugerido: 10,
+      valor_esperado: 10,
+      valor_real: undefined,
+      diferencia: undefined
+    }
+  ]
+};
+
+const mockItemResp: ItemDetailResp = {
+  id: 1,
+  item_id: 1,
+  valor_sugerido: 10,
+  valor_esperado: 10,
+  valor_real: 15.5,
+  diferencia: 5.5
 };
 
 describe('InventarioDetalleComponent', () => {
@@ -29,7 +48,7 @@ describe('InventarioDetalleComponent', () => {
     ]);
 
     await TestBed.configureTestingModule({
-      declarations: [InventarioDetalleComponent],
+      imports: [InventarioDetalleComponent],
       providers: [
         { provide: InventarioService, useValue: serviceSpy },
         {
@@ -75,12 +94,13 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should guardar cambios for edited items', () => {
-    component.inventario = { ...mockInventario, items: [{ id: 1, item_id: 1, valor_sugerido: 10, valor_esperado: 10, valor_real: 15.5 }] };
+    component.inventario = {
+      ...mockInventario,
+      items: [{ ...mockItemResp, valor_real: 15.5, diferencia: 5.5 }]
+    };
     component.itemsEditados.add(1);
 
-    inventarioService.registrarValorReal.and.returnValue(
-      of({ id: 1, item_id: 1, valor_real: 15.5, diferencia: 5.5 })
-    );
+    inventarioService.registrarValorReal.and.returnValue(of(mockItemResp));
 
     component.guardarCambios();
 
@@ -119,7 +139,7 @@ describe('InventarioDetalleComponent', () => {
 
   it('should puedeEditarCompletado only for admin + completado', () => {
     component.userRole = 'admin';
-    component.inventario = { id: 1, estado: 'completado' };
+    component.inventario = { ...mockInventario, estado: 'completado' };
 
     expect(component.puedeEditarCompletado()).toBeTruthy();
 
@@ -129,11 +149,11 @@ describe('InventarioDetalleComponent', () => {
 
   it('should puedeEliminar only for admin + en_progreso', () => {
     component.userRole = 'admin';
-    component.inventario = { id: 1, estado: 'en_progreso' };
+    component.inventario = { ...mockInventario, estado: 'en_progreso' };
 
     expect(component.puedeEliminar()).toBeTruthy();
 
-    component.inventario.estado = 'completado';
+    component.inventario = { ...mockInventario, estado: 'completado' };
     expect(component.puedeEliminar()).toBeFalsy();
   });
 });
