@@ -60,11 +60,60 @@
         </div>
       </div>
 
-      <!-- Items Table -->
+      <!-- Items Display - Responsive (Cards on mobile, Table on desktop) -->
       <div class="mb-8">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Items Contados</h3>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile View: Cards -->
+        <div class="md:hidden space-y-3">
+          @for (item of inventario.items; track item.item_id) {
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <p class="font-semibold text-gray-900">Item {{ item.item_id }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Sugerido: {{ item.valor_sugerido }}</p>
+                </div>
+                <span aria-live="polite"
+                  [class.text-green-700]="(item.diferencia ?? 0) >= 0"
+                  [class.bg-green-50]="(item.diferencia ?? 0) >= 0"
+                  [class.text-red-700]="(item.diferencia ?? 0) < 0"
+                  [class.bg-red-50]="(item.diferencia ?? 0) < 0"
+                  class="font-semibold text-sm px-2 py-1 rounded">
+                  {{ (item.diferencia ?? 0) >= 0 ? '✓' : '✗' }}
+                  {{ item.diferencia !== null && item.diferencia !== undefined ? (item.diferencia > 0 ? '+' : '') + item.diferencia : '-' }}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p class="text-gray-500">Esperado</p>
+                  <p class="font-medium text-gray-900">{{ item.valor_esperado }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-500">Real</p>
+                  @if (!editando) {
+                    <p class="font-medium text-gray-900">{{ item.valor_real ?? '-' }}</p>
+                  } @else if (puedeEditarCompletado()) {
+                    <label [for]="'valor-item-' + item.item_id" class="sr-only">Valor real para item {{ item.item_id }}</label>
+                    <input
+                      [id]="'valor-item-' + item.item_id"
+                      type="number"
+                      [(ngModel)]="item.valor_real"
+                      (change)="marcarItemEditado(item.item_id)"
+                      [disabled]="guardando"
+                      class="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  }
+                </div>
+              </div>
+              @if (itemErrors.has(item.item_id)) {
+                <p role="alert" class="text-red-700 font-medium text-xs mt-2">{{ itemErrors.get(item.item_id) }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Desktop View: Table -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-gray-200">
