@@ -1,16 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
 import { AuthService } from '../auth/auth.service';
+import { FormCardComponent } from '../shared/components/form-card/form-card.component';
+import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
+import { DangerZoneComponent } from '../shared/components/danger-zone/danger-zone.component';
+import { StatusBadgeComponent } from '../shared/components/status-badge/status-badge.component';
+import { IconComponent } from '../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-inventario-detalle',
   templateUrl: './inventario-detalle.component.html',
   styleUrls: [],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    FormCardComponent,
+    PageHeaderComponent,
+    DangerZoneComponent,
+    StatusBadgeComponent,
+    IconComponent
+  ]
 })
 export class InventarioDetalleComponent implements OnInit {
   inventario: InventarioResp | null = null;
@@ -25,6 +38,7 @@ export class InventarioDetalleComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    readonly router: Router,
     private inventarioService: InventarioService,
     private authService: AuthService
   ) { }

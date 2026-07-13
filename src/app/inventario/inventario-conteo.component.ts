@@ -3,13 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
+import { FormCardComponent } from '../shared/components/form-card/form-card.component';
+import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
+import { IconComponent } from '../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-inventario-conteo',
   templateUrl: './inventario-conteo.component.html',
   styleUrls: [],
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    FormCardComponent,
+    PageHeaderComponent,
+    IconComponent
+  ]
 })
 export class InventarioConteoComponent implements OnInit {
   sugerencia: SugerenciaResp | null = null;

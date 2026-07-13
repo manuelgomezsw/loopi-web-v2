@@ -1,118 +1,258 @@
-<div class="inventario-container">
-  <!-- Step 1: Seleccionar tipo y horario -->
-  <div *ngIf="step === 'select'" class="step-section">
-    <h2>Iniciar Conteo de Inventario</h2>
+<!-- Step 1: Seleccionar tipo y horario -->
+@if (step === 'select') {
+  <div class="max-w-lg mx-auto">
+    <app-page-header title="Iniciar Conteo de Inventario" />
 
-    <div class="form-group">
-      <label for="tipo">Tipo de Conteo</label>
-      <select [(ngModel)]="formData.tipo" id="tipo">
-        <option value="diario">Diario</option>
-        <option value="semanal">Semanal</option>
-        <option value="mensual">Mensual</option>
-        <option value="inicial">Inicial</option>
-      </select>
-    </div>
+    <app-form-card>
+      <form (ngSubmit)="iniciarConteo()" class="space-y-6">
+        <!-- Tipo de Conteo -->
+        <div>
+          <label for="tipo" class="block text-sm font-medium text-gray-700 mb-2">
+            Tipo de Conteo *
+          </label>
+          <select
+            id="tipo"
+            [(ngModel)]="formData.tipo"
+            name="tipo"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Selecciona un tipo</option>
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+            <option value="inicial">Inicial</option>
+          </select>
+        </div>
 
-    <div class="form-group" *ngIf="formData.tipo === 'diario'">
-      <label for="horario">Horario</label>
-      <select [(ngModel)]="formData.horario" id="horario">
-        <option value="apertura">Apertura (06:00-11:00)</option>
-        <option value="mediodia">Mediodía (11:00-17:00)</option>
-        <option value="cierre">Cierre (17:00-23:59)</option>
-      </select>
-    </div>
+        <!-- Horario (solo si es diario) -->
+        @if (formData.tipo === 'diario') {
+          <div>
+            <label for="horario" class="block text-sm font-medium text-gray-700 mb-2">
+              Horario *
+            </label>
+            <select
+              id="horario"
+              [(ngModel)]="formData.horario"
+              name="horario"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Selecciona un horario</option>
+              <option value="apertura">Apertura (06:00-11:00)</option>
+              <option value="mediodia">Mediodía (11:00-17:00)</option>
+              <option value="cierre">Cierre (17:00-23:59)</option>
+            </select>
+          </div>
+        }
 
-    <div *ngIf="sugerencia" class="suggestion">
-      <p>Sugerencia: {{ sugerencia.tipo }} {{ sugerencia.horario }}</p>
-    </div>
+        <!-- Sugerencia -->
+        @if (sugerencia) {
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-sm text-blue-900">
+              <strong>Sugerencia del sistema:</strong> {{ sugerencia.tipo | titlecase }}
+              @if (sugerencia.horario) {
+                / {{ sugerencia.horario | titlecase }}
+              }
+            </p>
+          </div>
+        }
 
-    <button (click)="iniciarConteo()" class="btn-primary">
-      Iniciar Conteo
-    </button>
+        <!-- Botones -->
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            [disabled]="!formData.tipo"
+            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+          >
+            Iniciar Conteo
+          </button>
+        </div>
+      </form>
+    </app-form-card>
   </div>
+}
 
-  <!-- Step 2: Registrar valores -->
-  <div *ngIf="step === 'register'" class="step-section">
-    <h2>Registrar Valores ({{ inventarioActual?.items?.length ?? 0 }} items)</h2>
+<!-- Step 2: Registrar valores -->
+@if (step === 'register') {
+  <div class="max-w-4xl mx-auto">
+    <app-page-header title="Registrar Valores" />
 
-    <div class="items-list">
-      <div *ngFor="let item of inventarioActual?.items" class="item-card">
-        <div class="item-header">
-          <span class="item-id">Item {{ item.item_id }}</span>
-          <span class="valor-sugerido">Sugerido: {{ item.valor_sugerido }}</span>
+    <app-form-card>
+      <div class="mb-6">
+        <p class="text-gray-600">
+          Total de items a contar: <strong>{{ inventarioActual?.items?.length ?? 0 }}</strong>
+        </p>
+      </div>
+
+      <!-- Lista de items -->
+      <div class="space-y-4 mb-6">
+        @for (item of inventarioActual?.items; track item.item_id) {
+          <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <h4 class="font-medium text-gray-900">Item {{ item.item_id }}</h4>
+                <p class="text-sm text-gray-500">Sugerido: {{ item.valor_sugerido }}</p>
+              </div>
+              @if (item.diferencia !== null && item.diferencia !== undefined) {
+                <span
+                  [class.text-green-600]="item.diferencia >= 0"
+                  [class.text-red-600]="item.diferencia < 0"
+                  class="font-medium text-sm"
+                >
+                  {{ item.diferencia > 0 ? '+' : '' }}{{ item.diferencia }}
+                </span>
+              }
+            </div>
+
+            <!-- Input de valor real -->
+            <div class="mb-3">
+              <label [for]="'valor-' + item.item_id" class="block text-sm font-medium text-gray-700 mb-1">
+                Valor Real
+              </label>
+              <div class="flex gap-2">
+                <input
+                  [id]="'valor-' + item.item_id"
+                  type="number"
+                  [(ngModel)]="item.valor_real"
+                  (blur)="registrarValor(item.item_id, item.valor_real || 0)"
+                  [disabled]="loadingItems.has(item.item_id)"
+                  placeholder="Ingresa el valor"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+                />
+                @if (loadingItems.has(item.item_id)) {
+                  <div class="flex items-center px-3 py-2 text-sm text-gray-500">
+                    <div class="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2"></div>
+                    Guardando...
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Error si hay -->
+            @if (itemErrors.has(item.item_id)) {
+              <div class="p-3 bg-red-50 border border-red-200 rounded text-sm">
+                <p class="text-red-700 mb-2">{{ itemErrors.get(item.item_id) }}</p>
+                <button
+                  (click)="reintentar(item.item_id)"
+                  type="button"
+                  class="text-red-600 hover:text-red-700 font-medium text-sm"
+                >
+                  Reintentar
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex gap-3 border-t border-gray-200 pt-6">
+        <button
+          (click)="volver()"
+          type="button"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+        >
+          Volver
+        </button>
+        <button
+          (click)="step = 'confirm'"
+          [disabled]="!todosRegistrados()"
+          type="button"
+          class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          Continuar a Confirmación
+        </button>
+      </div>
+    </app-form-card>
+  </div>
+}
+
+<!-- Step 3: Confirmación -->
+@if (step === 'confirm') {
+  <div class="max-w-lg mx-auto">
+    <app-page-header title="Confirmar Conteo" />
+
+    <app-form-card>
+      @if (confirmationError) {
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-700 font-medium mb-2">{{ confirmationError }}</p>
+          @if (itemsSinRegistrar.length > 0) {
+            <p class="text-red-600 text-sm">
+              Items pendientes: {{ itemsSinRegistrar.join(', ') }}
+            </p>
+          }
+        </div>
+      }
+
+      <!-- Resumen -->
+      <div class="mb-6 space-y-3 text-sm">
+        <div>
+          <p class="text-gray-500">Total de items</p>
+          <p class="font-semibold text-gray-900">{{ inventarioActual?.items?.length ?? 0 }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500">Tipo de conteo</p>
+          <p class="font-semibold text-gray-900">{{ inventarioActual?.tipo | titlecase }}</p>
+        </div>
+        @if (inventarioActual?.horario) {
+          <div>
+            <p class="text-gray-500">Horario</p>
+            <p class="font-semibold text-gray-900">{{ inventarioActual?.horario | titlecase }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-3 border-t border-gray-200 pt-6">
+        <button
+          (click)="volver()"
+          type="button"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+        >
+          Volver
+        </button>
+        <button
+          (click)="confirmarConteo()"
+          [disabled]="isConfirming"
+          type="button"
+          class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          {{ isConfirming ? 'Confirmando...' : 'Confirmar Conteo' }}
+        </button>
+      </div>
+    </app-form-card>
+  </div>
+}
+
+<!-- Step 4: Completado -->
+@if (step === 'complete') {
+  <div class="max-w-lg mx-auto">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-8">
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+          <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
         </div>
 
-        <div class="item-input">
-          <input
-            type="number"
-            [(ngModel)]="item.valor_real"
-            (blur)="registrarValor(item.item_id, item.valor_real || 0)"
-            [disabled]="loadingItems.has(item.item_id)"
-            placeholder="Ingresa valor real"
-            class="input-valor"
-          />
-          <span *ngIf="loadingItems.has(item.item_id)" class="loading-spinner">Guardando...</span>
-        </div>
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Conteo Completado</h2>
+        <p class="text-gray-600 mb-4">El conteo ha sido registrado exitosamente en el sistema.</p>
 
-        <div class="item-diferencia" *ngIf="item.diferencia !== null && item.diferencia !== undefined">
-          <span [class.positive]="item.diferencia >= 0" [class.negative]="item.diferencia < 0">
-            Diferencia: {{ item.diferencia > 0 ? '+' : '' }}{{ item.diferencia }}
-          </span>
-        </div>
+        @if (inventarioActual?.completado_en) {
+          <p class="text-sm text-gray-500 mb-6">
+            Completado: <strong>{{ inventarioActual?.completado_en }}</strong>
+          </p>
+        }
 
-        <div *ngIf="itemErrors.has(item.item_id)" class="item-error">
-          <p class="error-message">{{ itemErrors.get(item.item_id) }}</p>
-          <button (click)="reintentar(item.item_id)" class="btn-retry">Reintentar</button>
-        </div>
+        <button
+          (click)="step = 'select'; inventarioActual = null"
+          type="button"
+          class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          Nuevo Conteo
+        </button>
       </div>
     </div>
-
-    <div class="buttons">
-      <button (click)="volver()" class="btn-secondary">Volver</button>
-      <button
-        (click)="step = 'confirm'"
-        [disabled]="!todosRegistrados()"
-        class="btn-primary"
-      >
-        Continuar a Confirmación
-      </button>
-    </div>
   </div>
-
-  <!-- Step 3: Confirmación -->
-  <div *ngIf="step === 'confirm'" class="step-section">
-    <h2>Confirmar Conteo</h2>
-
-    <div *ngIf="confirmationError" class="error-banner">
-      <p>{{ confirmationError }}</p>
-      <div *ngIf="itemsSinRegistrar.length > 0" class="missing-items">
-        <p>Items pendientes: {{ itemsSinRegistrar.join(', ') }}</p>
-      </div>
-    </div>
-
-    <div class="summary">
-      <p>Se registraron {{ inventarioActual?.items?.length ?? 0 }} items</p>
-      <p>Tipo: {{ inventarioActual?.tipo }}</p>
-      <p *ngIf="inventarioActual?.horario">Horario: {{ inventarioActual?.horario }}</p>
-    </div>
-
-    <div class="buttons">
-      <button (click)="volver()" class="btn-secondary">Volver a Registrar</button>
-      <button (click)="confirmarConteo()" [disabled]="isConfirming" class="btn-primary">
-        {{ isConfirming ? 'Confirmando...' : 'Confirmar' }}
-      </button>
-    </div>
-  </div>
-
-  <!-- Step 4: Completado -->
-  <div *ngIf="step === 'complete'" class="step-section complete">
-    <h2>✓ Conteo Completado</h2>
-    <p>El conteo ha sido registrado exitosamente</p>
-    <p class="completed-time" *ngIf="inventarioActual?.completado_en">
-      Completado: {{ inventarioActual?.completado_en }}
-    </p>
-    <button (click)="step = 'select'; inventarioActual = null;" class="btn-primary">
-      Nuevo Conteo
-    </button>
-  </div>
-</div>
+}
