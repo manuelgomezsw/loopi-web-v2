@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-inventario-historial',
@@ -17,6 +18,7 @@ export class InventarioHistorialComponent implements OnInit {
   paginaActual = 1;
   totalPaginas = 1;
   cargando = false;
+  userRole: string | null = null;
 
   filtros = {
     tipo: '',
@@ -27,10 +29,12 @@ export class InventarioHistorialComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
+    this.userRole = this.authService.sesion()?.rol || null;
     this.cargarHistorial();
   }
 
@@ -85,5 +89,23 @@ export class InventarioHistorialComponent implements OnInit {
 
   estadoBadgeClass(estado: string): string {
     return estado === 'completado' ? 'badge-success' : 'badge-warning';
+  }
+
+  puedeEliminar(inventario: InventarioResp): boolean {
+    return this.userRole === 'admin' && inventario.estado === 'en_progreso';
+  }
+
+  eliminarConteo(inventario: InventarioResp): void {
+    if (!this.puedeEliminar(inventario)) return;
+
+    if (confirm('¿Estás seguro de que deseas eliminar este conteo? Esta acción no se puede deshacer.')) {
+      this.inventarioService.eliminarConteo(inventario.id).subscribe({
+        next: () => {
+          this.inventarios = this.inventarios.filter(inv => inv.id !== inventario.id);
+          this.total--;
+        },
+        error: (err) => console.error('Error al eliminar conteo:', err)
+      });
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioDetalleComponent } from './inventario-detalle.component';
 import { InventarioService, InventarioResp, ItemDetailResp } from './inventario.service';
+import { AuthService } from '../auth/auth.service';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -47,10 +48,15 @@ describe('InventarioDetalleComponent', () => {
       'eliminarConteo'
     ]);
 
+    const authServiceSpy = jasmine.createSpyObj('AuthService', [], {
+      sesion: () => ({ rol: 'admin', tienda_id: 1 })
+    });
+
     await TestBed.configureTestingModule({
       imports: [InventarioDetalleComponent],
       providers: [
         { provide: InventarioService, useValue: serviceSpy },
+        { provide: AuthService, useValue: authServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: { params: of({ id: '1' }) }
@@ -122,7 +128,8 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should eliminar conteo with confirmation', () => {
-    component.inventario = { ...mockInventario, estado: 'en_progreso' };
+    component.userRole = 'admin';
+    component.inventario = { ...mockInventario, id: 1, estado: 'en_progreso' };
 
     // MUST mock BEFORE calling method
     inventarioService.eliminarConteo.and.returnValue(of(void 0));

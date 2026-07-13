@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioHistorialComponent } from './inventario-historial.component';
 import { InventarioService, InventarioResp } from './inventario.service';
+import { AuthService } from '../auth/auth.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -24,14 +25,18 @@ describe('InventarioHistorialComponent', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    const serviceSpy = jasmine.createSpyObj('InventarioService', ['getHistorial']);
+    const serviceSpy = jasmine.createSpyObj('InventarioService', ['getHistorial', 'eliminarConteo']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const authServiceSpy = jasmine.createSpyObj('AuthService', [], {
+      sesion: () => ({ rol: 'admin', tienda_id: 1 })
+    });
 
     await TestBed.configureTestingModule({
       imports: [InventarioHistorialComponent],
       providers: [
         { provide: InventarioService, useValue: serviceSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: Router, useValue: routerSpy },
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 
@@ -116,5 +121,30 @@ describe('InventarioHistorialComponent', () => {
 
     expect(component.filtros.tipo).toBe('');
     expect(component.filtros.estado).toBe('');
+  });
+
+  it('should eliminar conteo with confirmation', () => {
+    component.userRole = 'admin';
+    component.inventarios = [{ ...mockInventario, id: 1, estado: 'en_progreso' }];
+    component.total = 1;
+
+    // MUST mock BEFORE calling any method
+    inventarioService.eliminarConteo.and.returnValue(of(void 0));
+    spyOn(window, 'confirm').and.returnValue(true);
+
+    component.eliminarConteo(component.inventarios[0]);
+
+    expect(inventarioService.eliminarConteo).toHaveBeenCalledWith(1);
+    expect(component.inventarios.length).toBe(0);
+  });
+
+  it('should not eliminar if not admin', () => {
+    component.userRole = 'barista';
+    component.inventarios = [{ ...mockInventario, estado: 'en_progreso' }];
+
+    const invToDelete = component.inventarios[0];
+    const result = component.puedeEliminar(invToDelete);
+
+    expect(result).toBeFalsy();
   });
 });

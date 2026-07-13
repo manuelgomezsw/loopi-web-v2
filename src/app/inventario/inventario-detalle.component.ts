@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-inventario-detalle',
@@ -20,14 +21,16 @@ export class InventarioDetalleComponent implements OnInit {
   itemsEditados = new Set<number>();
   itemErrors = new Map<number, string>();
   errorEliminar = '';
-  userRole = 'admin';
+  userRole: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
-    private inventarioService: InventarioService
+    private inventarioService: InventarioService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
+    this.userRole = this.authService.sesion()?.rol || null;
     this.route.params.subscribe(params => {
       const id = params['id'];
       if (id) {
