@@ -170,6 +170,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'inventario',
+        canActivate: [roleGuard(['admin', 'lider_tienda', 'barista'])],
+        loadChildren: () =>
+          import('./inventario/inventario.routes').then(
+            (m) => m.InventarioRoutes,
+          ),
+      },
+      {
         path: 'sin-permiso',
         loadComponent: () =>
           import('./shared/components/forbidden/forbidden.component').then(
