@@ -70,7 +70,7 @@ describe('InventarioHistorialComponent', () => {
       of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
 
-    component.filtros.tipo = 'diario';
+    component.actualizarFiltro('tipo', 'diario');
     component.aplicarFiltros();
 
     expect(inventarioService.getHistorial).toHaveBeenCalled();
@@ -82,7 +82,7 @@ describe('InventarioHistorialComponent', () => {
       of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
 
-    component.filtros.estado = 'completado';
+    component.actualizarFiltro('estado', 'completado');
     component.aplicarFiltros();
 
     expect(inventarioService.getHistorial).toHaveBeenCalled();
@@ -95,7 +95,7 @@ describe('InventarioHistorialComponent', () => {
 
   it('should cambiar pagina', () => {
     // MUST initialize totalPaginas BEFORE (cambiarPagina checks pagina <= totalPaginas)
-    component.totalPaginas = 5;
+    component.totalPaginas.set(5);
 
     // MUST mock BEFORE calling any method
     inventarioService.getHistorial.and.returnValue(
@@ -104,7 +104,7 @@ describe('InventarioHistorialComponent', () => {
 
     component.cambiarPagina(2);
 
-    expect(component.paginaActual).toBe(2);
+    expect(component.paginaActual()).toBe(2);
     expect(inventarioService.getHistorial).toHaveBeenCalled();
   });
 
@@ -114,36 +114,35 @@ describe('InventarioHistorialComponent', () => {
       of({ inventarios: [], total: 0, pagina: 1, total_paginas: 0 })
     );
 
-    component.filtros.tipo = 'diario';
-    component.filtros.estado = 'completado';
-
+    component.filtros.set({ tipo: 'diario', estado: 'completado', desde: '', hasta: '' });
     component.limpiarFiltros();
 
-    expect(component.filtros.tipo).toBe('');
-    expect(component.filtros.estado).toBe('');
+    expect(component.filtros().tipo).toBe('');
+    expect(component.filtros().estado).toBe('');
   });
 
   it('should eliminar conteo with confirmation', () => {
-    component.userRole = 'admin';
-    component.inventarios = [{ ...mockInventario, id: 1, estado: 'en_progreso' }];
-    component.total = 1;
+    component.userRole.set('admin');
+    const testInv = { ...mockInventario, id: 1, estado: 'en_progreso' as const };
+    component.inventarios.set([testInv]);
+    component.total.set(1);
 
     // MUST mock BEFORE calling any method
     inventarioService.eliminarConteo.and.returnValue(of(void 0));
     spyOn(window, 'confirm').and.returnValue(true);
 
-    component.eliminarConteo(component.inventarios[0]);
+    component.eliminarConteo(testInv);
 
     expect(inventarioService.eliminarConteo).toHaveBeenCalledWith(1);
-    expect(component.inventarios.length).toBe(0);
+    expect(component.inventarios().length).toBe(0);
   });
 
   it('should not eliminar if not admin', () => {
-    component.userRole = 'barista';
-    component.inventarios = [{ ...mockInventario, estado: 'en_progreso' }];
+    component.userRole.set('barista');
+    const testInv = { ...mockInventario, estado: 'en_progreso' as const };
+    component.inventarios.set([testInv]);
 
-    const invToDelete = component.inventarios[0];
-    const result = component.puedeEliminar(invToDelete);
+    const result = component.puedeEliminar(testInv);
 
     expect(result).toBeFalsy();
   });

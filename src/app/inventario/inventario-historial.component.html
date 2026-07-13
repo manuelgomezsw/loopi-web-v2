@@ -1,12 +1,30 @@
-<div class="historial-container">
-  <h2>Historial de Conteos</h2>
+<app-list-card>
+  <!-- Encabezado con título y acción -->
+  <app-page-header title="Historial de Inventarios">
+    <a
+      slot="actions"
+      routerLink="/inventario/conteo"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+    >
+      <app-icon name="plus" />
+      Nuevo Conteo
+    </a>
+  </app-page-header>
 
-  <!-- Filtros -->
-  <div class="filter-section">
-    <div class="filter-row">
-      <div class="filter-group">
-        <label for="tipo">Tipo</label>
-        <select [(ngModel)]="filtros.tipo" id="tipo">
+  <!-- Barra de filtros -->
+  <div class="px-6 py-4 border-b border-gray-100">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- Filtro Tipo -->
+      <div>
+        <label for="filtro-tipo" class="block text-sm font-medium text-gray-700 mb-1">
+          Tipo
+        </label>
+        <select
+          id="filtro-tipo"
+          [(ngModel)]="filtros().tipo"
+          (change)="actualizarFiltro('tipo', $any($event.target).value)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
           <option value="">Todos</option>
           <option value="diario">Diario</option>
           <option value="semanal">Semanal</option>
@@ -15,79 +33,167 @@
         </select>
       </div>
 
-      <div class="filter-group">
-        <label for="estado">Estado</label>
-        <select [(ngModel)]="filtros.estado" id="estado">
+      <!-- Filtro Estado -->
+      <div>
+        <label for="filtro-estado" class="block text-sm font-medium text-gray-700 mb-1">
+          Estado
+        </label>
+        <select
+          id="filtro-estado"
+          [(ngModel)]="filtros().estado"
+          (change)="actualizarFiltro('estado', $any($event.target).value)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
           <option value="">Todos</option>
-          <option value="en_progreso">En Progreso</option>
+          <option value="en_progreso">En progreso</option>
           <option value="completado">Completado</option>
         </select>
       </div>
 
-      <div class="filter-group">
-        <label for="desde">Desde</label>
-        <input type="date" [(ngModel)]="filtros.desde" id="desde" />
+      <!-- Filtro Desde -->
+      <div>
+        <label for="filtro-desde" class="block text-sm font-medium text-gray-700 mb-1">
+          Desde
+        </label>
+        <input
+          id="filtro-desde"
+          type="date"
+          [(ngModel)]="filtros().desde"
+          (change)="actualizarFiltro('desde', $any($event.target).value)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </div>
 
-      <div class="filter-group">
-        <label for="hasta">Hasta</label>
-        <input type="date" [(ngModel)]="filtros.hasta" id="hasta" />
-      </div>
-    </div>
-
-    <div class="filter-buttons">
-      <button (click)="aplicarFiltros()" class="btn-primary">Buscar</button>
-      <button (click)="limpiarFiltros()" class="btn-secondary">Limpiar</button>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div *ngIf="cargando" class="loading">
-    Cargando...
-  </div>
-
-  <!-- Lista de conteos -->
-  <div *ngIf="!cargando && inventarios.length > 0" class="inventarios-list">
-    <div *ngFor="let inv of inventarios" class="inventario-card" (click)="verDetalle(inv.id)">
-      <div class="card-header">
-        <span class="fecha">{{ inv.fecha | date: 'dd/MM/yyyy' }}</span>
-        <span [class]="'badge ' + estadoBadgeClass(inv.estado)">{{ inv.estado }}</span>
-      </div>
-
-      <div class="card-body">
-        <p><strong>Tipo:</strong> {{ inv.tipo }}</p>
-        <p *ngIf="inv.horario"><strong>Horario:</strong> {{ inv.horario }}</p>
-        <p><strong>Items:</strong> {{ inv.items.length }}</p>
-        <p><strong>Iniciado:</strong> {{ inv.iniciado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
-        <p *ngIf="inv.completado_en"><strong>Completado:</strong> {{ inv.completado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
-      </div>
-
-      <div class="card-footer">
-        <span class="responsable">Por: Usuario {{ inv.responsable_id }}</span>
-        <span class="arrow">→</span>
+      <!-- Filtro Hasta -->
+      <div>
+        <label for="filtro-hasta" class="block text-sm font-medium text-gray-700 mb-1">
+          Hasta
+        </label>
+        <input
+          id="filtro-hasta"
+          type="date"
+          [(ngModel)]="filtros().hasta"
+          (change)="actualizarFiltro('hasta', $any($event.target).value)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </div>
     </div>
+
+    <!-- Botones de aplicar y limpiar filtros -->
+    <div class="flex gap-2 mt-3">
+      <button
+        (click)="aplicarFiltros()"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+      >
+        Aplicar
+      </button>
+      <button
+        (click)="limpiarFiltros()"
+        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+      >
+        Limpiar
+      </button>
+    </div>
   </div>
 
-  <!-- Sin resultados -->
-  <div *ngIf="!cargando && inventarios.length === 0" class="no-results">
-    <p>No hay conteos que coincidan con los filtros</p>
-  </div>
+  <!-- Mensaje de error -->
+  @if (errorMsg()) {
+    <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" role="alert">
+      {{ errorMsg() }}
+    </div>
+  }
 
-  <!-- Paginación -->
-  <div *ngIf="!cargando && totalPaginas > 1" class="pagination">
-    <button
-      *ngFor="let pagina of [].constructor(totalPaginas)"
-      [disabled]="paginaActual === (pagina + 1)"
-      (click)="cambiarPagina(pagina + 1)"
-      class="page-btn"
-    >
-      {{ pagina + 1 }}
-    </button>
-  </div>
+  <!-- Estado de carga -->
+  @if (cargando()) {
+    <div class="p-12 text-center text-gray-500">
+      <div class="inline-block">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+      <p class="mt-2">Cargando inventarios...</p>
+    </div>
+  }
 
-  <!-- Resumen -->
-  <div *ngIf="!cargando && inventarios.length > 0" class="summary">
-    <p>Mostrando {{ inventarios.length }} de {{ total }} conteos (página {{ paginaActual }}/{{ totalPaginas }})</p>
-  </div>
-</div>
+  <!-- Estado vacío -->
+  @if (!cargando() && inventarios().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay conteos registrados"
+      description="Comienza creando tu primer conteo de inventario."
+      actionLabel="Nuevo Conteo"
+      (action)="router.navigate(['/inventario/conteo'])"
+    />
+  }
+
+  <!-- Lista de inventarios -->
+  @if (!cargando() && inventarios().length > 0) {
+    <div class="divide-y divide-gray-100">
+      @for (inventario of inventarios(); track inventario.id) {
+        <div
+          (click)="verDetalle(inventario.id)"
+          class="p-6 hover:bg-blue-50 cursor-pointer transition-colors"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="verDetalle(inventario.id)"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900">
+                {{ inventario.tipo | titlecase }}
+                @if (inventario.horario) {
+                  <span class="text-gray-500 font-normal">/ {{ inventario.horario | titlecase }}</span>
+                }
+              </h3>
+              <p class="text-sm text-gray-600 mt-1">
+                {{ inventario.fecha }}
+              </p>
+            </div>
+            <app-status-badge [activo]="inventario.estado === 'completado'" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-sm">
+            <div>
+              <p class="text-gray-500">Items</p>
+              <p class="font-medium text-gray-900">{{ inventario.items.length }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500">Responsable</p>
+              <p class="font-medium text-gray-900">ID: {{ inventario.responsable_id }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500">Iniciado</p>
+              <p class="font-medium text-gray-900">{{ inventario.iniciado_en }}</p>
+            </div>
+            @if (inventario.completado_en) {
+              <div>
+                <p class="text-gray-500">Completado</p>
+                <p class="font-medium text-gray-900">{{ inventario.completado_en }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Acciones de admin -->
+          @if (puedeEliminar(inventario)) {
+            <div class="mt-4 flex gap-2">
+              <button
+                (click)="eliminarConteo(inventario); $event.stopPropagation()"
+                class="inline-flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+              >
+                <app-icon name="trash" />
+                Eliminar
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Paginación -->
+    <div class="px-6 py-4 border-t border-gray-100">
+      <app-pagination
+        [page]="paginaActual()"
+        [pageSize]="50"
+        [total]="total()"
+        (pageChange)="cambiarPagina($event)"
+      />
+    </div>
+  }
+</app-list-card>

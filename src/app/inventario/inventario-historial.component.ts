@@ -1,66 +1,87 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
 import { AuthService } from '../auth/auth.service';
+import { ListCardComponent } from '../shared/components/list-card/list-card.component';
+import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
+import { FilterBarComponent } from '../shared/components/filter-bar/filter-bar.component';
+import { PaginationComponent } from '../shared/components/pagination/pagination.component';
+import { StatusBadgeComponent } from '../shared/components/status-badge/status-badge.component';
+import { EmptyStateComponent } from '../shared/components/empty-state/empty-state.component';
+import { IconComponent } from '../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-inventario-historial',
   templateUrl: './inventario-historial.component.html',
   styleUrls: [],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ListCardComponent,
+    PageHeaderComponent,
+    FilterBarComponent,
+    PaginationComponent,
+    StatusBadgeComponent,
+    EmptyStateComponent,
+    IconComponent
+  ]
 })
 export class InventarioHistorialComponent implements OnInit {
-  inventarios: InventarioResp[] = [];
-  total = 0;
-  paginaActual = 1;
-  totalPaginas = 1;
-  cargando = false;
-  userRole: string | null = null;
+  readonly inventarios = signal<InventarioResp[]>([]);
+  readonly total = signal(0);
+  readonly paginaActual = signal(1);
+  readonly totalPaginas = signal(1);
+  readonly cargando = signal(false);
+  readonly errorMsg = signal('');
+  readonly userRole = signal<string | null>(null);
 
-  filtros = {
+  readonly filtros = signal({
     tipo: '',
     estado: '',
     desde: '',
     hasta: ''
-  };
+  });
 
   constructor(
     private inventarioService: InventarioService,
-    private router: Router,
+    readonly router: Router,
     private authService: AuthService
   ) { }
 
   ngOnInit(): void {
-    this.userRole = this.authService.sesion()?.rol || null;
+    this.userRole.set(this.authService.sesion()?.rol || null);
     this.cargarHistorial();
   }
 
   cargarHistorial(): void {
-    this.cargando = true;
+    this.cargando.set(true);
+    this.errorMsg.set('');
 
+    const filtrosActuales = this.filtros();
     const filtrosObj: Record<string, string | number> = {
-      pagina: this.paginaActual,
+      pagina: this.paginaActual(),
       por_pagina: 50
     };
 
-    if (this.filtros.tipo) filtrosObj['tipo'] = this.filtros.tipo;
-    if (this.filtros.estado) filtrosObj['estado'] = this.filtros.estado;
-    if (this.filtros.desde) filtrosObj['desde'] = this.filtros.desde;
-    if (this.filtros.hasta) filtrosObj['hasta'] = this.filtros.hasta;
+    if (filtrosActuales.tipo) filtrosObj['tipo'] = filtrosActuales.tipo;
+    if (filtrosActuales.estado) filtrosObj['estado'] = filtrosActuales.estado;
+    if (filtrosActuales.desde) filtrosObj['desde'] = filtrosActuales.desde;
+    if (filtrosActuales.hasta) filtrosObj['hasta'] = filtrosActuales.hasta;
 
     this.inventarioService.getHistorial(filtrosObj).subscribe({
       next: (data) => {
-        this.inventarios = data.inventarios;
-        this.total = data.total;
-        this.totalPaginas = data.total_paginas;
-        this.cargando = false;
+        this.inventarios.set(data.inventarios);
+        this.total.set(data.total);
+        this.totalPaginas.set(data.total_paginas);
+        this.cargando.set(false);
       },
       error: (err) => {
-        console.error('Error al cargar historial:', err);
-        this.cargando = false;
+        this.errorMsg.set(err?.error?.mensaje || 'Error al cargar historial');
+        this.cargando.set(false);
       }
     });
   }
@@ -70,29 +91,30 @@ export class InventarioHistorialComponent implements OnInit {
   }
 
   cambiarPagina(pagina: number): void {
-    if (pagina >= 1 && pagina <= this.totalPaginas) {
-      this.paginaActual = pagina;
+    if (pagina >= 1 && pagina <= this.totalPaginas()) {
+      this.paginaActual.set(pagina);
       this.cargarHistorial();
     }
   }
 
   aplicarFiltros(): void {
-    this.paginaActual = 1;
+    this.paginaActual.set(1);
     this.cargarHistorial();
   }
 
   limpiarFiltros(): void {
-    this.filtros = { tipo: '', estado: '', desde: '', hasta: '' };
-    this.paginaActual = 1;
+    this.filtros.set({ tipo: '', estado: '', desde: '', hasta: '' });
+    this.paginaActual.set(1);
     this.cargarHistorial();
   }
 
-  estadoBadgeClass(estado: string): string {
-    return estado === 'completado' ? 'badge-success' : 'badge-warning';
+  actualizarFiltro(key: string, value: string): void {
+    const filtrosActuales = this.filtros();
+    this.filtros.set({ ...filtrosActuales, [key]: value });
   }
 
   puedeEliminar(inventario: InventarioResp): boolean {
-    return this.userRole === 'admin' && inventario.estado === 'en_progreso';
+    return this.userRole() === 'admin' && inventario.estado === 'en_progreso';
   }
 
   eliminarConteo(inventario: InventarioResp): void {
@@ -101,10 +123,13 @@ export class InventarioHistorialComponent implements OnInit {
     if (confirm('¿Estás seguro de que deseas eliminar este conteo? Esta acción no se puede deshacer.')) {
       this.inventarioService.eliminarConteo(inventario.id).subscribe({
         next: () => {
-          this.inventarios = this.inventarios.filter(inv => inv.id !== inventario.id);
-          this.total--;
+          const actuales = this.inventarios();
+          this.inventarios.set(actuales.filter(inv => inv.id !== inventario.id));
+          this.total.update(t => t - 1);
         },
-        error: (err) => console.error('Error al eliminar conteo:', err)
+        error: (err) => {
+          this.errorMsg.set(err?.error?.mensaje || 'Error al eliminar conteo');
+        }
       });
     }
   }
