@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
 
 @Component({
   selector: 'app-inventario-historial',
   templateUrl: './inventario-historial.component.html',
-  styleUrls: []
+  styleUrls: [],
+  standalone: true,
+  imports: [CommonModule, FormsModule]
 })
 export class InventarioHistorialComponent implements OnInit {
   inventarios: InventarioResp[] = [];
@@ -38,10 +42,10 @@ export class InventarioHistorialComponent implements OnInit {
       por_pagina: 50
     };
 
-    if (this.filtros.tipo) filtrosObj.tipo = this.filtros.tipo;
-    if (this.filtros.estado) filtrosObj.estado = this.filtros.estado;
-    if (this.filtros.desde) filtrosObj.desde = this.filtros.desde;
-    if (this.filtros.hasta) filtrosObj.hasta = this.filtros.hasta;
+    if (this.filtros.tipo) filtrosObj['tipo'] = this.filtros.tipo;
+    if (this.filtros.estado) filtrosObj['estado'] = this.filtros.estado;
+    if (this.filtros.desde) filtrosObj['desde'] = this.filtros.desde;
+    if (this.filtros.hasta) filtrosObj['hasta'] = this.filtros.hasta;
 
     this.inventarioService.getHistorial(filtrosObj).subscribe({
       next: (data) => {

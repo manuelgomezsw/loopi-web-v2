@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
 
 @Component({
   selector: 'app-inventario-detalle',
   templateUrl: './inventario-detalle.component.html',
-  styleUrls: []
+  styleUrls: [],
+  standalone: true,
+  imports: [CommonModule, FormsModule]
 })
 export class InventarioDetalleComponent implements OnInit {
   inventario: InventarioResp | null = null;
@@ -148,5 +152,9 @@ export class InventarioDetalleComponent implements OnInit {
   diferenciaCss(diferencia: number | null | undefined): string {
     if (diferencia === null || diferencia === undefined) return '';
     return diferencia >= 0 ? 'text-green-600' : 'text-red-600';
+  }
+
+  volver(): void {
+    window.history.back();
   }
 }

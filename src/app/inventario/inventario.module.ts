@@ -14,14 +14,12 @@ import { InventarioDetalleComponent } from './inventario-detalle.component';
 // import { StatusBadgeComponent } from '../_shared/components/status-badge/status-badge.component';
 
 @NgModule({
-  declarations: [
-    InventarioConteoComponent,
-    InventarioHistorialComponent,
-    InventarioDetalleComponent,
-  ],
   imports: [
     CommonModule,
     FormsModule,
+    InventarioConteoComponent,
+    InventarioHistorialComponent,
+    InventarioDetalleComponent,
     // ListCardComponent,
     // FilterBarComponent,
     // PaginationComponent,

@@ -1,8 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InventarioDetalleComponent } from './inventario-detalle.component';
-import { InventarioService } from './inventario.service';
+import { InventarioService, InventarioResp } from './inventario.service';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
+
+const mockInventario: InventarioResp = {
+  id: 1,
+  tienda_id: 1,
+  fecha: '2026-07-12',
+  tipo: 'diario',
+  horario: 'apertura',
+  estado: 'en_progreso',
+  responsable_id: 1,
+  iniciado_en: '2026-07-12T10:00:00Z',
+  items: []
+};
 
 describe('InventarioDetalleComponent', () => {
   let component: InventarioDetalleComponent;
@@ -40,19 +52,12 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should cargar detalle on init', () => {
-    const mockInv = {
-      id: 1,
-      tienda_id: 1,
-      tipo: 'diario',
-      estado: 'completado',
-      items: []
-    };
-    inventarioService.getInventario.and.returnValue(of(mockInv));
+    inventarioService.getInventario.and.returnValue(of(mockInventario));
 
     component.cargarDetalle(1);
 
     expect(inventarioService.getInventario).toHaveBeenCalledWith(1);
-    expect(component.inventario).toEqual(mockInv);
+    expect(component.inventario).toEqual(mockInventario);
   });
 
   it('should toggle edit mode', () => {
@@ -70,11 +75,7 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should guardar cambios for edited items', () => {
-    component.inventario = {
-      id: 1,
-      tienda_id: 1,
-      items: [{ item_id: 1, valor_real: 15.5 }]
-    };
+    component.inventario = { ...mockInventario, items: [{ item_id: 1, valor_real: 15.5 } as any] };
     component.itemsEditados.add(1);
 
     inventarioService.registrarValorReal.and.returnValue(
@@ -88,9 +89,9 @@ describe('InventarioDetalleComponent', () => {
 
   it('should cancelar edicion', () => {
     component.editando = true;
-    component.inventario = { id: 1, tienda_id: 1 };
+    component.inventario = mockInventario;
 
-    inventarioService.getInventario.and.returnValue(of({ id: 1, tienda_id: 1 }));
+    inventarioService.getInventario.and.returnValue(of(mockInventario));
 
     component.cancelarEdicion();
 
@@ -98,12 +99,9 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should eliminar conteo with confirmation', () => {
-    component.inventario = {
-      id: 1,
-      estado: 'en_progreso'
-    };
+    component.inventario = { ...mockInventario, estado: 'en_progreso' };
 
-    inventarioService.eliminarConteo.and.returnValue(of(null));
+    inventarioService.eliminarConteo.and.returnValue(of(void 0));
     spyOn(window, 'confirm').and.returnValue(true);
 
     component.eliminarConteo();
@@ -112,10 +110,7 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should not eliminar if not en_progreso', () => {
-    component.inventario = {
-      id: 1,
-      estado: 'completado'
-    };
+    component.inventario = { ...mockInventario, estado: 'completado' };
 
     component.eliminarConteo();
 

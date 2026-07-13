@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
 
 @Component({
   selector: 'app-inventario-conteo',
   templateUrl: './inventario-conteo.component.html',
-  styleUrls: []
+  styleUrls: [],
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule]
 })
 export class InventarioConteoComponent implements OnInit {
   sugerencia: SugerenciaResp | null = null;
@@ -15,7 +19,7 @@ export class InventarioConteoComponent implements OnInit {
   formData = {
     tienda_id: 1,
     tipo: '',
-    horario: ''
+    horario: '' as string | undefined
   };
 
   valoresRegistrados = new Map<number, number>();
