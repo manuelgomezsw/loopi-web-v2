@@ -71,6 +71,7 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should cargar detalle on init', () => {
+    // MUST mock BEFORE calling method
     inventarioService.getInventario.and.returnValue(of(mockInventario));
 
     component.cargarDetalle(1);
@@ -100,6 +101,7 @@ describe('InventarioDetalleComponent', () => {
     };
     component.itemsEditados.add(1);
 
+    // MUST mock BEFORE calling method
     inventarioService.registrarValorReal.and.returnValue(of(mockItemResp));
 
     component.guardarCambios();
@@ -111,6 +113,7 @@ describe('InventarioDetalleComponent', () => {
     component.editando = true;
     component.inventario = mockInventario;
 
+    // MUST mock BEFORE calling method
     inventarioService.getInventario.and.returnValue(of(mockInventario));
 
     component.cancelarEdicion();
@@ -121,6 +124,7 @@ describe('InventarioDetalleComponent', () => {
   it('should eliminar conteo with confirmation', () => {
     component.inventario = { ...mockInventario, estado: 'en_progreso' };
 
+    // MUST mock BEFORE calling method
     inventarioService.eliminarConteo.and.returnValue(of(void 0));
     spyOn(window, 'confirm').and.returnValue(true);
 

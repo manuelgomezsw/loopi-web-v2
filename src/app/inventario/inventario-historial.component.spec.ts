@@ -49,14 +49,18 @@ describe('InventarioHistorialComponent', () => {
   });
 
   it('should cargar historial on init', () => {
+    // MUST mock BEFORE calling any method
     inventarioService.getHistorial.and.returnValue(
       of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
+
     component.cargarHistorial();
+
     expect(inventarioService.getHistorial).toHaveBeenCalled();
   });
 
   it('should filter by tipo', () => {
+    // MUST mock BEFORE calling any method
     inventarioService.getHistorial.and.returnValue(
       of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
@@ -68,6 +72,7 @@ describe('InventarioHistorialComponent', () => {
   });
 
   it('should filter by estado', () => {
+    // MUST mock BEFORE calling any method
     inventarioService.getHistorial.and.returnValue(
       of({ inventarios: [mockInventario], total: 1, pagina: 1, total_paginas: 1 })
     );
@@ -84,6 +89,7 @@ describe('InventarioHistorialComponent', () => {
   });
 
   it('should cambiar pagina', () => {
+    // MUST mock BEFORE calling any method
     inventarioService.getHistorial.and.returnValue(
       of({ inventarios: [mockInventario], total: 100, pagina: 2, total_paginas: 5 })
     );
@@ -95,6 +101,11 @@ describe('InventarioHistorialComponent', () => {
   });
 
   it('should limpiar filtros', () => {
+    // MUST mock BEFORE calling any method that calls cargarHistorial
+    inventarioService.getHistorial.and.returnValue(
+      of({ inventarios: [], total: 0, pagina: 1, total_paginas: 0 })
+    );
+
     component.filtros.tipo = 'diario';
     component.filtros.estado = 'completado';
 

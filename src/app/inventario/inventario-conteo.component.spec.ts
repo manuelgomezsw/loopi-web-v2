@@ -86,6 +86,7 @@ describe('InventarioConteoComponent', () => {
   });
 
   it('should load sugerencia on init', () => {
+    // MUST mock BEFORE change detection
     inventarioService.getSugerencia.and.returnValue(
       of({ tipo: 'diario', horario: 'apertura' })
     );
@@ -94,6 +95,7 @@ describe('InventarioConteoComponent', () => {
   });
 
   it('should iniciar conteo', () => {
+    // MUST mock BEFORE calling method
     inventarioService.iniciarConteo.and.returnValue(of(mockInventarioResp));
 
     component.iniciarConteo();
@@ -105,6 +107,7 @@ describe('InventarioConteoComponent', () => {
   it('should registrar valor with error recovery', () => {
     component.inventarioActual = mockInventarioResp;
 
+    // MUST mock BEFORE calling method
     inventarioService.registrarValorReal.and.returnValue(of(mockItemResp));
 
     component.registrarValor(100, 12.5);
@@ -115,6 +118,7 @@ describe('InventarioConteoComponent', () => {
   it('should handle registrar error with retry', () => {
     component.inventarioActual = mockInventarioResp;
 
+    // MUST mock BEFORE calling method
     inventarioService.registrarValorReal.and.returnValue(
       throwError(() => ({
         error: { mensaje: 'Network error' }
@@ -127,6 +131,7 @@ describe('InventarioConteoComponent', () => {
   });
 
   it('should confirmar conteo', () => {
+    // MUST mock BEFORE calling method
     inventarioService.confirmarConteo.and.returnValue(of(mockCompletedResp));
 
     component.inventarioActual = mockInventarioResp;
@@ -136,6 +141,7 @@ describe('InventarioConteoComponent', () => {
   });
 
   it('should handle items sin registrar error', () => {
+    // MUST mock BEFORE calling method
     inventarioService.confirmarConteo.and.returnValue(
       throwError(() => ({
         status: 422,
