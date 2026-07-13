@@ -46,8 +46,23 @@
           </div>
         }
 
-        <!-- Sugerencia -->
-        @if (sugerencia) {
+        <!-- Indicador de carga de sugerencia -->
+        @if (loadingSugerencia) {
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+            <div class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+            <p class="text-sm text-blue-900">Obteniendo sugerencia del sistema...</p>
+          </div>
+        }
+
+        <!-- Mensaje de error de sugerencia -->
+        @if (!loadingSugerencia && sugerenciaError) {
+          <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p class="text-sm text-amber-900">⚠️ {{ sugerenciaError }}</p>
+          </div>
+        }
+
+        <!-- Sugerencia exitosa -->
+        @if (sugerencia && !loadingSugerencia) {
           <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p class="text-sm text-blue-900">
               <strong>Sugerencia del sistema:</strong> {{ sugerencia.tipo | titlecase }}

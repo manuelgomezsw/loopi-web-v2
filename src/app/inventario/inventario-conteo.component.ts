@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
 import { FormCardComponent } from '../shared/components/form-card/form-card.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
@@ -19,7 +21,7 @@ import { PageHeaderComponent } from '../shared/components/page-header/page-heade
     PageHeaderComponent
   ]
 })
-export class InventarioConteoComponent implements OnInit {
+export class InventarioConteoComponent implements OnInit, OnDestroy {
   sugerencia: SugerenciaResp | null = null;
   inventarioActual: InventarioResp | null = null;
   step: 'select' | 'register' | 'confirm' | 'complete' = 'select';
@@ -36,52 +38,78 @@ export class InventarioConteoComponent implements OnInit {
   confirmationError = '';
   itemsSinRegistrar: number[] = [];
   isConfirming = false;
+  loadingSugerencia = true;
+  sugerenciaError = '';
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private inventarioService: InventarioService,
     private route: ActivatedRoute
   ) { }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      const inventarioId = params['inventario_id'];
-      if (inventarioId) {
-        this.recuperarSesion(parseInt(inventarioId, 10));
-      } else {
-        this.loadSugerencia();
-      }
-    });
-  }
-
-  loadSugerencia(): void {
-    this.inventarioService.getSugerencia().subscribe({
-      next: (data) => {
-        this.sugerencia = data;
-        this.formData.tipo = data.tipo;
-        this.formData.horario = data.horario;
-      },
-      error: (err) => console.error('Error al obtener sugerencia:', err)
-    });
-  }
-
-  recuperarSesion(inventarioId: number): void {
-    this.inventarioService.getInventario(inventarioId).subscribe({
-      next: (data) => {
-        if (data.estado === 'en_progreso') {
-          this.inventarioActual = data;
-          this.formData.tipo = data.tipo;
-          this.formData.horario = data.horario;
-          this.step = 'register';
-          this.precargarvValoresReales();
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const inventarioId = params['inventario_id'];
+        if (inventarioId) {
+          this.recuperarSesion(parseInt(inventarioId, 10));
         } else {
           this.loadSugerencia();
         }
-      },
-      error: (err) => {
-        console.error('Error recuperando sesión:', err);
-        this.loadSugerencia();
-      }
-    });
+      });
+  }
+
+  loadSugerencia(): void {
+    this.loadingSugerencia = true;
+    this.sugerenciaError = '';
+    this.inventarioService.getSugerencia()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.sugerencia = data;
+          this.formData.tipo = data.tipo;
+          this.formData.horario = data.horario;
+          this.loadingSugerencia = false;
+        },
+        error: (err) => {
+          // BUG-002 bugfix: error recovery con fallback defaults
+          console.error('Error al obtener sugerencia:', err);
+          this.loadingSugerencia = false;
+          this.sugerenciaError = 'No se pudo cargar la sugerencia automática. Ingresa los valores manualmente.';
+          // No bloquear la forma; establecer valores por defecto
+          this.formData.tipo = 'diario'; // Fallback: sugerir diario por defecto
+          this.formData.horario = undefined; // Usuario puede especificar horario manualmente
+        }
+      });
+  }
+
+  recuperarSesion(inventarioId: number): void {
+    this.inventarioService.getInventario(inventarioId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          if (data.estado === 'en_progreso') {
+            this.inventarioActual = data;
+            this.formData.tipo = data.tipo;
+            this.formData.horario = data.horario;
+            this.step = 'register';
+            this.precargarvValoresReales();
+          } else {
+            this.loadSugerencia();
+          }
+        },
+        error: (err) => {
+          console.error('Error recuperando sesión:', err);
+          this.loadSugerencia();
+        }
+      });
   }
 
   precargarvValoresReales(): void {
@@ -98,13 +126,15 @@ export class InventarioConteoComponent implements OnInit {
       tienda_id: this.formData.tienda_id,
       tipo: this.formData.tipo,
       horario: this.formData.horario
-    }).subscribe({
-      next: (data) => {
-        this.inventarioActual = data;
-        this.step = 'register';
-      },
-      error: (err) => console.error('Error al iniciar conteo:', err)
-    });
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.inventarioActual = data;
+          this.step = 'register';
+        },
+        error: (err) => console.error('Error al iniciar conteo:', err)
+      });
   }
 
   registrarValor(itemId: number, valor: number): void {
@@ -113,23 +143,25 @@ export class InventarioConteoComponent implements OnInit {
     this.loadingItems.add(itemId);
     this.itemErrors.delete(itemId);
 
-    this.inventarioService.registrarValorReal(this.inventarioActual.id, itemId, valor).subscribe({
-      next: (data) => {
-        this.valoresRegistrados.set(itemId, valor);
-        this.itemErrors.delete(itemId);
-        const item = this.inventarioActual!.items.find(i => i.item_id === itemId);
-        if (item) {
-          item.valor_real = data.valor_real;
-          item.diferencia = data.diferencia;
+    this.inventarioService.registrarValorReal(this.inventarioActual.id, itemId, valor)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.valoresRegistrados.set(itemId, valor);
+          this.itemErrors.delete(itemId);
+          const item = this.inventarioActual!.items.find(i => i.item_id === itemId);
+          if (item) {
+            item.valor_real = data.valor_real;
+            item.diferencia = data.diferencia;
+          }
+          this.loadingItems.delete(itemId);
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.mensaje || 'Error temporal al guardar valor';
+          this.itemErrors.set(itemId, errorMsg);
+          this.loadingItems.delete(itemId);
         }
-        this.loadingItems.delete(itemId);
-      },
-      error: (err) => {
-        const errorMsg = err?.error?.mensaje || 'Error temporal al guardar valor';
-        this.itemErrors.set(itemId, errorMsg);
-        this.loadingItems.delete(itemId);
-      }
-    });
+      });
   }
 
   reintentar(itemId: number): void {
@@ -146,29 +178,31 @@ export class InventarioConteoComponent implements OnInit {
     this.confirmationError = '';
     this.itemsSinRegistrar = [];
 
-    this.inventarioService.confirmarConteo(this.inventarioActual.id).subscribe({
-      next: (data) => {
-        this.inventarioActual = data;
-        this.isConfirming = false;
-        this.step = 'complete';
-      },
-      error: (err) => {
-        this.isConfirming = false;
-        const status = err?.status;
-        const errorCode = err?.error?.error;
+    this.inventarioService.confirmarConteo(this.inventarioActual.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.inventarioActual = data;
+          this.isConfirming = false;
+          this.step = 'complete';
+        },
+        error: (err) => {
+          this.isConfirming = false;
+          const status = err?.status;
+          const errorCode = err?.error?.error;
 
-        if (status === 422 && errorCode === 'items_sin_registrar') {
-          this.itemsSinRegistrar = err.error?.detalles?.items_sin_registrar || [];
-          this.confirmationError = 'Hay items sin registrar. Por favor completa todos antes de confirmar.';
-          this.step = 'register';
-        } else if (status === 409) {
-          this.confirmationError = 'Este conteo ya fue completado anteriormente.';
-        } else if (status === 403) {
-          this.confirmationError = 'No tienes permiso para confirmar este conteo.';
-        } else {
-          this.confirmationError = err?.error?.mensaje || 'Error al confirmar conteo';
+          if (status === 422 && errorCode === 'items_sin_registrar') {
+            this.itemsSinRegistrar = err.error?.detalles?.items_sin_registrar || [];
+            this.confirmationError = 'Hay items sin registrar. Por favor completa todos antes de confirmar.';
+            this.step = 'register';
+          } else if (status === 409) {
+            this.confirmationError = 'Este conteo ya fue completado anteriormente.';
+          } else if (status === 403) {
+            this.confirmationError = 'No tienes permiso para confirmar este conteo.';
+          } else {
+            this.confirmationError = err?.error?.mensaje || 'Error al confirmar conteo';
+          }
         }
-      }
     });
   }
 
