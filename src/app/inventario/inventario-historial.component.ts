@@ -6,7 +6,6 @@ import { InventarioService, InventarioResp } from './inventario.service';
 import { AuthService } from '../auth/auth.service';
 import { ListCardComponent } from '../shared/components/list-card/list-card.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
-import { FilterBarComponent } from '../shared/components/filter-bar/filter-bar.component';
 import { PaginationComponent } from '../shared/components/pagination/pagination.component';
 import { StatusBadgeComponent } from '../shared/components/status-badge/status-badge.component';
 import { EmptyStateComponent } from '../shared/components/empty-state/empty-state.component';
@@ -23,7 +22,6 @@ import { IconComponent } from '../shared/components/icon/icon.component';
     ReactiveFormsModule,
     ListCardComponent,
     PageHeaderComponent,
-    FilterBarComponent,
     PaginationComponent,
     StatusBadgeComponent,
     EmptyStateComponent,
