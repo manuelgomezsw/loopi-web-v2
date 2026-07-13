@@ -89,6 +89,9 @@ describe('InventarioHistorialComponent', () => {
   });
 
   it('should cambiar pagina', () => {
+    // MUST initialize totalPaginas BEFORE (cambiarPagina checks pagina <= totalPaginas)
+    component.totalPaginas = 5;
+
     // MUST mock BEFORE calling any method
     inventarioService.getHistorial.and.returnValue(
       of({ inventarios: [mockInventario], total: 100, pagina: 2, total_paginas: 5 })
