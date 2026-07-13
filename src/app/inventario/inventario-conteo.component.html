@@ -33,7 +33,7 @@
 
   <!-- Step 2: Registrar valores -->
   <div *ngIf="step === 'register'" class="step-section">
-    <h2>Registrar Valores ({{ inventarioActual?.items.length }} items)</h2>
+    <h2>Registrar Valores ({{ inventarioActual?.items?.length ?? 0 }} items)</h2>
 
     <div class="items-list">
       <div *ngFor="let item of inventarioActual?.items" class="item-card">
@@ -91,7 +91,7 @@
     </div>
 
     <div class="summary">
-      <p>Se registraron {{ inventarioActual?.items.length }} items</p>
+      <p>Se registraron {{ inventarioActual?.items?.length ?? 0 }} items</p>
       <p>Tipo: {{ inventarioActual?.tipo }}</p>
       <p *ngIf="inventarioActual?.horario">Horario: {{ inventarioActual?.horario }}</p>
     </div>
