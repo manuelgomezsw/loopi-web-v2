@@ -24,6 +24,9 @@ function defaultRouteForRole(rol: Rol): string {
  * Sin sesión → redirige a /login.
  * Rol no autorizado → redirige a la ruta principal del rol.
  * Rol autorizado → permite la navegación.
+ *
+ * Nota: El authGuard debe ejecutarse ANTES de este guard para restaurar la sesión
+ * desde getMe() si es necesario.
  */
 export function roleGuard(allowedRoles: Rol[]): CanActivateFn {
   return () => {
