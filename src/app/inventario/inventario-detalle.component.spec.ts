@@ -75,7 +75,7 @@ describe('InventarioDetalleComponent', () => {
   });
 
   it('should guardar cambios for edited items', () => {
-    component.inventario = { ...mockInventario, items: [{ item_id: 1, valor_real: 15.5 } as any] };
+    component.inventario = { ...mockInventario, items: [{ id: 1, item_id: 1, valor_sugerido: 10, valor_esperado: 10, valor_real: 15.5 }] };
     component.itemsEditados.add(1);
 
     inventarioService.registrarValorReal.and.returnValue(
