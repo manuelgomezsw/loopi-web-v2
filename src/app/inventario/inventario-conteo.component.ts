@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -22,6 +22,8 @@ import { PageHeaderComponent } from '../shared/components/page-header/page-heade
   ]
 })
 export class InventarioConteoComponent implements OnInit, OnDestroy {
+  private readonly fb = inject(FormBuilder);
+
   sugerencia: SugerenciaResp | null = null;
   inventarioActual: InventarioResp | null = null;
   step: 'select' | 'register' | 'confirm' | 'complete' = 'select';
@@ -32,6 +34,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
     horario: '' as string | undefined
   };
 
+  formulario!: FormGroup;
   valoresRegistrados = new Map<number, number>();
   itemErrors = new Map<number, string>();
   loadingItems = new Set<number>();
@@ -46,7 +49,28 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   constructor(
     private inventarioService: InventarioService,
     private route: ActivatedRoute
-  ) { }
+  ) {
+    this.inicializarFormulario();
+  }
+
+  private inicializarFormulario(): void {
+    this.formulario = this.fb.group({
+      tipo: ['', Validators.required],
+      horario: ['']
+    });
+
+    this.formulario.get('tipo')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(tipo => {
+        const horarioControl = this.formulario.get('horario');
+        if (tipo === 'diario') {
+          horarioControl?.setValidators(Validators.required);
+        } else {
+          horarioControl?.clearValidators();
+        }
+        horarioControl?.updateValueAndValidity();
+      });
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -74,18 +98,22 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.sugerencia = data;
+          this.formulario.patchValue({
+            tipo: data.tipo,
+            horario: data.horario || ''
+          });
           this.formData.tipo = data.tipo;
           this.formData.horario = data.horario;
           this.loadingSugerencia = false;
         },
         error: (err) => {
-          // BUG-002 bugfix: error recovery con fallback defaults
           console.error('Error al obtener sugerencia:', err);
           this.loadingSugerencia = false;
           this.sugerenciaError = 'No se pudo cargar la sugerencia automática. Ingresa los valores manualmente.';
-          // No bloquear la forma; establecer valores por defecto
-          this.formData.tipo = 'diario'; // Fallback: sugerir diario por defecto
-          this.formData.horario = undefined; // Usuario puede especificar horario manualmente
+          this.formulario.patchValue({
+            tipo: 'diario',
+            horario: ''
+          });
         }
       });
   }
@@ -122,10 +150,13 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   }
 
   iniciarConteo(): void {
+    if (!this.formulario.valid) return;
+
+    const formValue = this.formulario.value;
     this.inventarioService.iniciarConteo({
       tienda_id: this.formData.tienda_id,
-      tipo: this.formData.tipo,
-      horario: this.formData.horario
+      tipo: formValue.tipo,
+      horario: formValue.horario || undefined
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
