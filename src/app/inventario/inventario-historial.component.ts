@@ -4,8 +4,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InventarioService, InventarioResp } from './inventario.service';
 import { AuthService } from '../auth/auth.service';
+import { ActiveFilters, FilterDefinition } from '../shared/models/filter.model';
 import { ListCardComponent } from '../shared/components/list-card/list-card.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
+import { FilterBarComponent } from '../shared/components/filter-bar/filter-bar.component';
 import { PaginationComponent } from '../shared/components/pagination/pagination.component';
 import { StatusBadgeComponent } from '../shared/components/status-badge/status-badge.component';
 import { EmptyStateComponent } from '../shared/components/empty-state/empty-state.component';
@@ -22,6 +24,7 @@ import { IconComponent } from '../shared/components/icon/icon.component';
     ReactiveFormsModule,
     ListCardComponent,
     PageHeaderComponent,
+    FilterBarComponent,
     PaginationComponent,
     StatusBadgeComponent,
     EmptyStateComponent,
@@ -44,6 +47,27 @@ export class InventarioHistorialComponent implements OnInit {
     hasta: ''
   });
 
+  readonly filterDefs: FilterDefinition[] = [
+    {
+      key: 'tipo',
+      defaultValue: null,
+      options: [
+        { label: 'Diario', value: 'diario' },
+        { label: 'Semanal', value: 'semanal' },
+        { label: 'Mensual', value: 'mensual' },
+        { label: 'Inicial', value: 'inicial' },
+      ],
+    },
+    {
+      key: 'estado',
+      defaultValue: null,
+      options: [
+        { label: 'En progreso', value: 'en_progreso' },
+        { label: 'Completado', value: 'completado' },
+      ],
+    },
+  ];
+
   constructor(
     private inventarioService: InventarioService,
     readonly router: Router,
@@ -52,6 +76,18 @@ export class InventarioHistorialComponent implements OnInit {
 
   ngOnInit(): void {
     this.userRole.set(this.authService.sesion()?.rol || null);
+    this.cargarHistorial();
+  }
+
+  onFilters(filters: ActiveFilters): void {
+    const filtrosActuales = this.filtros();
+    this.filtros.set({
+      tipo: filters['tipo'] || '',
+      estado: filters['estado'] || '',
+      desde: filtrosActuales.desde,
+      hasta: filtrosActuales.hasta,
+    });
+    this.paginaActual.set(1);
     this.cargarHistorial();
   }
 

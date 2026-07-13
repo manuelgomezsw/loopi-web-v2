@@ -11,46 +11,16 @@
     </a>
   </app-page-header>
 
-  <!-- Barra de filtros -->
+  <!-- Barra de filtros transversales -->
   <div class="px-6 py-4 border-b border-gray-100">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      <!-- Filtro Tipo -->
-      <div>
-        <label for="filtro-tipo" class="block text-sm font-medium text-gray-700 mb-1">
-          Tipo
-        </label>
-        <select
-          id="filtro-tipo"
-          [(ngModel)]="filtros().tipo"
-          (change)="actualizarFiltro('tipo', $any($event.target).value)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Todos</option>
-          <option value="diario">Diario</option>
-          <option value="semanal">Semanal</option>
-          <option value="mensual">Mensual</option>
-          <option value="inicial">Inicial</option>
-        </select>
-      </div>
+    <app-filter-bar
+      [filters]="filterDefs"
+      routeKey="/inventario/historial"
+      (filtersChange)="onFilters($event)"
+    />
 
-      <!-- Filtro Estado -->
-      <div>
-        <label for="filtro-estado" class="block text-sm font-medium text-gray-700 mb-1">
-          Estado
-        </label>
-        <select
-          id="filtro-estado"
-          [(ngModel)]="filtros().estado"
-          (change)="actualizarFiltro('estado', $any($event.target).value)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Todos</option>
-          <option value="en_progreso">En progreso</option>
-          <option value="completado">Completado</option>
-        </select>
-      </div>
-
-      <!-- Filtro Desde -->
+    <!-- Filtros de fecha -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
       <div>
         <label for="filtro-desde" class="block text-sm font-medium text-gray-700 mb-1">
           Desde
@@ -64,7 +34,6 @@
         />
       </div>
 
-      <!-- Filtro Hasta -->
       <div>
         <label for="filtro-hasta" class="block text-sm font-medium text-gray-700 mb-1">
           Hasta
@@ -79,19 +48,13 @@
       </div>
     </div>
 
-    <!-- Botones de aplicar y limpiar filtros -->
+    <!-- Botones de limpiar filtros -->
     <div class="flex gap-2 mt-3">
-      <button
-        (click)="aplicarFiltros()"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-      >
-        Aplicar
-      </button>
       <button
         (click)="limpiarFiltros()"
         class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
       >
-        Limpiar
+        Limpiar Filtros
       </button>
     </div>
   </div>
