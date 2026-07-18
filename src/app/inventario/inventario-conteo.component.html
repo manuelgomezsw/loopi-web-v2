@@ -309,7 +309,7 @@
 
         @if (inventarioActual?.completado_en) {
           <p class="text-sm text-gray-500 mb-6">
-            Completado: <strong>{{ inventarioActual?.completado_en }}</strong>
+            Completado: <strong>{{ inventarioActual?.completado_en | date:'yyyy-MM-dd hh:mm a' }}</strong>
           </p>
         }
 
