@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
 import { FormCardComponent } from '../shared/components/form-card/form-card.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
+import { ErrorMapperService } from './error-mapper.service';
 
 @Component({
   selector: 'app-inventario-conteo',
@@ -25,6 +26,7 @@ import { PageHeaderComponent } from '../shared/components/page-header/page-heade
 export class InventarioConteoComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly errorMapper = inject(ErrorMapperService);
 
   sugerencia: SugerenciaResp | null = null;
   inventarioActual: InventarioResp | null = null;
@@ -208,8 +210,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.iniciarConteoLoading = false;
-          const errorMsg = err.error?.error_message || 'No se pudo iniciar el conteo. Intenta de nuevo.';
-          this.iniciarConteoError = errorMsg;
+          this.iniciarConteoError = this.errorMapper.extractErrorMessage(err);
           this.cdr.markForCheck();
         }
       });
@@ -232,8 +233,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.iniciarConteoLoading = false;
-          const errorMsg = err.error?.error_message || 'No se pudo reanudar el conteo. Intenta de nuevo.';
-          this.iniciarConteoError = errorMsg;
+          this.iniciarConteoError = this.errorMapper.extractErrorMessage(err);
           this.mostrarModalConflicto = false;
           this.cdr.markForCheck();
         }
@@ -267,7 +267,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (err) => {
-          const errorMsg = err?.error?.mensaje || 'Error temporal al guardar valor';
+          const errorMsg = this.errorMapper.extractErrorMessage(err);
           this.itemErrors.set(itemId, errorMsg);
           this.loadingItems.delete(itemId);
           this.cdr.markForCheck();
@@ -305,14 +305,10 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
 
           if (status === 422 && errorCode === 'items_sin_registrar') {
             this.itemsSinRegistrar = err.error?.detalles?.items_sin_registrar || [];
-            this.confirmationError = 'Hay items sin registrar. Por favor completa todos antes de confirmar.';
+            this.confirmationError = this.errorMapper.extractErrorMessage(err);
             this.step = 'register';
-          } else if (status === 409) {
-            this.confirmationError = 'Este conteo ya fue completado anteriormente.';
-          } else if (status === 403) {
-            this.confirmationError = 'No tienes permiso para confirmar este conteo.';
           } else {
-            this.confirmationError = err?.error?.mensaje || 'Error al confirmar conteo';
+            this.confirmationError = this.errorMapper.extractErrorMessage(err);
           }
           this.cdr.markForCheck();
         }
