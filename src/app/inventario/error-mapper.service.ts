@@ -14,7 +14,8 @@ export class ErrorMapperService {
   private readonly errorMessages: Record<string, string> = {
     // Errores de iniciar conteo (POST /inventarios)
     conteo_duplicado: 'Ya existe un conteo en progreso para esta tienda, tipo y horario. Usa la opción Reanudar si deseas continuar.',
-    sin_items_contabilizar: 'No hay items activos para contabilizar en esta tienda para el tipo seleccionado. Verifica que haya items con la frecuencia de inventario correcta.',
+    sin_items_contabilizar: 'No hay items para contar. Asegúrate de que la tienda tenga items activos con la frecuencia de inventario que necesitas.',
+    error_servidor: 'Hubo un problema al procesar tu solicitud. Por favor intenta de nuevo en unos momentos.',
     tienda_no_autorizada: 'No tienes permiso para iniciar conteos en esta tienda.',
     invalid_tipo: 'El tipo de conteo seleccionado no es válido. Selecciona: Diario, Semanal, Mensual o Inicial.',
     horario_required: 'El horario es obligatorio para conteos diarios.',
