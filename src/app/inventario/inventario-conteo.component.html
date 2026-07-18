@@ -1,3 +1,36 @@
+<!-- Modal: Conflicto de conteo activo -->
+@if (mostrarModalConflicto) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md mx-4 shadow-lg">
+      <h2 class="text-lg font-bold text-gray-900 mb-4">Conteo en Progreso</h2>
+      <p class="text-gray-700 mb-6">
+        Ya existe un conteo en progreso para esta tienda. ¿Deseas reanudarlo o crear uno nuevo?
+      </p>
+      <div class="flex gap-3">
+        <button
+          (click)="reanudaConteo()"
+          [disabled]="iniciarConteoLoading"
+          class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          @if (iniciarConteoLoading) {
+            <span class="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+            Reanudando...
+          } @else {
+            Reanudar
+          }
+        </button>
+        <button
+          (click)="cerrarModalConflicto()"
+          [disabled]="iniciarConteoLoading"
+          class="flex-1 px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed transition-colors font-medium"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Step 1: Seleccionar tipo y horario -->
 @if (step === 'select') {
   <div class="max-w-lg mx-auto">

@@ -47,6 +47,8 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   sugerenciaError = '';
   iniciarConteoError = '';
   iniciarConteoLoading = false;
+  estadoConflicto: { activo: boolean; responsable_id?: number; inventario_id?: number } | null = null;
+  mostrarModalConflicto = false;
 
   private destroy$ = new Subject<void>();
 
@@ -162,6 +164,34 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
     this.iniciarConteoLoading = true;
     this.iniciarConteoError = '';
 
+    // Primero: Verificar si hay conteo activo en la tienda
+    this.inventarioService.getEstadoInventarioActivo(this.formData.tienda_id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (estado) => {
+          if (estado.activo && estado.inventario) {
+            // Hay conteo activo: mostrar modal de conflicto
+            this.estadoConflicto = {
+              activo: true,
+              responsable_id: estado.inventario.responsable_id,
+              inventario_id: estado.inventario.id
+            };
+            this.mostrarModalConflicto = true;
+            this.iniciarConteoLoading = false;
+            this.cdr.markForCheck();
+          } else {
+            // No hay conteo activo: proceder a crear nuevo
+            this.crearNuevoConteo();
+          }
+        },
+        error: () => {
+          // Si falla verificación de estado, intentar crear nuevo igual
+          this.crearNuevoConteo();
+        }
+      });
+  }
+
+  private crearNuevoConteo(): void {
     const formValue = this.formulario.value;
     this.inventarioService.iniciarConteo({
       tienda_id: this.formData.tienda_id,
@@ -183,6 +213,37 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  reanudaConteo(): void {
+    if (!this.estadoConflicto?.inventario_id) return;
+
+    this.iniciarConteoLoading = true;
+    this.mostrarModalConflicto = false;
+
+    this.inventarioService.getInventario(this.estadoConflicto.inventario_id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.inventarioActual = data;
+          this.step = 'register';
+          this.iniciarConteoLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.iniciarConteoLoading = false;
+          const errorMsg = err.error?.error_message || 'No se pudo reanudar el conteo. Intenta de nuevo.';
+          this.iniciarConteoError = errorMsg;
+          this.mostrarModalConflicto = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  cerrarModalConflicto(): void {
+    this.mostrarModalConflicto = false;
+    this.estadoConflicto = null;
+    this.cdr.markForCheck();
   }
 
   registrarValor(itemId: number, valor: number): void {
