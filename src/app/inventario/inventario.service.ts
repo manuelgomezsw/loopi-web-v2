@@ -119,7 +119,7 @@ export class InventarioService {
   // Retorna { activo: boolean, inventario?: InventarioResp }
   // Usado por otros módulos (compras, mermas, venta batch) para bloquear movimientos
   getEstadoInventarioActivo(tiendaId: number): Observable<EstadoInventarioResp> {
-    let params = new HttpParams().set('tienda_id', tiendaId.toString());
+    const params = new HttpParams().set('tienda_id', tiendaId.toString());
     return this.http.get<EstadoInventarioResp>(`${this.baseUrl}/estado`, { params });
   }
 }
