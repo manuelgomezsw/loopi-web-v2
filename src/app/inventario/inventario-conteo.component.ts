@@ -171,21 +171,16 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('✅ iniciarConteo success:', data);
           this.inventarioActual = data;
           this.step = 'register';
           this.iniciarConteoLoading = false;
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('❌ iniciarConteo error:', err);
           this.iniciarConteoLoading = false;
           const errorMsg = err.error?.error_message || 'No se pudo iniciar el conteo. Intenta de nuevo.';
           this.iniciarConteoError = errorMsg;
           this.cdr.markForCheck();
-        },
-        complete: () => {
-          console.log('✓ iniciarConteo observable completado');
         }
       });
   }
