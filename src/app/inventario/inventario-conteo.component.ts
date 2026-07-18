@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -24,6 +24,7 @@ import { PageHeaderComponent } from '../shared/components/page-header/page-heade
 })
 export class InventarioConteoComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   sugerencia: SugerenciaResp | null = null;
   inventarioActual: InventarioResp | null = null;
@@ -108,6 +109,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           this.formData.tipo = data.tipo;
           this.formData.horario = data.horario;
           this.loadingSugerencia = false;
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error al obtener sugerencia:', err);
@@ -117,6 +119,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
             tipo: 'diario',
             horario: ''
           });
+          this.cdr.markForCheck();
         }
       });
   }
@@ -132,6 +135,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
             this.formData.horario = data.horario;
             this.step = 'register';
             this.precargarvValoresReales();
+            this.cdr.markForCheck();
           } else {
             this.loadSugerencia();
           }
@@ -167,15 +171,21 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
+          console.log('✅ iniciarConteo success:', data);
           this.inventarioActual = data;
           this.step = 'register';
           this.iniciarConteoLoading = false;
+          this.cdr.markForCheck();
         },
         error: (err) => {
+          console.error('❌ iniciarConteo error:', err);
           this.iniciarConteoLoading = false;
           const errorMsg = err.error?.error_message || 'No se pudo iniciar el conteo. Intenta de nuevo.';
           this.iniciarConteoError = errorMsg;
-          console.error('Error al iniciar conteo:', err);
+          this.cdr.markForCheck();
+        },
+        complete: () => {
+          console.log('✓ iniciarConteo observable completado');
         }
       });
   }
