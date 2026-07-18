@@ -44,6 +44,8 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   isConfirming = false;
   loadingSugerencia = true;
   sugerenciaError = '';
+  iniciarConteoError = '';
+  iniciarConteoLoading = false;
 
   private destroy$ = new Subject<void>();
 
@@ -153,6 +155,9 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   iniciarConteo(): void {
     if (!this.formulario.valid) return;
 
+    this.iniciarConteoLoading = true;
+    this.iniciarConteoError = '';
+
     const formValue = this.formulario.value;
     this.inventarioService.iniciarConteo({
       tienda_id: this.formData.tienda_id,
@@ -164,8 +169,14 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.inventarioActual = data;
           this.step = 'register';
+          this.iniciarConteoLoading = false;
         },
-        error: (err) => console.error('Error al iniciar conteo:', err)
+        error: (err) => {
+          this.iniciarConteoLoading = false;
+          const errorMsg = err.error?.error_message || 'No se pudo iniciar el conteo. Intenta de nuevo.';
+          this.iniciarConteoError = errorMsg;
+          console.error('Error al iniciar conteo:', err);
+        }
       });
   }
 

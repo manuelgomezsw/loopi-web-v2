@@ -75,14 +75,26 @@
           </div>
         }
 
+        <!-- Error al iniciar conteo -->
+        @if (iniciarConteoError) {
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-900">❌ {{ iniciarConteoError }}</p>
+          </div>
+        }
+
         <!-- Botones -->
         <div class="flex gap-3">
           <button
             type="submit"
-            [disabled]="formulario.invalid"
+            [disabled]="formulario.invalid || iniciarConteoLoading"
             class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            Iniciar Conteo
+            @if (iniciarConteoLoading) {
+              <span class="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+              Iniciando...
+            } @else {
+              Iniciar Conteo
+            }
           </button>
         </div>
       </form>

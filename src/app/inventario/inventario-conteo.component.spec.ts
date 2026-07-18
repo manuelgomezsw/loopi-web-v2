@@ -112,6 +112,29 @@ describe('InventarioConteoComponent', () => {
     expect(component.inventarioActual).toBe(mockInventarioResp);
   }));
 
+  it('should handle error when iniciando conteo (409 duplicate)', fakeAsync(() => {
+    // Setup form with valid values
+    component.formulario.patchValue({
+      tipo: 'diario',
+      horario: 'apertura'
+    });
+
+    // Mock error response
+    inventarioService.iniciarConteo.and.returnValue(
+      throwError(() => ({
+        status: 409,
+        error: { error: 'conteo_duplicado', error_message: 'Ya existe un conteo en progreso para esta tienda, tipo y horario en esta fecha' }
+      }))
+    );
+
+    component.iniciarConteo();
+    tick();
+
+    expect(component.iniciarConteoLoading).toBeFalsy();
+    expect(component.iniciarConteoError).toBeTruthy();
+    expect(component.step).toBe('select');
+  }));
+
   it('should registrar valor with error recovery', () => {
     component.inventarioActual = mockInventarioResp;
 
