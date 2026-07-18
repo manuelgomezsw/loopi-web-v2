@@ -43,6 +43,11 @@ export interface ErrorResp {
   detalles?: Record<string, unknown>;
 }
 
+export interface EstadoInventarioResp {
+  activo: boolean;
+  inventario?: InventarioResp;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -107,5 +112,14 @@ export class InventarioService {
     }
 
     return this.http.get<HistorialResp>(this.baseUrl, { params });
+  }
+
+  // GET /inventarios/estado?tienda_id=X
+  // T143: Verifica si hay un conteo activo en la tienda
+  // Retorna { activo: boolean, inventario?: InventarioResp }
+  // Usado por otros módulos (compras, mermas, venta batch) para bloquear movimientos
+  getEstadoInventarioActivo(tiendaId: number): Observable<EstadoInventarioResp> {
+    let params = new HttpParams().set('tienda_id', tiendaId.toString());
+    return this.http.get<EstadoInventarioResp>(`${this.baseUrl}/estado`, { params });
   }
 }
