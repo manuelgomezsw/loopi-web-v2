@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { InventarioConteoComponent } from './inventario-conteo.component';
 import { InventarioService, InventarioResp, ItemDetailResp } from './inventario.service';
 import { ActivatedRoute } from '@angular/router';
@@ -94,15 +94,23 @@ describe('InventarioConteoComponent', () => {
     expect(inventarioService.getSugerencia).toHaveBeenCalled();
   });
 
-  it('should iniciar conteo', () => {
+  it('should iniciar conteo', fakeAsync(() => {
+    // Setup form with valid values
+    component.formulario.patchValue({
+      tipo: 'diario',
+      horario: 'apertura'
+    });
+
     // MUST mock BEFORE calling method
     inventarioService.iniciarConteo.and.returnValue(of(mockInventarioResp));
 
     component.iniciarConteo();
+    tick();
 
     expect(inventarioService.iniciarConteo).toHaveBeenCalled();
     expect(component.step).toBe('register');
-  });
+    expect(component.inventarioActual).toBe(mockInventarioResp);
+  }));
 
   it('should registrar valor with error recovery', () => {
     component.inventarioActual = mockInventarioResp;
