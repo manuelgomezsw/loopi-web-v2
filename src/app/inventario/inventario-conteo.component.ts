@@ -264,11 +264,13 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
             item.diferencia = data.diferencia;
           }
           this.loadingItems.delete(itemId);
+          this.cdr.markForCheck();
         },
         error: (err) => {
           const errorMsg = err?.error?.mensaje || 'Error temporal al guardar valor';
           this.itemErrors.set(itemId, errorMsg);
           this.loadingItems.delete(itemId);
+          this.cdr.markForCheck();
         }
       });
   }
@@ -294,6 +296,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           this.inventarioActual = data;
           this.isConfirming = false;
           this.step = 'complete';
+          this.cdr.markForCheck();
         },
         error: (err) => {
           this.isConfirming = false;
@@ -311,6 +314,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           } else {
             this.confirmationError = err?.error?.mensaje || 'Error al confirmar conteo';
           }
+          this.cdr.markForCheck();
         }
     });
   }
