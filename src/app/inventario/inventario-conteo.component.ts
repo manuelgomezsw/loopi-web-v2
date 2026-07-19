@@ -78,7 +78,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       });
   }
 
-  private getErrorMessage(err: any): string {
+  private getErrorMessage(err: { error?: { mensaje?: string } }): string {
     return err?.error?.mensaje ?? 'Error al procesar la solicitud. Intenta de nuevo.';
   }
 
