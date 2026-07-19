@@ -326,7 +326,11 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
 
   todosRegistrados(): boolean {
     if (!this.inventarioActual) return false;
-    return this.inventarioActual.items.every(item => item.valor_real !== null && item.valor_real !== undefined);
+    return this.inventarioActual.items.every(
+      item => item.valor_real !== null &&
+              item.valor_real !== undefined &&
+              item.valor_real >= 0 // BUG-020: No permitir valores negativos
+    );
   }
 
   volver(): void {
