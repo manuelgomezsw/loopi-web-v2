@@ -19,6 +19,8 @@ const mockInventario: InventarioResp = {
     {
       id: 1,
       item_id: 1,
+      nombre: 'Item Test',
+      unidad_medida: 'unidades',
       valor_sugerido: 10,
       valor_esperado: 10,
       valor_real: undefined,
@@ -30,6 +32,8 @@ const mockInventario: InventarioResp = {
 const mockItemResp: ItemDetailResp = {
   id: 1,
   item_id: 1,
+  nombre: 'Item Test',
+  unidad_medida: 'unidades',
   valor_sugerido: 10,
   valor_esperado: 10,
   valor_real: 15.5,

@@ -18,6 +18,8 @@ const mockInventarioResp: InventarioResp = {
     {
       id: 1,
       item_id: 100,
+      nombre: 'Item Test',
+      unidad_medida: 'unidades',
       valor_sugerido: 10.0,
       valor_esperado: 10.0,
       valor_real: undefined,
@@ -29,6 +31,8 @@ const mockInventarioResp: InventarioResp = {
 const mockItemResp: ItemDetailResp = {
   id: 1,
   item_id: 100,
+  nombre: 'Item Test',
+  unidad_medida: 'unidades',
   valor_sugerido: 10.0,
   valor_esperado: 10.0,
   valor_real: 12.5,
@@ -123,7 +127,7 @@ describe('InventarioConteoComponent', () => {
     inventarioService.iniciarConteo.and.returnValue(
       throwError(() => ({
         status: 409,
-        error: { error: 'conteo_duplicado', error_message: 'Ya existe un conteo en progreso para esta tienda, tipo y horario en esta fecha' }
+        error: { error: 'conteo_duplicado', mensaje: 'Ya existe un conteo en progreso para esta tienda, tipo y horario en esta fecha' }
       }))
     );
 
