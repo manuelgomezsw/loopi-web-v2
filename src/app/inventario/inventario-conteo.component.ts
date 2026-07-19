@@ -7,7 +7,6 @@ import { takeUntil } from 'rxjs/operators';
 import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
 import { FormCardComponent } from '../shared/components/form-card/form-card.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
-import { ErrorMapperService } from './error-mapper.service';
 
 @Component({
   selector: 'app-inventario-conteo',
@@ -26,7 +25,6 @@ import { ErrorMapperService } from './error-mapper.service';
 export class InventarioConteoComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly errorMapper = inject(ErrorMapperService);
 
   sugerencia: SugerenciaResp | null = null;
   inventarioActual: InventarioResp | null = null;
@@ -78,6 +76,10 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
         }
         horarioControl?.updateValueAndValidity();
       });
+  }
+
+  private getErrorMessage(err: any): string {
+    return err?.error?.mensaje ?? 'Error al procesar la solicitud. Intenta de nuevo.';
   }
 
   ngOnDestroy(): void {
@@ -210,7 +212,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.iniciarConteoLoading = false;
-          this.iniciarConteoError = this.errorMapper.extractErrorMessage(err);
+          this.iniciarConteoError = this.getErrorMessage(err);
           this.cdr.markForCheck();
         }
       });
@@ -233,7 +235,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.iniciarConteoLoading = false;
-          this.iniciarConteoError = this.errorMapper.extractErrorMessage(err);
+          this.iniciarConteoError = this.getErrorMessage(err);
           this.mostrarModalConflicto = false;
           this.cdr.markForCheck();
         }
@@ -267,7 +269,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (err) => {
-          const errorMsg = this.errorMapper.extractErrorMessage(err);
+          const errorMsg = this.getErrorMessage(err);
           this.itemErrors.set(itemId, errorMsg);
           this.loadingItems.delete(itemId);
           this.cdr.markForCheck();
@@ -305,10 +307,10 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
 
           if (status === 422 && errorCode === 'items_sin_registrar') {
             this.itemsSinRegistrar = err.error?.detalles?.items_sin_registrar || [];
-            this.confirmationError = this.errorMapper.extractErrorMessage(err);
+            this.confirmationError = this.getErrorMessage(err);
             this.step = 'register';
           } else {
-            this.confirmationError = this.errorMapper.extractErrorMessage(err);
+            this.confirmationError = this.getErrorMessage(err);
           }
           this.cdr.markForCheck();
         }
