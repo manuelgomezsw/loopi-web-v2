@@ -21,7 +21,6 @@ const mockInventario: InventarioResp = {
       item_id: 1,
       nombre: 'Item Test',
       unidad_medida: 'unidades',
-      valor_sugerido: 10,
       valor_esperado: 10,
       valor_real: undefined,
       diferencia: undefined

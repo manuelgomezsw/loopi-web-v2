@@ -12,7 +12,6 @@ export interface ItemDetailResp {
   item_id: number;
   nombre: string;
   unidad_medida?: string;
-  valor_sugerido: number;
   valor_esperado: number;
   valor_real?: number;
   diferencia?: number;
