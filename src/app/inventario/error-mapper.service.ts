@@ -5,6 +5,7 @@ export interface ErrorResponse {
   mensaje?: string;
   error_message?: string;
   message?: string;
+  detalles?: Record<string, unknown>;
 }
 
 @Injectable({
