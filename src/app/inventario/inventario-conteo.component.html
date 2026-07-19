@@ -234,7 +234,7 @@
       </div>
 
       <!-- Validación: verificar si hay valores negativos (BUG-020) -->
-      @if (inventarioActual && inventarioActual.items.some(item => item.valor_real !== null && item.valor_real !== undefined && item.valor_real < 0)) {
+      @if (tieneValoresNegativos()) {
         <div role="alert" aria-live="polite" class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <p class="text-sm text-amber-900">⚠️ No puedes continuar: hay cantidades negativas. Verifica todos los valores antes de confirmar.</p>
         </div>

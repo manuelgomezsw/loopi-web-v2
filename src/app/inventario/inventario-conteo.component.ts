@@ -333,6 +333,13 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
     );
   }
 
+  tieneValoresNegativos(): boolean {
+    if (!this.inventarioActual || !this.inventarioActual.items) return false;
+    return this.inventarioActual.items.some(
+      item => item.valor_real !== null && item.valor_real !== undefined && item.valor_real < 0
+    );
+  }
+
   volver(): void {
     if (this.step === 'register') {
       this.step = 'select';
