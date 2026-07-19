@@ -32,7 +32,6 @@ const mockItemResp: ItemDetailResp = {
   item_id: 100,
   nombre: 'Item Test',
   unidad_medida: 'unidades',
-  valor_sugerido: 10.0,
   valor_esperado: 10.0,
   valor_real: 12.5,
   diferencia: 2.5
