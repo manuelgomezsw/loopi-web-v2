@@ -153,22 +153,27 @@
           <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <div class="flex items-start justify-between mb-3">
               <div>
-                <h4 class="font-medium text-gray-900">Item {{ item.item_id }}</h4>
-                <p class="text-sm text-gray-500">Sugerido: {{ item.valor_sugerido }}</p>
+                <h4 class="font-medium text-gray-900">{{ item.nombre }}</h4>
+                <p class="text-sm text-gray-500">Sugerido: {{ item.valor_sugerido }}{{ item.unidad_medida ? ' ' + item.unidad_medida : '' }}</p>
               </div>
               @if (item.diferencia !== null && item.diferencia !== undefined) {
-                <span
+                <div
                   aria-live="polite"
                   aria-atomic="true"
-                  [class.text-green-700]="item.diferencia >= 0"
-                  [class.text-red-700]="item.diferencia < 0"
-                  [class.bg-green-50]="item.diferencia >= 0"
-                  [class.bg-red-50]="item.diferencia < 0"
-                  class="font-medium text-sm px-2 py-1 rounded"
-                >
-                  {{ item.diferencia >= 0 ? '✓' : '✗' }}
-                  {{ item.diferencia > 0 ? '+' : '' }}{{ item.diferencia }}
-                </span>
+                  class="text-right">
+                  <span
+                    [class.text-green-600]="item.diferencia > 0"
+                    [class.text-red-600]="item.diferencia < 0"
+                    [class.text-gray-600]="item.diferencia === 0"
+                    class="font-medium text-sm">
+                    {{ item.diferencia > 0 ? '+' : '' }}{{ item.diferencia }} {{ item.unidad_medida || '' }}
+                  </span>
+                  @if (item.diferencia !== 0) {
+                    <div class="text-xs text-gray-500 mt-1">
+                      {{ item.diferencia < 0 ? '⚠️ Pérdida' : '✓ Ganancia' }}
+                    </div>
+                  }
+                </div>
               }
             </div>
 

@@ -10,6 +10,8 @@ export interface SugerenciaResp {
 export interface ItemDetailResp {
   id: number;
   item_id: number;
+  nombre: string;
+  unidad_medida?: string;
   valor_sugerido: number;
   valor_esperado: number;
   valor_real?: number;

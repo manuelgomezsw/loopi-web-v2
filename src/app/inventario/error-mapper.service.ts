@@ -57,6 +57,18 @@ export class ErrorMapperService {
     // Intentar obtener el código de error (en diferentes formatos)
     const errorCode = errorResponse?.error || errorResponse?.error_message;
 
+    // Manejo especial para conteo_duplicado: diferencia por estado
+    if (errorCode === 'conteo_duplicado') {
+      const detalles = errorResponse?.detalles as any;
+      if (detalles?.conflicting_state === 'en_progreso') {
+        return 'Ya existe un conteo en progreso para esta tienda, tipo y horario. Usa la opción Reanudar si deseas continuar.';
+      } else if (detalles?.conflicting_state === 'completado') {
+        return 'Ya existe un conteo completado para esta tienda, tipo y horario en esta fecha. No se pueden crear conteos duplicados en el mismo día.';
+      }
+      // Fallback si no hay detalles
+      return this.errorMessages[errorCode] || 'Ya existe un conteo para esta tienda, tipo y horario.';
+    }
+
     // Si tenemos un código de error, usamos el mapeo
     if (errorCode && this.errorMessages[errorCode]) {
       return this.errorMessages[errorCode];
