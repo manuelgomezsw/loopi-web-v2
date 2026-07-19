@@ -251,6 +251,13 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   registrarValor(itemId: number, valor: number): void {
     if (!this.inventarioActual) return;
 
+    // Validación: rechazar valores negativos (RF-INV-02.1 BUG-020)
+    if (valor < 0) {
+      this.itemErrors.set(itemId, 'La cantidad no puede ser negativa. Ingrese un valor mayor o igual a 0.');
+      this.cdr.markForCheck();
+      return;
+    }
+
     this.loadingItems.add(itemId);
     this.itemErrors.delete(itemId);
 

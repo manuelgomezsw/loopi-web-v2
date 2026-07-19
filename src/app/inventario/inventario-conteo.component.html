@@ -201,7 +201,9 @@
                   [(ngModel)]="item.valor_real"
                   (blur)="registrarValor(item.item_id, item.valor_real || 0)"
                   [disabled]="loadingItems.has(item.item_id)"
-                  placeholder="Ingresa el valor"
+                  placeholder="Ingresa el valor (≥ 0)"
+                  min="0"
+                  step="any"
                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
                 />
                 @if (loadingItems.has(item.item_id)) {

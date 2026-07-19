@@ -78,4 +78,45 @@ test.describe('HU2 - Registrar Valores del Conteo', () => {
     // Eventually should be enabled
     await expect(continueButton).toBeEnabled({ timeout: 5000 });
   });
+
+  // T175 BUG-020: Validación de valores negativos
+  test('should reject negative values and show error message', async ({ page: playwright }) => {
+    const firstInput = playwright.locator('input[id^="valor-"]').first();
+
+    // Try to enter negative value
+    await firstInput.fill('-500');
+    await firstInput.blur();
+
+    // Check for error message
+    const errorAlert = playwright.locator('[role="alert"]').first();
+    await expect(errorAlert).toBeVisible({ timeout: 2000 });
+
+    // Verify error message contains "negativa" or "negativo"
+    await expect(errorAlert).toContainText(/negativa|negativo/i);
+  });
+
+  // T175 BUG-020: Validación de valores cero
+  test('should accept zero value for items', async ({ page: playwright }) => {
+    const firstInput = playwright.locator('input[id^="valor-"]').first();
+
+    // Enter zero value - should be accepted
+    await firstInput.fill('0');
+    await firstInput.blur();
+
+    await page.page.waitForTimeout(500); // Wait for autosave
+
+    // Should NOT show error
+    const errorAlert = playwright.locator('[role="alert"]');
+    const errorCount = await errorAlert.count();
+    expect(errorCount).toBe(0);
+  });
+
+  // T175 BUG-020: Input HTML min attribute prevents negative input
+  test('should have min=0 attribute on valor real inputs', async ({ page: playwright }) => {
+    const firstInput = playwright.locator('input[id^="valor-"]').first();
+
+    // Check that min attribute is set to 0
+    const minAttr = await firstInput.getAttribute('min');
+    expect(minAttr).toBe('0');
+  });
 });
