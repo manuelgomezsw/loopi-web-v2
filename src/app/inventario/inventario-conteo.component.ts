@@ -73,6 +73,7 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
           horarioControl?.setValidators(Validators.required);
         } else {
           horarioControl?.clearValidators();
+          horarioControl?.setValue(null);
         }
         horarioControl?.updateValueAndValidity();
       });
