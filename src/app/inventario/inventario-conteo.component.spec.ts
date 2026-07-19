@@ -63,7 +63,8 @@ describe('InventarioConteoComponent', () => {
       'iniciarConteo',
       'registrarValorReal',
       'confirmarConteo',
-      'getInventario'
+      'getInventario',
+      'getEstadoInventarioActivo'
     ]);
 
     await TestBed.configureTestingModule({
@@ -106,6 +107,7 @@ describe('InventarioConteoComponent', () => {
     });
 
     // MUST mock BEFORE calling method
+    inventarioService.getEstadoInventarioActivo.and.returnValue(of({ activo: false }));
     inventarioService.iniciarConteo.and.returnValue(of(mockInventarioResp));
 
     component.iniciarConteo();
@@ -122,6 +124,9 @@ describe('InventarioConteoComponent', () => {
       tipo: 'diario',
       horario: 'apertura'
     });
+
+    // Mock estado check
+    inventarioService.getEstadoInventarioActivo.and.returnValue(of({ activo: false }));
 
     // Mock error response
     inventarioService.iniciarConteo.and.returnValue(
