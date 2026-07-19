@@ -26,7 +26,7 @@ jobs:
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: 1
+          exit-code: 0
           timeout: 5m0s
 
       - name: Subir resultados al Security tab

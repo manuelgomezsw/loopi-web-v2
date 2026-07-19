@@ -1,0 +1,256 @@
+@if (cargando) {
+  <div class="max-w-4xl mx-auto p-6">
+    <div class="flex justify-center items-center min-h-96">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p class="text-gray-500">Cargando detalle...</p>
+      </div>
+    </div>
+  </div>
+}
+
+@if (!cargando && inventario) {
+  <div class="max-w-4xl mx-auto">
+    <!-- Encabezado -->
+    <app-page-header [title]="'Conteo #' + inventario.id" />
+
+    <!-- Card principal -->
+    <app-form-card>
+      <!-- Header con badge -->
+      <div class="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">
+            {{ inventario.tipo | titlecase }}
+            @if (inventario.horario) {
+              <span class="text-gray-500 font-normal">/ {{ inventario.horario | titlecase }}</span>
+            }
+          </h2>
+          <p class="text-gray-600 text-sm mt-1">{{ inventario.fecha }}</p>
+        </div>
+        <app-status-badge [activo]="inventario.estado === 'completado'" />
+      </div>
+
+      <!-- Información General -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div>
+          <p class="text-gray-500 text-sm">Tipo</p>
+          <p class="font-semibold text-gray-900">{{ inventario.tipo | titlecase }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Estado</p>
+          <p class="font-semibold text-gray-900">{{ inventario.estado | titlecase }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Total Items</p>
+          <p class="font-semibold text-gray-900">{{ inventario.items.length }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Iniciado</p>
+          <p class="font-semibold text-gray-900">{{ inventario.iniciado_en }}</p>
+        </div>
+        @if (inventario.completado_en) {
+          <div>
+            <p class="text-gray-500 text-sm">Completado</p>
+            <p class="font-semibold text-gray-900">{{ inventario.completado_en }}</p>
+          </div>
+        }
+        <div>
+          <p class="text-gray-500 text-sm">Responsable</p>
+          <p class="font-semibold text-gray-900">ID: {{ inventario.responsable_id }}</p>
+        </div>
+      </div>
+
+      <!-- Items Display - Responsive (Cards on mobile, Table on desktop) -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Items Contados</h3>
+
+        <!-- Mobile View: Cards -->
+        <div class="md:hidden space-y-3">
+          @for (item of inventario.items; track item.item_id) {
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <p class="font-semibold text-gray-900">{{ item.nombre }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Esperado: {{ item.valor_esperado }}{{ item.unidad_medida ? ' ' + item.unidad_medida : '' }}</p>
+                </div>
+                <span aria-live="polite"
+                  [class.text-green-700]="(item.diferencia ?? 0) >= 0"
+                  [class.bg-green-50]="(item.diferencia ?? 0) >= 0"
+                  [class.text-red-700]="(item.diferencia ?? 0) < 0"
+                  [class.bg-red-50]="(item.diferencia ?? 0) < 0"
+                  class="font-semibold text-sm px-2 py-1 rounded">
+                  {{ (item.diferencia ?? 0) >= 0 ? '✓' : '✗' }}
+                  {{ item.diferencia !== null && item.diferencia !== undefined ? (item.diferencia > 0 ? '+' : '') + item.diferencia : '-' }}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p class="text-gray-500">Esperado</p>
+                  <p class="font-medium text-gray-900">{{ item.valor_esperado }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-500">Real</p>
+                  @if (!editando) {
+                    <p class="font-medium text-gray-900">{{ item.valor_real ?? '-' }}</p>
+                  } @else if (puedeEditarCompletado()) {
+                    <label [for]="'valor-item-' + item.item_id" class="sr-only">Valor real para item {{ item.item_id }}</label>
+                    <input
+                      [id]="'valor-item-' + item.item_id"
+                      type="number"
+                      [(ngModel)]="item.valor_real"
+                      (change)="marcarItemEditado(item.item_id)"
+                      [disabled]="guardando"
+                      class="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  }
+                </div>
+              </div>
+              @if (itemErrors.has(item.item_id)) {
+                <p role="alert" class="text-red-700 font-medium text-xs mt-2">{{ itemErrors.get(item.item_id) }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Desktop View: Table -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-semibold text-gray-900">Item</th>
+                <th class="text-right py-3 px-4 font-semibold text-gray-900">Esperado</th>
+                <th class="text-right py-3 px-4 font-semibold text-gray-900">Real</th>
+                <th class="text-right py-3 px-4 font-semibold text-gray-900">Diferencia</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              @for (item of inventario.items; track item.item_id) {
+                <tr [class.bg-gray-50]="editando && itemsEditados.has(item.item_id)" class="hover:bg-gray-50 transition-colors">
+                  <td class="py-3 px-4 text-gray-900">{{ item.nombre }}</td>
+                  <td class="py-3 px-4 text-right text-gray-700">{{ item.valor_esperado }}{{ item.unidad_medida ? ' ' + item.unidad_medida : '' }}</td>
+                  <td class="py-3 px-4 text-right">
+                    @if (!editando) {
+                      <span class="text-gray-900 font-medium">{{ item.valor_real ?? '-' }}</span>
+                    } @else if (puedeEditarCompletado()) {
+                      <div class="flex flex-col gap-1">
+                        <label [for]="'valor-item-' + item.item_id" class="sr-only">
+                          Valor real para item {{ item.item_id }}
+                        </label>
+                        <input
+                          [id]="'valor-item-' + item.item_id"
+                          type="number"
+                          [(ngModel)]="item.valor_real"
+                          (change)="marcarItemEditado(item.item_id)"
+                          [disabled]="guardando"
+                          class="w-24 px-2 py-1 border border-gray-300 rounded bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        />
+                        @if (itemErrors.has(item.item_id)) {
+                          <span role="alert" class="text-red-700 font-medium text-xs">
+                            {{ itemErrors.get(item.item_id) }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </td>
+                  <td class="py-3 px-4 text-right font-semibold"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    [class.text-green-700]="(item.diferencia ?? 0) >= 0"
+                    [class.bg-green-50]="(item.diferencia ?? 0) >= 0"
+                    [class.text-red-700]="(item.diferencia ?? 0) < 0"
+                    [class.bg-red-50]="(item.diferencia ?? 0) < 0">
+                    {{ (item.diferencia ?? 0) >= 0 ? '✓' : '✗' }}
+                    {{ item.diferencia !== null && item.diferencia !== undefined ? (item.diferencia > 0 ? '+' : '') + item.diferencia : '-' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Actions - Edit Mode -->
+      @if (puedeEditarCompletado()) {
+        <div class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          @if (!editando) {
+            <button
+              (click)="toggleEditMode()"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+            >
+              <app-icon name="pencil" />
+              Modificar Valores
+            </button>
+          } @else {
+            <div class="flex gap-3">
+              <button
+                (click)="guardarCambios()"
+                [disabled]="guardando || itemsEditados.size === 0"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+              >
+                <app-icon name="check" />
+                {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
+              <button
+                (click)="cancelarEdicion()"
+                [disabled]="guardando"
+                class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+              >
+                <app-icon name="x" />
+                Cancelar
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Navigación -->
+      <div class="border-t border-gray-200 pt-6">
+        <button
+          (click)="volver()"
+          class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+        >
+          Volver
+        </button>
+      </div>
+    </app-form-card>
+
+    <!-- Danger Zone - Admin Delete -->
+    @if (puedeEliminar()) {
+      <app-danger-zone>
+        <h3 class="text-lg font-semibold text-red-900 mb-4">Zona de Peligro</h3>
+
+        @if (errorEliminar) {
+          <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+            {{ errorEliminar }}
+          </div>
+        }
+
+        <p class="text-red-800 text-sm mb-4">
+          Solo los administradores pueden eliminar conteos en progreso. Esta acción no se puede deshacer.
+        </p>
+
+        <button
+          (click)="eliminarConteo()"
+          [disabled]="eliminando"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+        >
+          {{ eliminando ? 'Eliminando...' : 'Eliminar Conteo' }}
+        </button>
+      </app-danger-zone>
+    }
+  </div>
+}
+
+@if (!cargando && !inventario) {
+  <div class="max-w-lg mx-auto p-6">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <p class="text-red-700 font-medium">No se encontró el conteo solicitado</p>
+      <button
+        (click)="volver()"
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+      >
+        Volver
+      </button>
+    </div>
+  </div>
+}

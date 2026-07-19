@@ -1,0 +1,162 @@
+<app-list-card>
+  <!-- Encabezado con título y acción -->
+  <app-page-header title="Historial de Inventarios">
+    <a
+      slot="actions"
+      routerLink="/inventario/conteo"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+    >
+      <app-icon name="plus" />
+      Nuevo Conteo
+    </a>
+  </app-page-header>
+
+  <!-- Barra de filtros transversales -->
+  <div class="px-6 py-4 border-b border-gray-100">
+    <app-filter-bar
+      [filters]="filterDefs"
+      routeKey="/inventario/historial"
+      (filtersChange)="onFilters($event)"
+    />
+
+    <!-- Filtros de fecha -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+      <div>
+        <label for="filtro-desde" class="block text-sm font-medium text-gray-700 mb-1">
+          Desde
+        </label>
+        <input
+          id="filtro-desde"
+          type="date"
+          [(ngModel)]="filtros().desde"
+          (change)="actualizarFiltro('desde', $any($event.target).value)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label for="filtro-hasta" class="block text-sm font-medium text-gray-700 mb-1">
+          Hasta
+        </label>
+        <input
+          id="filtro-hasta"
+          type="date"
+          [(ngModel)]="filtros().hasta"
+          (change)="actualizarFiltro('hasta', $any($event.target).value)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+    </div>
+
+    <!-- Botones de limpiar filtros -->
+    <div class="flex gap-2 mt-3">
+      <button
+        (click)="limpiarFiltros()"
+        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+      >
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensaje de error -->
+  @if (errorMsg()) {
+    <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" role="alert">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  <!-- Estado de carga -->
+  @if (cargando()) {
+    <div class="p-12 text-center text-gray-500">
+      <div class="inline-block">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+      <p class="mt-2">Cargando inventarios...</p>
+    </div>
+  }
+
+  <!-- Estado vacío -->
+  @if (!cargando() && inventarios().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay conteos registrados"
+      description="Comienza creando tu primer conteo de inventario."
+      actionLabel="Nuevo Conteo"
+      (action)="router.navigate(['/inventario/conteo'])"
+    />
+  }
+
+  <!-- Lista de inventarios -->
+  @if (!cargando() && inventarios().length > 0) {
+    <div class="divide-y divide-gray-100">
+      @for (inventario of inventarios(); track inventario.id) {
+        <div
+          (click)="verDetalle(inventario.id)"
+          class="p-6 hover:bg-blue-50 cursor-pointer transition-colors"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="verDetalle(inventario.id)"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900">
+                {{ inventario.tipo | titlecase }}
+                @if (inventario.horario) {
+                  <span class="text-gray-500 font-normal">/ {{ inventario.horario | titlecase }}</span>
+                }
+              </h3>
+              <p class="text-sm text-gray-600 mt-1">
+                {{ inventario.fecha }}
+              </p>
+            </div>
+            <app-status-badge [activo]="inventario.estado === 'completado'" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-sm">
+            <div>
+              <p class="text-gray-500">Items</p>
+              <p class="font-medium text-gray-900">{{ inventario.items.length }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500">Responsable</p>
+              <p class="font-medium text-gray-900">ID: {{ inventario.responsable_id }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500">Iniciado</p>
+              <p class="font-medium text-gray-900">{{ inventario.iniciado_en }}</p>
+            </div>
+            @if (inventario.completado_en) {
+              <div>
+                <p class="text-gray-500">Completado</p>
+                <p class="font-medium text-gray-900">{{ inventario.completado_en }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Acciones de admin -->
+          @if (puedeEliminar(inventario)) {
+            <div class="mt-4 flex gap-2">
+              <button
+                (click)="eliminarConteo(inventario); $event.stopPropagation()"
+                class="inline-flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+              >
+                <app-icon name="trash" />
+                Eliminar
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Paginación -->
+    <div class="px-6 py-4 border-t border-gray-100">
+      <app-pagination
+        [page]="paginaActual()"
+        [pageSize]="50"
+        [total]="total()"
+        (pageChange)="cambiarPagina($event)"
+      />
+    </div>
+  }
+</app-list-card>
