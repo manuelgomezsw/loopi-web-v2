@@ -153,8 +153,7 @@
             <div class="flex items-start justify-between mb-3">
               <div>
                 <h4 class="font-medium text-gray-900">{{ item.nombre }}</h4>
-                <p class="text-sm text-gray-500">Sugerido: {{ item.valor_sugerido }}{{ item.unidad_medida ? ' ' + item.unidad_medida : '' }}</p>
-                <p class="text-sm text-gray-500 mt-1">Esperado: {{ item.valor_esperado }}{{ item.unidad_medida ? ' ' + item.unidad_medida : '' }}</p>
+                <p class="text-sm text-gray-500">Esperado: {{ item.valor_esperado }}{{ item.unidad_medida ? ' ' + item.unidad_medida : '' }}</p>
               </div>
               <!-- Badge de Diferencia per RF-INV-02.3 (BUG-018: Patrón Operativo Neutral) -->
               @if (item.diferencia !== null && item.diferencia !== undefined) {
