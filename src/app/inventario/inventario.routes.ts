@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { InventarioConteoComponent } from './inventario-conteo.component';
 import { InventarioHistorialComponent } from './inventario-historial.component';
 import { InventarioDetalleComponent } from './inventario-detalle.component';
+import { RealizarConteoComponent } from './realizar-conteo/realizar-conteo.component';
 
 export const InventarioRoutes: Routes = [
   {
@@ -21,6 +22,11 @@ export const InventarioRoutes: Routes = [
         path: 'detalle/:id',
         component: InventarioDetalleComponent,
         data: { title: 'Detalle de Conteo' }
+      },
+      {
+        path: ':id/realizar',
+        component: RealizarConteoComponent,
+        data: { title: 'Registrar Valores - Conteo' }
       },
       {
         path: '',
