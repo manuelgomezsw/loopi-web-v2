@@ -1,158 +1,145 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { RealizarConteoService } from './services/realizar-conteo.service';
-import { ItemDetalle, ResumenProgreso } from './models';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { InventarioService, InventarioResp } from '../inventario.service';
+import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-realizar-conteo',
   templateUrl: './realizar-conteo.component.html',
   styleUrls: ['./realizar-conteo.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    FormsModule,
+    FormCardComponent,
+    PageHeaderComponent
+  ]
 })
-export class RealizarConteoComponent implements OnInit {
-  inventarioID!: string;
-  items: ItemDetalle[] = [];
-  currentIndex: number = 0;
-  progreso: ResumenProgreso = {
-    total_items: 0,
-    completados: 0,
-    pendientes: 0,
-    porcentaje_progreso: 0,
-  };
-  autosaving: boolean = false;
-  error: string | null = null;
-  loading: boolean = true;
+export class RealizarConteoComponent implements OnInit, OnDestroy {
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  inventarioActual: InventarioResp | null = null;
+  valoresRegistrados = new Map<number, number>();
+  itemErrors = new Map<number, string>();
+  loadingItems = new Set<number>();
+
+  private destroy$ = new Subject<void>();
 
   constructor(
+    private inventarioService: InventarioService,
     private route: ActivatedRoute,
-    private router: Router,
-    private service: RealizarConteoService
+    private router: Router
   ) {}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      this.inventarioID = params['id'];
-      this.cargarItems();
+      const inventarioId = parseInt(params['id'], 10);
+      this.cargarInventario(inventarioId);
     });
   }
 
-  cargarItems(): void {
-    this.loading = true;
-    this.service.getPrecargaItems(this.inventarioID).subscribe({
-      next: (data) => {
-        this.items = data.items;
-        this.progreso = data.resumen;
-        this.loading = false;
-        this.irAlPrimeroSinRegistro();
-      },
-      error: (err) => {
-        this.error = 'Error al cargar items';
-        this.loading = false;
-        console.error('Error:', err);
-      },
-    });
-  }
-
-  registrarValor(itemID: number, valor: number | null): void {
-    if (valor === null || valor === undefined) {
-      return;
-    }
-
-    if (valor < 0) {
-      this.error = 'El valor debe ser 0 o mayor';
-      return;
-    }
-
-    this.autosaving = true;
-    this.error = null;
-
-    this.service
-      .registrarValor(this.inventarioID, String(itemID), { valor_real: valor })
+  private cargarInventario(inventarioId: number): void {
+    this.inventarioService.getInventario(inventarioId)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          const item = this.items.find((i) => i.item_id === itemID);
-          if (item) {
-            item.valor_real = response.valor_real;
-            item.diferencia = response.diferencia;
-            item.completado = true;
-          }
-          this.autosaving = false;
-          this.actualizarProgreso();
-          this.siguienteItem();
+        next: (data) => {
+          this.inventarioActual = data;
+          this.precargarvValoresReales();
+          this.cdr.markForCheck();
         },
         error: (err) => {
-          this.autosaving = false;
-          this.error =
-            err.error?.mensaje || 'Error al guardar el valor';
-          console.error('Error:', err);
-        },
+          console.error('Error cargando inventario:', err);
+          this.router.navigate(['/inventario']);
+        }
       });
   }
 
-  irAlPrimeroSinRegistro(): void {
-    this.currentIndex = this.items.findIndex((i) => !i.completado);
-    if (this.currentIndex === -1) {
-      this.currentIndex = this.items.length;
+  private precargarvValoresReales(): void {
+    if (!this.inventarioActual) return;
+    this.inventarioActual.items.forEach(item => {
+      if (item.valor_real !== null && item.valor_real !== undefined) {
+        this.valoresRegistrados.set(item.item_id, item.valor_real);
+      }
+    });
+  }
+
+  registrarValor(itemId: number, valor: number): void {
+    if (!this.inventarioActual) return;
+
+    // Validación: rechazar valores negativos (RF-INV-02.1)
+    if (valor < 0) {
+      this.itemErrors.set(itemId, 'La cantidad no puede ser negativa. Ingrese un valor mayor o igual a 0.');
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.loadingItems.add(itemId);
+    this.itemErrors.delete(itemId);
+
+    this.inventarioService.registrarValorReal(this.inventarioActual.id, itemId, valor)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.valoresRegistrados.set(itemId, valor);
+          this.itemErrors.delete(itemId);
+          const item = this.inventarioActual!.items.find(i => i.item_id === itemId);
+          if (item) {
+            item.valor_real = data.valor_real;
+            item.diferencia = data.diferencia;
+          }
+          this.loadingItems.delete(itemId);
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.mensaje || 'Error al registrar valor';
+          this.itemErrors.set(itemId, errorMsg);
+          this.loadingItems.delete(itemId);
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  reintentar(itemId: number): void {
+    const valor = this.valoresRegistrados.get(itemId);
+    if (valor !== undefined) {
+      this.registrarValor(itemId, valor);
     }
   }
 
-  siguienteItem(): void {
-    this.currentIndex++;
-    if (this.currentIndex < this.items.length) {
-      this.irAlPrimeroSinRegistro();
-    }
+  todosRegistrados(): boolean {
+    if (!this.inventarioActual) return false;
+    return this.inventarioActual.items.every(
+      item => item.valor_real !== null &&
+              item.valor_real !== undefined &&
+              item.valor_real >= 0
+    );
   }
 
-  actualizarProgreso(): void {
-    this.progreso.completados = this.items.filter(
-      (i) => i.completado
-    ).length;
-    this.progreso.pendientes = this.items.length - this.progreso.completados;
-    this.progreso.porcentaje_progreso =
-      this.items.length > 0
-        ? (this.progreso.completados / this.items.length) * 100
-        : 0;
+  tieneValoresNegativos(): boolean {
+    if (!this.inventarioActual || !this.inventarioActual.items) return false;
+    return this.inventarioActual.items.some(
+      item => item.valor_real !== null && item.valor_real !== undefined && item.valor_real < 0
+    );
   }
 
   pausar(): void {
-    this.router.navigate([`/inventarios/${this.inventarioID}`]);
+    if (this.inventarioActual) {
+      this.router.navigate(['/inventario', this.inventarioActual.id, 'resumen']);
+    }
   }
 
   cancelar(): void {
-    this.router.navigate(['/inventarios']);
-  }
-
-  getDiferenciaPorcentaje(item: ItemDetalle): number | null {
-    if (item.diferencia === null || item.valor_esperado === 0) {
-      return null;
-    }
-    return (item.diferencia / item.valor_esperado) * 100;
-  }
-
-  getDiferenciaClass(item: ItemDetalle): string {
-    const pct = this.getDiferenciaPorcentaje(item);
-    if (pct === null) return '';
-    const absPct = Math.abs(pct);
-    if (absPct > 10) return 'badge-rojo';
-    if (absPct <= 10) return 'badge-amarillo';
-    return '';
-  }
-
-  getCurrentItem(): ItemDetalle | undefined {
-    return this.items[this.currentIndex];
-  }
-
-  hayItemsPendientes(): boolean {
-    return this.currentIndex < this.items.length;
-  }
-
-  retentarGuardar(): void {
-    const item = this.getCurrentItem();
-    if (item) {
-      this.registrarValor(item.item_id, item.valor_real);
-    }
+    this.router.navigate(['/inventario']);
   }
 }
