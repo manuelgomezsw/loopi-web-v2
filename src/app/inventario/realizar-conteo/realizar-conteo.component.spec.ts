@@ -7,8 +7,6 @@ import { of } from 'rxjs';
 describe('RealizarConteoComponent', () => {
   let component: RealizarConteoComponent;
   let fixture: ComponentFixture<RealizarConteoComponent>;
-  let service: RealizarConteoService;
-  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -32,8 +30,6 @@ describe('RealizarConteoComponent', () => {
 
     fixture = TestBed.createComponent(RealizarConteoComponent);
     component = fixture.componentInstance;
-    service = TestBed.inject(RealizarConteoService);
-    router = TestBed.inject(Router);
   });
 
   it('should create', () => {
