@@ -24,7 +24,7 @@ describe('IniciarConteoComponent', () => {
       of({ tipo: 'diario', horario: 'apertura' })
     );
     mockInventarioService.getEstadoInventarioActivo.and.returnValue(
-      of({ activo: false, inventario: null })
+      of({ activo: false })
     );
 
     await TestBed.configureTestingModule({
