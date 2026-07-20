@@ -14,7 +14,9 @@ import { ItemDetalle, ResumenProgreso } from './models';
 })
 export class RealizarConteoComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private router = inject(Router);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private service = inject(RealizarConteoService);
 
   inventarioID!: string;
