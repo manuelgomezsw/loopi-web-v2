@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RealizarConteoComponent } from './realizar-conteo.component';
 import { RealizarConteoService } from './services/realizar-conteo.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,7 +11,7 @@ describe('RealizarConteoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RealizarConteoComponent],
+      imports: [RealizarConteoComponent, HttpClientTestingModule],
       providers: [
         RealizarConteoService,
         {
