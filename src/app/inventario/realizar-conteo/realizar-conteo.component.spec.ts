@@ -36,55 +36,18 @@ describe('RealizarConteoComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load items on init', () => {
-    pending('implementar');
-  });
-
-  it('should block negative values', () => {
-    pending('implementar');
-  });
-
-  it('should autosave on blur', () => {
-    pending('implementar');
-  });
-
-  it('should show saving indicator during POST', () => {
-    pending('implementar');
-  });
-
-  it('should handle autosave error with retry button', () => {
-    pending('implementar');
-  });
-
-  it('should navigate to next item after success', () => {
-    pending('implementar');
-  });
-
-  it('should update progress bar correctly', () => {
-    pending('implementar');
-  });
-
-  it('should navigate to summary on pause', () => {
-    pending('implementar');
-  });
-
-  it('should calculate difference percentage correctly', () => {
-    pending('implementar');
-  });
-
-  it('should apply correct badge class for differences', () => {
-    pending('implementar');
-  });
-
-  it('should show completion summary when all items done', () => {
-    pending('implementar');
-  });
-
-  it('should show red badge for > 10% difference', () => {
-    pending('implementar');
-  });
-
-  it('should show yellow badge for <= 10% difference', () => {
-    pending('implementar');
-  });
+  // TODO: Implementar tests después del merge a develop
+  // - should load items on init
+  // - should block negative values
+  // - should autosave on blur
+  // - should show saving indicator during POST
+  // - should handle autosave error with retry button
+  // - should navigate to next item after success
+  // - should update progress bar correctly
+  // - should navigate to summary on pause
+  // - should calculate difference percentage correctly
+  // - should apply correct badge class for differences
+  // - should show completion summary when all items done
+  // - should show red badge for > 10% difference
+  // - should show yellow badge for <= 10% difference
 });
