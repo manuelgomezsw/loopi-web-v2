@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { InventarioService, SugerenciaResp, InventarioResp } from './inventario.service';
+import { InventarioService, SugerenciaResp } from './inventario.service';
 import { FormCardComponent } from '../shared/components/form-card/form-card.component';
 import { PageHeaderComponent } from '../shared/components/page-header/page-header.component';
 
@@ -25,10 +25,9 @@ import { PageHeaderComponent } from '../shared/components/page-header/page-heade
 export class InventarioConteoComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
 
   sugerencia: SugerenciaResp | null = null;
-  inventarioActual: InventarioResp | null = null;
-  step: 'select' | 'register' | 'confirm' | 'complete' = 'select';
 
   formData = {
     tienda_id: 1,
@@ -37,12 +36,6 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
   };
 
   formulario!: FormGroup;
-  valoresRegistrados = new Map<number, number>();
-  itemErrors = new Map<number, string>();
-  loadingItems = new Set<number>();
-  confirmationError = '';
-  itemsSinRegistrar: number[] = [];
-  isConfirming = false;
   loadingSugerencia = true;
   sugerenciaError = '';
   iniciarConteoError = '';
@@ -137,12 +130,8 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           if (data.estado === 'en_progreso') {
-            this.inventarioActual = data;
-            this.formData.tipo = data.tipo;
-            this.formData.horario = data.horario;
-            this.step = 'register';
-            this.precargarvValoresReales();
-            this.cdr.markForCheck();
+            // Feature 018 solo inicia conteos. Feature 019 (realizar-conteo) maneja sesiones en progreso.
+            this.router.navigate(['/inventario', data.id, 'realizar']);
           } else {
             this.loadSugerencia();
           }
@@ -154,14 +143,6 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       });
   }
 
-  precargarvValoresReales(): void {
-    if (!this.inventarioActual) return;
-    this.inventarioActual.items.forEach(item => {
-      if (item.valor_real !== null && item.valor_real !== undefined) {
-        this.valoresRegistrados.set(item.item_id, item.valor_real);
-      }
-    });
-  }
 
   iniciarConteo(): void {
     if (!this.formulario.valid) return;
@@ -206,10 +187,9 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.inventarioActual = data;
-          this.step = 'register';
           this.iniciarConteoLoading = false;
-          this.cdr.markForCheck();
+          // Feature 018 solo inicia el conteo. Feature 019 (realizar-conteo) maneja el registro de valores.
+          this.router.navigate(['/inventario', data.id, 'realizar']);
         },
         error: (err) => {
           this.iniciarConteoLoading = false;
@@ -229,10 +209,9 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.inventarioActual = data;
-          this.step = 'register';
           this.iniciarConteoLoading = false;
-          this.cdr.markForCheck();
+          // Redirigir a feature 019 (realizar-conteo) para registrar valores.
+          this.router.navigate(['/inventario', data.id, 'realizar']);
         },
         error: (err) => {
           this.iniciarConteoLoading = false;
@@ -249,103 +228,4 @@ export class InventarioConteoComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  registrarValor(itemId: number, valor: number): void {
-    if (!this.inventarioActual) return;
-
-    // Validación: rechazar valores negativos (RF-INV-02.1 BUG-020)
-    if (valor < 0) {
-      this.itemErrors.set(itemId, 'La cantidad no puede ser negativa. Ingrese un valor mayor o igual a 0.');
-      this.cdr.markForCheck();
-      return;
-    }
-
-    this.loadingItems.add(itemId);
-    this.itemErrors.delete(itemId);
-
-    this.inventarioService.registrarValorReal(this.inventarioActual.id, itemId, valor)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
-          this.valoresRegistrados.set(itemId, valor);
-          this.itemErrors.delete(itemId);
-          const item = this.inventarioActual!.items.find(i => i.item_id === itemId);
-          if (item) {
-            item.valor_real = data.valor_real;
-            item.diferencia = data.diferencia;
-          }
-          this.loadingItems.delete(itemId);
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          const errorMsg = this.getErrorMessage(err);
-          this.itemErrors.set(itemId, errorMsg);
-          this.loadingItems.delete(itemId);
-          this.cdr.markForCheck();
-        }
-      });
-  }
-
-  reintentar(itemId: number): void {
-    const valor = this.valoresRegistrados.get(itemId);
-    if (valor !== undefined) {
-      this.registrarValor(itemId, valor);
-    }
-  }
-
-  confirmarConteo(): void {
-    if (!this.inventarioActual) return;
-
-    this.isConfirming = true;
-    this.confirmationError = '';
-    this.itemsSinRegistrar = [];
-
-    this.inventarioService.confirmarConteo(this.inventarioActual.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
-          this.inventarioActual = data;
-          this.isConfirming = false;
-          this.step = 'complete';
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          this.isConfirming = false;
-          const status = err?.status;
-          const errorCode = err?.error?.error;
-
-          if (status === 422 && errorCode === 'items_sin_registrar') {
-            this.itemsSinRegistrar = err.error?.detalles?.items_sin_registrar || [];
-            this.confirmationError = this.getErrorMessage(err);
-            this.step = 'register';
-          } else {
-            this.confirmationError = this.getErrorMessage(err);
-          }
-          this.cdr.markForCheck();
-        }
-    });
-  }
-
-  todosRegistrados(): boolean {
-    if (!this.inventarioActual) return false;
-    return this.inventarioActual.items.every(
-      item => item.valor_real !== null &&
-              item.valor_real !== undefined &&
-              item.valor_real >= 0 // BUG-020: No permitir valores negativos
-    );
-  }
-
-  tieneValoresNegativos(): boolean {
-    if (!this.inventarioActual || !this.inventarioActual.items) return false;
-    return this.inventarioActual.items.some(
-      item => item.valor_real !== null && item.valor_real !== undefined && item.valor_real < 0
-    );
-  }
-
-  volver(): void {
-    if (this.step === 'register') {
-      this.step = 'select';
-    } else if (this.step === 'confirm') {
-      this.step = 'register';
-    }
-  }
 }
