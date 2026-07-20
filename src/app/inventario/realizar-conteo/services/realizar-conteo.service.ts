@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
@@ -9,9 +9,8 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class RealizarConteoService {
+  private http = inject(HttpClient);
   private apiUrl = '/api/v1/inventarios';
-
-  constructor(private http: HttpClient) {}
 
   getPrecargaItems(inventarioID: string): Observable<PrecargaResponse> {
     return this.http.get<PrecargaResponse>(

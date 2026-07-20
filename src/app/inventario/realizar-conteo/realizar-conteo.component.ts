@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,24 +13,22 @@ import { ItemDetalle, ResumenProgreso } from './models';
   imports: [CommonModule, FormsModule],
 })
 export class RealizarConteoComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private service = inject(RealizarConteoService);
+
   inventarioID!: string;
   items: ItemDetalle[] = [];
-  currentIndex: number = 0;
+  currentIndex = 0;
   progreso: ResumenProgreso = {
     total_items: 0,
     completados: 0,
     pendientes: 0,
     porcentaje_progreso: 0,
   };
-  autosaving: boolean = false;
+  autosaving = false;
   error: string | null = null;
-  loading: boolean = true;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private service: RealizarConteoService
-  ) {}
+  loading = true;
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
