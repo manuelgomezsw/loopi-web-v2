@@ -87,7 +87,7 @@ export const NAV_ITEMS: NavItem[] = [
         id: 'iniciar-conteo',
         label: 'Iniciar Conteo',
         icon: 'document-plus',
-        route: '/inventario/conteo',
+        route: '/inventario/iniciar',
         roles: ['admin', 'lider_tienda', 'barista'],
         orden: 1,
       },

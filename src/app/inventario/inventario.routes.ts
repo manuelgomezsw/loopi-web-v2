@@ -9,9 +9,9 @@ export const InventarioRoutes: Routes = [
     path: '',
     children: [
       {
-        path: 'conteo',
+        path: 'iniciar',
         component: InventarioConteoComponent,
-        data: { title: 'Conteo de Inventario' }
+        data: { title: 'Iniciar Conteo de Inventario' }
       },
       {
         path: 'historial',
@@ -30,7 +30,7 @@ export const InventarioRoutes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'conteo',
+        redirectTo: 'iniciar',
         pathMatch: 'full'
       }
     ]
