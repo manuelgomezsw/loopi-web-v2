@@ -105,13 +105,6 @@
     <!-- Botones de acción -->
     <div class="flex gap-3 border-t border-gray-200 pt-6">
       <button
-        (click)="pausar()"
-        type="button"
-        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-      >
-        Pausar
-      </button>
-      <button
         (click)="cancelar()"
         type="button"
         class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
@@ -119,12 +112,12 @@
         Cancelar
       </button>
       <button
-        (click)="pausar()"
+        (click)="irAConfirmacion()"
         [disabled]="!todosRegistrados()"
         type="button"
         class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
       >
-        Ir a Resumen
+        Continuar a Confirmación
       </button>
     </div>
   </app-form-card>

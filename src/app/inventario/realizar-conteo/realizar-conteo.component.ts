@@ -133,13 +133,13 @@ export class RealizarConteoComponent implements OnInit, OnDestroy {
     );
   }
 
-  pausar(): void {
+  irAConfirmacion(): void {
     if (this.inventarioActual) {
-      this.router.navigate(['/inventario', this.inventarioActual.id, 'resumen']);
+      this.router.navigate(['/inventario', this.inventarioActual.id, 'confirmar']);
     }
   }
 
   cancelar(): void {
-    this.router.navigate(['/inventario']);
+    this.router.navigate(['/inventario/iniciar']);
   }
 }
