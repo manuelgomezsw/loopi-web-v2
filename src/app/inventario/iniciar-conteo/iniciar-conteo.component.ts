@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { InventarioService, SugerenciaResp, InventarioResp } from '../inventario.service';
@@ -26,7 +26,6 @@ export class IniciarConteoComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly inventarioService = inject(InventarioService);
 
   sugerencia: SugerenciaResp | null = null;
@@ -169,7 +168,6 @@ export class IniciarConteoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.inventarioActual = data;
           this.iniciarConteoLoading = false;
           this.router.navigate(['/inventario', data.id, 'realizar']);
           this.cdr.markForCheck();
@@ -192,7 +190,6 @@ export class IniciarConteoComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.inventarioActual = data;
           this.iniciarConteoLoading = false;
           this.router.navigate(['/inventario', data.id, 'realizar']);
           this.cdr.markForCheck();
@@ -210,14 +207,6 @@ export class IniciarConteoComponent implements OnInit, OnDestroy {
     this.mostrarModalConflicto = false;
     this.estadoConflicto = null;
     this.cdr.markForCheck();
-  }
-
-  private get inventarioActual(): InventarioResp | null {
-    return null;
-  }
-
-  private set inventarioActual(_value: InventarioResp) {
-    // Setter para compatibilidad
   }
 
   private getErrorMessage(err: { error?: { mensaje?: string } }): string {
