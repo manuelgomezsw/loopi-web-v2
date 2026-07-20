@@ -8,7 +8,6 @@ import { CompletarConteoService } from './completar-conteo.service';
 describe('CompletarConteoComponent', () => {
   let component: CompletarConteoComponent;
   let fixture: ComponentFixture<CompletarConteoComponent>;
-  let service: CompletarConteoService;
 
   beforeEach(
     waitForAsync(() => {
@@ -34,7 +33,6 @@ describe('CompletarConteoComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(CompletarConteoComponent);
     component = fixture.componentInstance;
-    service = TestBed.inject(CompletarConteoService);
   });
 
   it('should create', () => {

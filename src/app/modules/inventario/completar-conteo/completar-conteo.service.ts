@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ConfirmarResponse, ConfirmarRequest, ErrorResponse } from './completar-conteo.model';
+import { ConfirmarResponse, ConfirmarRequest } from './completar-conteo.model';
 
 @Injectable({
   providedIn: 'root',
