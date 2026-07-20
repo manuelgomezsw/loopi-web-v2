@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { InventarioConteoComponent } from './inventario-conteo.component';
-import { InventarioService, InventarioResp, ItemDetailResp } from './inventario.service';
-import { ActivatedRoute } from '@angular/router';
+import { InventarioService } from './inventario.service';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-const mockInventarioResp: InventarioResp = {
+const mockInventarioResp = {
   id: 1,
   tienda_id: 1,
   fecha: '2026-07-13',
@@ -27,48 +27,25 @@ const mockInventarioResp: InventarioResp = {
   ]
 };
 
-const mockItemResp: ItemDetailResp = {
-  id: 1,
-  item_id: 100,
-  nombre: 'Item Test',
-  unidad_medida: 'unidades',
-  valor_esperado: 10.0,
-  valor_real: 12.5,
-  diferencia: 2.5
-};
-
-const mockCompletedResp: InventarioResp = {
-  id: 1,
-  tienda_id: 1,
-  fecha: '2026-07-13',
-  tipo: 'diario',
-  horario: 'apertura',
-  estado: 'completado',
-  responsable_id: 10,
-  iniciado_en: '2026-07-13T06:00:00',
-  completado_en: '2026-07-13T07:00:00',
-  items: []
-};
-
 describe('InventarioConteoComponent', () => {
   let component: InventarioConteoComponent;
   let fixture: ComponentFixture<InventarioConteoComponent>;
   let inventarioService: jasmine.SpyObj<InventarioService>;
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('InventarioService', [
+    const serviceSpy = jasmine.createSpyObj('InventarioService', [
       'getSugerencia',
       'iniciarConteo',
-      'registrarValorReal',
-      'confirmarConteo',
       'getInventario',
       'getEstadoInventarioActivo'
     ]);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [InventarioConteoComponent],
       providers: [
-        { provide: InventarioService, useValue: spy },
+        { provide: InventarioService, useValue: serviceSpy },
+        { provide: Router, useValue: routerSpy },
         {
           provide: ActivatedRoute,
           useValue: { queryParams: of({}) }
@@ -97,7 +74,9 @@ describe('InventarioConteoComponent', () => {
     expect(inventarioService.getSugerencia).toHaveBeenCalled();
   });
 
-  it('should iniciar conteo', fakeAsync(() => {
+  it('should iniciar conteo and navigate to realizar-conteo', fakeAsync(() => {
+    const router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
     // Setup form with valid values
     component.formulario.patchValue({
       tipo: 'diario',
@@ -112,11 +91,11 @@ describe('InventarioConteoComponent', () => {
     tick();
 
     expect(inventarioService.iniciarConteo).toHaveBeenCalled();
-    expect(component.step).toBe('register');
-    expect(component.inventarioActual).toBe(mockInventarioResp);
+    // Feature 018 redirects to feature 019 (realizar-conteo) to register values
+    expect(router.navigate).toHaveBeenCalledWith(['/inventario', 1, 'realizar']);
   }));
 
-  it('should handle error when iniciando conteo (409 duplicate)', fakeAsync(() => {
+  it('should handle error when iniciando conteo', fakeAsync(() => {
     // Setup form with valid values
     component.formulario.patchValue({
       tipo: 'diario',
@@ -130,7 +109,7 @@ describe('InventarioConteoComponent', () => {
     inventarioService.iniciarConteo.and.returnValue(
       throwError(() => ({
         status: 409,
-        error: { error: 'conteo_duplicado', mensaje: 'Ya existe un conteo en progreso para esta tienda, tipo y horario en esta fecha' }
+        error: { error: 'conteo_duplicado', mensaje: 'Ya existe un conteo en progreso' }
       }))
     );
 
@@ -139,58 +118,5 @@ describe('InventarioConteoComponent', () => {
 
     expect(component.iniciarConteoLoading).toBeFalsy();
     expect(component.iniciarConteoError).toBeTruthy();
-    expect(component.step).toBe('select');
   }));
-
-  it('should registrar valor with error recovery', () => {
-    component.inventarioActual = mockInventarioResp;
-
-    // MUST mock BEFORE calling method
-    inventarioService.registrarValorReal.and.returnValue(of(mockItemResp));
-
-    component.registrarValor(100, 12.5);
-
-    expect(component.itemErrors.has(100)).toBeFalsy();
-  });
-
-  it('should handle registrar error with retry', () => {
-    component.inventarioActual = mockInventarioResp;
-
-    // MUST mock BEFORE calling method
-    inventarioService.registrarValorReal.and.returnValue(
-      throwError(() => ({
-        error: { mensaje: 'Network error' }
-      }))
-    );
-
-    component.registrarValor(100, 12.5);
-
-    expect(component.itemErrors.has(100)).toBeTruthy();
-  });
-
-  it('should confirmar conteo', () => {
-    // MUST mock BEFORE calling method
-    inventarioService.confirmarConteo.and.returnValue(of(mockCompletedResp));
-
-    component.inventarioActual = mockInventarioResp;
-    component.confirmarConteo();
-
-    expect(component.step).toBe('complete');
-  });
-
-  it('should handle items sin registrar error', () => {
-    // MUST mock BEFORE calling method
-    inventarioService.confirmarConteo.and.returnValue(
-      throwError(() => ({
-        status: 422,
-        error: { error: 'items_sin_registrar', detalles: { items_sin_registrar: [100] } }
-      }))
-    );
-
-    component.inventarioActual = mockInventarioResp;
-    component.step = 'confirm';
-    component.confirmarConteo();
-
-    expect(component.itemsSinRegistrar.length).toBeGreaterThan(0);
-  });
 });

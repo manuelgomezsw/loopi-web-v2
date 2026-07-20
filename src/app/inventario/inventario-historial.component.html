@@ -3,7 +3,7 @@
   <app-page-header title="Historial de Inventarios">
     <a
       slot="actions"
-      routerLink="/inventario/conteo"
+      routerLink="/inventario/iniciar"
       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
     >
       <app-icon name="plus" />
@@ -82,7 +82,7 @@
       title="No hay conteos registrados"
       description="Comienza creando tu primer conteo de inventario."
       actionLabel="Nuevo Conteo"
-      (action)="router.navigate(['/inventario/conteo'])"
+      (action)="router.navigate(['/inventario/iniciar'])"
     />
   }
 

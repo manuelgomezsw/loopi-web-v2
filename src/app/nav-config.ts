@@ -82,6 +82,24 @@ export const NAV_ITEMS: NavItem[] = [
     route: '/inventario',
     roles: ['admin', 'lider_tienda', 'barista'],
     orden: 6,
+    children: [
+      {
+        id: 'iniciar-conteo',
+        label: 'Iniciar Conteo',
+        icon: 'document-plus',
+        route: '/inventario/iniciar',
+        roles: ['admin', 'lider_tienda', 'barista'],
+        orden: 1,
+      },
+      {
+        id: 'historial',
+        label: 'Historial',
+        icon: 'clock',
+        route: '/inventario/historial',
+        roles: ['admin', 'lider_tienda', 'barista'],
+        orden: 2,
+      },
+    ],
   },
   {
     id: 'mermas',
