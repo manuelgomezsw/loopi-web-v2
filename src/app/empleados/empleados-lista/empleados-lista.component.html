@@ -1,0 +1,86 @@
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-white shadow-lg"
+    [class.bg-green-600]="toastTipo() === 'verde'"
+    [class.bg-red-600]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<app-list-card>
+  <app-page-header title="Empleados">
+    <a
+      slot="actions"
+      routerLink="/empleados/nuevo"
+      class="btn-primary"
+    >
+      + Nuevo empleado
+    </a>
+  </app-page-header>
+
+  <div class="mb-4">
+    <label for="busqueda" class="sr-only">Buscar empleados</label>
+    <input
+      id="busqueda"
+      type="search"
+      placeholder="Buscar por nombre o usuario..."
+      [value]="busqueda()"
+      (input)="onBusqueda($any($event.target).value)"
+      class="input-field sm:w-80"
+    />
+  </div>
+
+  <app-filter-bar
+    [filters]="filterDefs"
+    routeKey="/empleados"
+    (filtersChange)="onFilters($event)"
+  />
+
+  @if (errorMsg()) {
+    <p class="mb-4 text-sm text-red-600" role="alert">{{ errorMsg() }}</p>
+  }
+
+  @if (cargando()) {
+    <div class="flex justify-center py-12" aria-label="Cargando empleados">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+    </div>
+  }
+
+  @if (!cargando() && empleados().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay empleados"
+      description="Crea el primer empleado para empezar."
+      actionLabel="+ Nuevo empleado"
+      (action)="router.navigate(['/empleados/nuevo'])"
+    />
+  }
+
+  @if (!cargando() && empleados().length > 0) {
+    <app-data-table
+      [columns]="cols"
+      [rows]="empleados()"
+      (rowClick)="irAEditar($any($event).id)"
+    >
+      <ng-template appCellTemplate="nombre_completo" let-emp>
+        {{ $any(emp).nombre }} {{ $any(emp).apellido }}
+      </ng-template>
+      <ng-template appCellTemplate="tienda_id" let-emp>
+        {{ $any(emp).tienda_id ?? '—' }}
+      </ng-template>
+      <ng-template appCellTemplate="activo" let-emp>
+        <app-status-badge [activo]="$any(emp).activo" />
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination
+      [page]="pagina()"
+      [pageSize]="limit"
+      [total]="total()"
+      (pageChange)="onPage($event)"
+    />
+  }
+</app-list-card>

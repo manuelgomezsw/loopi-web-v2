@@ -1,0 +1,76 @@
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<app-list-card>
+  <app-page-header title="Unidades de medida">
+    <a
+      slot="actions"
+      routerLink="./nueva"
+      class="btn-primary"
+    >
+      + Nueva unidad de medida
+    </a>
+  </app-page-header>
+
+  <app-filter-bar
+    [filters]="filterDefs"
+    routeKey="/unidades-medida"
+    (filtersChange)="onFilters($event)"
+  />
+
+  @if (errorMsg()) {
+    <div class="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm mb-4" role="alert">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="text-sm text-gray-500 py-8 text-center" aria-busy="true">Cargando unidades…</div>
+  }
+
+  @if (!cargando() && unidades().length === 0 && !errorMsg()) {
+    <app-empty-state
+      title="No hay unidades de medida"
+      description="Crea la primera unidad para empezar."
+      actionLabel="+ Nueva unidad"
+      (action)="router.navigate(['/unidades-medida/nueva'])"
+    />
+  }
+
+  @if (!cargando() && unidades().length > 0) {
+    <app-data-table
+      [columns]="cols"
+      [rows]="unidades()"
+      (rowClick)="irAEditar($any($event).id)"
+    >
+      <ng-template appCellTemplate="codigo" let-row>
+        <span class="font-mono font-medium text-gray-800">{{ $any(row).codigo }}</span>
+      </ng-template>
+      <ng-template appCellTemplate="tipo_medida" let-row>
+        <span class="capitalize">{{ $any(row).tipo_medida }}</span>
+      </ng-template>
+      <ng-template appCellTemplate="activo" let-row>
+        <app-status-badge [activo]="$any(row).activo" />
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination
+      [page]="pagina()"
+      [pageSize]="limit"
+      [total]="total()"
+      (pageChange)="onPage($event)"
+    />
+  }
+</app-list-card>

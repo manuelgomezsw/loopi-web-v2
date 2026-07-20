@@ -1,0 +1,128 @@
+<!-- Overlay: solo en móvil cuando el sidebar está abierto -->
+@if (isOpen) {
+  <div
+    class="fixed inset-0 z-40 bg-black/50 sm:hidden"
+    (click)="cerrar()"
+    aria-hidden="true"
+  ></div>
+}
+
+<!-- Sidebar -->
+<nav
+  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-lg
+         transition-transform duration-200 ease-in-out transition-[width]
+         w-64 sm:relative sm:h-full sm:translate-x-0 sm:shadow-none sm:w-16
+         lg:w-64"
+  [class.translate-x-0]="isOpen"
+  [class.-translate-x-full]="!isOpen"
+  [class.sm:translate-x-0]="true"
+  [class.lg:w-16]="collapsed"
+  [class.lg:w-64]="!collapsed"
+  role="navigation"
+  aria-label="Menú principal"
+>
+  <!-- Cabecera del sidebar (solo mobile) -->
+  <div class="flex items-center justify-between p-4 sm:hidden">
+    <span class="text-lg font-semibold text-gray-800">Loopi</span>
+    <button
+      type="button"
+      class="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      (click)="cerrar()"
+      aria-label="Cerrar menú"
+    >
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Logo desktop (lg:) — h-16 para alinear con el border-b del topbar -->
+  <div class="hidden lg:flex items-center h-16 shrink-0 px-4 border-b border-gray-100">
+    <span class="text-xl font-bold text-blue-600" [class.lg:hidden]="collapsed">Loopi</span>
+    <span class="hidden text-xl font-bold text-blue-600" [class.lg:block]="collapsed">L</span>
+  </div>
+  <!-- Logo tablet colapsado (sm: sin lg:) — h-16 para alinear con el border-b del topbar -->
+  <div class="hidden sm:flex lg:hidden items-center justify-center h-16 shrink-0 border-b border-gray-100">
+    <span class="text-xl font-bold text-blue-600">L</span>
+  </div>
+
+  <!-- Ítems de menú -->
+  <ul class="flex-1 overflow-y-auto px-2 py-2 space-y-1" role="list">
+    @for (item of navItems(); track trackById($index, item)) {
+      <li>
+        @if (item.children && item.children.length > 0) {
+          <!-- Ítem con sub-menú -->
+          <button
+            type="button"
+            (click)="toggleExpanded(item.id)"
+            class="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [attr.aria-expanded]="isExpanded(item.id)"
+            [attr.aria-label]="item.label"
+            [attr.title]="item.label"
+          >
+            <app-icon [name]="item.icon" />
+            <span class="truncate flex-1 text-left sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ item.label }}</span>
+            <svg
+              class="h-4 w-4 shrink-0 transition-transform sm:hidden lg:block"
+              [class.lg:hidden]="collapsed"
+              [class.rotate-180]="isExpanded(item.id)"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Sub-ítems -->
+          @if (isExpanded(item.id)) {
+            <ul class="mt-1 ml-4 space-y-1 border-l border-gray-100 pl-3" role="list">
+              @for (child of item.children; track child.id) {
+                <li>
+                  <a
+                    [routerLink]="child.route"
+                    routerLinkActive="bg-blue-50 text-blue-700 font-medium"
+                    [routerLinkActiveOptions]="{ exact: false }"
+                    (click)="cerrar()"
+                    class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    [attr.aria-label]="child.label"
+                    [attr.title]="child.label"
+                    #rlaChild="routerLinkActive"
+                    [attr.aria-current]="rlaChild.isActive ? 'page' : null"
+                  >
+                    <app-icon [name]="child.icon" />
+                    <span class="truncate sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ child.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          <!-- Ítem sin sub-menú -->
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-blue-50 text-blue-700 font-medium"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="cerrar()"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [attr.aria-label]="item.label"
+            [attr.title]="item.label"
+            #rla="routerLinkActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+          >
+            <app-icon [name]="item.icon" />
+            <span class="truncate sm:hidden lg:block" [class.lg:hidden]="collapsed">{{ item.label }}</span>
+          </a>
+        }
+      </li>
+    }
+  </ul>
+
+  <!-- Botón colapso: solo desktop -->
+  <button
+    type="button"
+    class="hidden lg:flex items-center justify-center w-full p-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700 border-t border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    (click)="collapseToggled.emit()"
+    [attr.aria-label]="collapsed ? 'Expandir menú' : 'Colapsar menú'"
+  >
+    <app-icon [name]="collapsed ? 'chevron-right' : 'chevron-left'" />
+  </button>
+</nav>

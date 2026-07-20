@@ -1,0 +1,116 @@
+/* stylelint-disable-next-line import/no-unresolved */
+@use "tailwindcss";
+
+@theme {
+  /* Tipografía */
+  --font-sans: "Inter Variable", "Inter", system-ui, sans-serif;
+
+  /* Paleta primaria (marrón cálido) */
+  --color-primary-50: #fdf6f0;
+  --color-primary-100: #fae8d6;
+  --color-primary-200: #f5d0ad;
+  --color-primary-300: #edaf7a;
+  --color-primary-400: #e38545;
+  --color-primary-500: #d9621e;
+  --color-primary-600: #b86b3d;
+  --color-primary-700: #9c5630;
+  --color-primary-800: #80462a;
+  --color-primary-900: #683a26;
+  --color-primary-950: #3d1f12;
+
+  /* Paleta café (tonos oscuros de texto) */
+  --color-coffee-50: #fdf8f5;
+  --color-coffee-100: #f8ede4;
+  --color-coffee-200: #f0d8c4;
+  --color-coffee-300: #e5bc98;
+  --color-coffee-400: #d69568;
+  --color-coffee-500: #c97240;
+  --color-coffee-600: #b85c2a;
+  --color-coffee-700: #994c24;
+  --color-coffee-800: #7a3e22;
+  --color-coffee-900: #64341f;
+  --color-coffee-950: #3a1a0d;
+}
+
+/* Base global */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+  min-height: 100dvh;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ─── Utilidades de componente ──────────────────────────────────────────────
+   Contrato: specs/000-design-system/contracts/utilities.md
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* btn-primary: primary-700 (#9c5630) — contraste 5.5:1 sobre blanco (WCAG 2.1 AA ✅) */
+@utility btn-primary {
+  @apply bg-primary-700 hover:bg-primary-800 text-white text-sm font-medium
+         py-2 px-5 rounded-lg cursor-pointer transition-colors duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed
+         focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2;
+}
+
+/* btn-secondary: primary-700 sobre blanco — 5.5:1 (WCAG 2.1 AA ✅) */
+@utility btn-secondary {
+  @apply bg-transparent hover:bg-primary-50 text-primary-700 text-sm font-medium
+         py-2 px-5 rounded-lg border border-primary-700 cursor-pointer
+         transition-colors duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed
+         focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2;
+}
+
+/* input-field: token canónico para <input> y <textarea>; 16px previene zoom en iOS (WCAG AA ✅) */
+@utility input-field {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-lg bg-white
+         text-gray-900 placeholder-gray-500
+         focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600
+         disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
+         transition-colors duration-200;
+  font-size: 1rem;
+}
+
+/* input-field-error: override de borde y ring para estado de error; se combina con input-field o select-field */
+@utility input-field-error {
+  @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+}
+
+/* select-field: mismo token que input-field + flecha SVG controlada (appearance-none elimina la nativa del browser) */
+@utility select-field {
+  @apply w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg bg-white
+         text-gray-900
+         focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600
+         disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
+         appearance-none cursor-pointer
+         transition-colors duration-200;
+  font-size: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px 20px;
+}
+
+/* card: contenedor de información */
+@utility card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4;
+}
+
+/* chip-subcat: píldora de subcategoría activa en el grid de catálogo */
+@utility chip-subcat {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+         border border-primary-200 bg-primary-50 text-primary-700
+         cursor-pointer hover:bg-primary-100 transition-colors duration-150
+         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1;
+}
+
+/* chip-subcat--inactiva: variante para subcategoría inactiva */
+@utility chip-subcat--inactiva {
+  @apply border-gray-200 bg-gray-100 text-gray-500 opacity-60 hover:opacity-80 hover:bg-gray-200;
+}

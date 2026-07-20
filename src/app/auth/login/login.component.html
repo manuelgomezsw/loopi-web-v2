@@ -1,0 +1,62 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <div class="card w-full max-w-sm p-8">
+    <h1 class="text-2xl font-bold text-coffee-950 mb-6">Iniciar sesión</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="mb-4">
+        <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">
+          Usuario <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="usuario"
+          type="text"
+          class="input-field"
+          [class.border-red-500]="form.get('usuario')?.invalid && form.get('usuario')?.touched"
+          formControlName="usuario"
+          autocomplete="username"
+          [attr.aria-describedby]="errorMensaje ? 'login-error' : null"
+          [attr.aria-invalid]="errorMensaje ? 'true' : null"
+        />
+      </div>
+
+      <div class="mb-6">
+        <label for="contrasena" class="block text-sm font-medium text-gray-700 mb-1">
+          Contraseña <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="contrasena"
+          type="password"
+          class="input-field"
+          [class.border-red-500]="form.get('contrasena')?.invalid && form.get('contrasena')?.touched"
+          formControlName="contrasena"
+          autocomplete="current-password"
+          [attr.aria-describedby]="errorMensaje ? 'login-error' : null"
+          [attr.aria-invalid]="errorMensaje ? 'true' : null"
+        />
+      </div>
+
+      @if (infoMensaje) {
+        <p class="info-message mb-4 text-sm text-blue-600" role="status">{{ infoMensaje }}</p>
+      }
+
+      @if (errorMensaje) {
+        <p id="login-error" class="error-message mb-4 text-sm text-red-600" role="alert">
+          {{ errorMensaje }}
+        </p>
+      }
+
+      <button
+        type="submit"
+        class="btn-primary w-full touch-manipulation"
+        [disabled]="form.invalid || cargando"
+      >
+        @if (cargando) {
+          <span aria-hidden="true">Iniciando sesión…</span>
+          <span class="sr-only">Iniciando sesión, por favor espere</span>
+        } @else {
+          Ingresar
+        }
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,193 @@
+import { Routes } from '@angular/router';
+
+import { authGuard } from './auth/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+
+export const routes: Routes = [
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: '',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./shared/components/shell/shell.component').then(
+        (m) => m.ShellComponent,
+      ),
+    children: [
+      {
+        path: '',
+        redirectTo: 'tiendas',
+        pathMatch: 'full',
+      },
+      {
+        path: 'tiendas',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./tiendas/tiendas-lista/tiendas-lista.component').then(
+            (m) => m.TiendasListaComponent,
+          ),
+      },
+      {
+        path: 'tiendas/nueva',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./tiendas/tienda-form/tienda-form.component').then(
+            (m) => m.TiendaFormComponent,
+          ),
+      },
+      {
+        path: 'tiendas/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./tiendas/tienda-form/tienda-form.component').then(
+            (m) => m.TiendaFormComponent,
+          ),
+      },
+      {
+        path: 'empleados',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./empleados/empleados-lista/empleados-lista.component').then(
+            (m) => m.EmpleadosListaComponent,
+          ),
+      },
+      {
+        path: 'empleados/nuevo',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./empleados/empleado-form/empleado-form.component').then(
+            (m) => m.EmpleadoFormComponent,
+          ),
+      },
+      {
+        path: 'empleados/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./empleados/empleado-form/empleado-form.component').then(
+            (m) => m.EmpleadoFormComponent,
+          ),
+      },
+      {
+        path: 'unidades-medida',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./unidades-medida/unidades-medida-lista/unidades-medida-lista.component').then(
+            (m) => m.UnidadesMedidaListaComponent,
+          ),
+      },
+      {
+        path: 'unidades-medida/nueva',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./unidades-medida/unidad-medida-form/unidad-medida-form.component').then(
+            (m) => m.UnidadMedidaFormComponent,
+          ),
+      },
+      {
+        path: 'unidades-medida/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./unidades-medida/unidad-medida-form/unidad-medida-form.component').then(
+            (m) => m.UnidadMedidaFormComponent,
+          ),
+      },
+      {
+        path: 'categorias',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./categorias/categorias.component').then(
+            (m) => m.CategoriasComponent,
+          ),
+      },
+      {
+        path: 'categorias/nueva',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./categorias/categoria-form/categoria-form.component').then(
+            (m) => m.CategoriaFormComponent,
+          ),
+      },
+      {
+        path: 'categorias/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./categorias/categoria-form/categoria-form.component').then(
+            (m) => m.CategoriaFormComponent,
+          ),
+      },
+      {
+        path: 'proveedores',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./proveedores/proveedores-lista/proveedores-lista.component').then(
+            (m) => m.ProveedoresListaComponent,
+          ),
+      },
+      {
+        path: 'proveedores/nuevo',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./proveedores/proveedor-form/proveedor-form.component').then(
+            (m) => m.ProveedorFormComponent,
+          ),
+      },
+      {
+        path: 'proveedores/:id/editar',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./proveedores/proveedor-form/proveedor-form.component').then(
+            (m) => m.ProveedorFormComponent,
+          ),
+      },
+      {
+        path: 'items',
+        canActivate: [roleGuard(['admin', 'lider_compras', 'lider_tienda', 'barista'])],
+        loadComponent: () =>
+          import('./items/items-lista/items-lista.component').then(
+            (m) => m.ItemsListaComponent,
+          ),
+      },
+      {
+        path: 'items/nuevo',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./items/item-form/item-form.component').then(
+            (m) => m.ItemFormComponent,
+          ),
+      },
+      {
+        // Sirve tanto de formulario de edición (admin) como de vista de detalle de solo
+        // lectura (resto de roles autenticados) — ver FE-LISTFORM-01: una entidad de
+        // catálogo no tiene una pantalla de detalle separada del formulario.
+        path: 'items/:id/editar',
+        canActivate: [roleGuard(['admin', 'lider_compras', 'lider_tienda', 'barista'])],
+        loadComponent: () =>
+          import('./items/item-form/item-form.component').then(
+            (m) => m.ItemFormComponent,
+          ),
+      },
+      {
+        path: 'inventario',
+        canActivate: [roleGuard(['admin', 'lider_tienda', 'barista'])],
+        loadChildren: () =>
+          import('./inventario/inventario.routes').then(
+            (m) => m.InventarioRoutes,
+          ),
+      },
+      {
+        path: 'sin-permiso',
+        loadComponent: () =>
+          import('./shared/components/forbidden/forbidden.component').then(
+            (m) => m.ForbiddenComponent,
+          ),
+      },
+    ],
+  },
+  {
+    path: '**',
+    redirectTo: 'login',
+  },
+];

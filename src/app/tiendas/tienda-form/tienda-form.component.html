@@ -1,0 +1,200 @@
+<!-- Toast -->
+@if (toastMsg()) {
+  <div
+    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg text-sm font-medium"
+    [class.bg-green-100]="toastTipo() === 'verde'"
+    [class.text-green-800]="toastTipo() === 'verde'"
+    [class.bg-red-100]="toastTipo() === 'rojo'"
+    [class.text-red-800]="toastTipo() === 'rojo'"
+    role="alert"
+    aria-live="polite"
+  >
+    {{ toastMsg() }}
+  </div>
+}
+
+<div class="p-6">
+  <app-page-header [title]="modoEdicion() ? 'Editar tienda' : 'Nueva tienda'" />
+
+  <app-form-card size="md">
+    <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="space-y-4">
+
+      <!-- Código -->
+      <div>
+        <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">
+          Código <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="codigo"
+          type="text"
+          formControlName="codigo"
+          maxlength="20"
+          placeholder="TDA-001"
+          class="input-field"
+          [class.input-field-error]="errorDe('codigo')"
+        />
+        @if (errorDe('codigo')) {
+          <p class="text-red-600 text-xs mt-1">{{ errorDe('codigo') }}</p>
+        }
+      </div>
+
+      <!-- Nombre -->
+      <div>
+        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+          Nombre <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="nombre"
+          type="text"
+          formControlName="nombre"
+          maxlength="150"
+          placeholder="Tienda Norte"
+          class="input-field"
+          [class.input-field-error]="errorDe('nombre')"
+        />
+        @if (errorDe('nombre')) {
+          <p class="text-red-600 text-xs mt-1">{{ errorDe('nombre') }}</p>
+        }
+      </div>
+
+      <!-- Dirección -->
+      <div>
+        <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">
+          Dirección <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="direccion"
+          type="text"
+          formControlName="direccion"
+          maxlength="255"
+          placeholder="Calle 100 #20-30"
+          class="input-field"
+          [class.input-field-error]="errorDe('direccion')"
+        />
+        @if (errorDe('direccion')) {
+          <p class="text-red-600 text-xs mt-1">{{ errorDe('direccion') }}</p>
+        }
+      </div>
+
+      <!-- Ciudad -->
+      <div>
+        <label for="ciudad" class="block text-sm font-medium text-gray-700 mb-1">
+          Ciudad <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="ciudad"
+          type="text"
+          formControlName="ciudad"
+          maxlength="100"
+          placeholder="Bogotá"
+          class="input-field"
+          [class.input-field-error]="errorDe('ciudad')"
+        />
+        @if (errorDe('ciudad')) {
+          <p class="text-red-600 text-xs mt-1">{{ errorDe('ciudad') }}</p>
+        }
+      </div>
+
+      <!-- Teléfono -->
+      <div>
+        <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">
+          Teléfono <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="telefono"
+          type="text"
+          formControlName="telefono"
+          maxlength="20"
+          placeholder="3001234567"
+          class="input-field"
+          [class.input-field-error]="errorDe('telefono')"
+        />
+        @if (errorDe('telefono')) {
+          <p class="text-red-600 text-xs mt-1">{{ errorDe('telefono') }}</p>
+        }
+      </div>
+
+      <!-- Acciones principales -->
+      <div class="flex gap-3 pt-2">
+        <button
+          type="submit"
+          [disabled]="guardando()"
+          class="btn-primary"
+        >
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <a
+          routerLink="/tiendas"
+          class="btn-secondary"
+        >
+          Cancelar
+        </a>
+      </div>
+
+    </form>
+
+    <app-danger-zone title="Estado de la tienda">
+      <button
+        type="button"
+        [disabled]="cambiandoEstado()"
+        (click)="solicitarCambioEstado()"
+        class="px-4 py-2 rounded-md text-sm font-medium border disabled:opacity-60 transition-colors duration-200"
+        [class.bg-red-50]="tiendaActiva()"
+        [class.text-red-700]="tiendaActiva()"
+        [class.border-red-300]="tiendaActiva()"
+        [class.hover:bg-red-100]="tiendaActiva()"
+        [class.bg-green-50]="!tiendaActiva()"
+        [class.text-green-700]="!tiendaActiva()"
+        [class.border-green-300]="!tiendaActiva()"
+        [class.hover:bg-green-100]="!tiendaActiva()"
+      >
+        {{ cambiandoEstado() ? 'Procesando...' : (tiendaActiva() ? 'Inactivar tienda' : 'Reactivar tienda') }}
+      </button>
+    </app-danger-zone>
+  </app-form-card>
+</div>
+
+<!-- Modal confirmar inactivar / reactivar -->
+@if (mostrarModalEstado()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-estado-titulo"
+  >
+    <div class="bg-white rounded-xl shadow-xl p-6 mx-4 w-full max-w-sm">
+      <h2 id="modal-estado-titulo" class="text-lg font-semibold text-gray-900 mb-3">
+        {{ tiendaActiva() ? '¿Inactivar tienda?' : '¿Reactivar tienda?' }}
+      </h2>
+      <p class="text-sm text-gray-600 mb-6">
+        @if (tiendaActiva()) {
+          La tienda dejará de estar disponible para operaciones.
+        } @else {
+          La tienda volverá a estar disponible para operaciones.
+        }
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          (click)="cancelarCambioEstado()"
+          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="ejecutarCambioEstado()"
+          class="px-4 py-2 text-sm rounded-lg text-white font-medium focus:outline-none focus:ring-2"
+          [class.bg-red-600]="tiendaActiva()"
+          [class.hover:bg-red-700]="tiendaActiva()"
+          [class.focus:ring-red-500]="tiendaActiva()"
+          [class.bg-green-600]="!tiendaActiva()"
+          [class.hover:bg-green-700]="!tiendaActiva()"
+          [class.focus:ring-green-500]="!tiendaActiva()"
+        >
+          {{ tiendaActiva() ? 'Inactivar' : 'Reactivar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
