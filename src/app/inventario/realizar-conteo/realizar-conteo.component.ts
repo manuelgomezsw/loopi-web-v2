@@ -101,6 +101,9 @@ export class RealizarConteoComponent implements OnInit {
     this.currentIndex++;
     if (this.currentIndex < this.items.length) {
       this.irAlPrimeroSinRegistro();
+    } else {
+      // Todos los items completados: navegar al resumen
+      this.pausar();
     }
   }
 

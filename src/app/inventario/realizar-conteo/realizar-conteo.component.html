@@ -66,13 +66,6 @@
     </div>
   </div>
 
-  <!-- Resumen si completó -->
-  <div class="completion-summary" *ngIf="!hayItemsPendientes() && !loading">
-    <h3>¡Todos los items han sido registrados!</h3>
-    <p>Puedes revisar el resumen o continuar con el siguiente paso.</p>
-    <button (click)="pausar()" class="btn-primary">Ir a Resumen</button>
-  </div>
-
   <!-- Botones de navegación -->
   <div class="actions">
     <button (click)="pausar()" class="btn-secondary">Pausar</button>
