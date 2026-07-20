@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { InventarioService, SugerenciaResp, InventarioResp } from '../inventario.service';
+import { InventarioService, SugerenciaResp } from '../inventario.service';
 import { FormCardComponent } from '../../shared/components/form-card/form-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
