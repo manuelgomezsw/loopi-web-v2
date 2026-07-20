@@ -13,11 +13,9 @@ import { ItemDetalle, ResumenProgreso } from './models';
   imports: [CommonModule, FormsModule],
 })
 export class RealizarConteoComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private router = inject(Router);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private service = inject(RealizarConteoService);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
+  service = inject(RealizarConteoService);
 
   inventarioID!: string;
   items: ItemDetalle[] = [];
