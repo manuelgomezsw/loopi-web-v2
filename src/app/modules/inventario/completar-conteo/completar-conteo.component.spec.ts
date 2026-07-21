@@ -12,7 +12,6 @@ describe('CompletarConteoComponent', () => {
   let fixture: ComponentFixture<CompletarConteoComponent>;
   let service: CompletarConteoService;
   let httpMock: HttpTestingController;
-  let router: Router;
 
   beforeEach(
     waitForAsync(() => {
@@ -46,7 +45,6 @@ describe('CompletarConteoComponent', () => {
     component = fixture.componentInstance;
     service = TestBed.inject(CompletarConteoService);
     httpMock = TestBed.inject(HttpTestingController);
-    router = TestBed.inject(Router);
   });
 
   afterEach(() => {
@@ -149,7 +147,7 @@ describe('CompletarConteoService', () => {
 
   it('should handle error response', () => {
     service.confirmarConteo(1, { confirmar: true }).subscribe(
-      () => {},
+      () => fail('should have failed'),
       (error) => {
         expect(error.status).toBe(422);
       }
